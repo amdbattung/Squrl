@@ -1,0 +1,44 @@
+﻿@inherits InputBase<Guid?>
+
+<input
+    type="text"
+    class="@CssClass"
+    value="@CurrentValueAsString"
+    @onchange="OnChange"
+    @attributes="AdditionalAttributes" />
+
+@code {
+    private void OnChange(ChangeEventArgs e)
+    {
+        CurrentValueAsString = e.Value?.ToString();
+    }
+    
+    protected override bool TryParseValueFromString(
+        string? value,
+        out Guid? result,
+        out string validationErrorMessage)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            result = null;
+            validationErrorMessage = "";
+            return true;
+        }
+
+        if (Guid.TryParse(value, out Guid guid))
+        {
+            result = guid;
+            validationErrorMessage = "";
+            return true;
+        }
+
+        result = null;
+        validationErrorMessage = "Invalid UUID format.";
+        return false;
+    }
+
+    protected override string FormatValueAsString(Guid? value)
+    {
+        return value?.ToString() ?? string.Empty;
+    }
+}

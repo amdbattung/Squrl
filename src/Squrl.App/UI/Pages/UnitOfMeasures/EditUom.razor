@@ -1,0 +1,89 @@
+﻿@page "/uoms/{UomId:guid}/edit"
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inject NavigationManager Navigation
+@inject IUomService UomService
+
+<h1>Edit Unit of Measure</h1>
+
+@if (Uom is not null)
+{
+    <EditForm Model="Uom" OnValidSubmit="HandleSubmit" FormName="AddUomForm">
+        <FluentValidator />
+        <div>
+            <label>Name</label>
+            <InputText @bind-Value="Uom.Name" />
+            <ValidationMessage For="@(() => Uom.Name)" />
+        </div>
+        <div>
+            <label>Code</label>
+            <InputText @bind-Value="Uom.Code" />
+            <ValidationMessage For="@(() => Uom.Code)" />
+        </div>
+        <div>
+            <label>Description</label>
+            <InputText @bind-Value="Uom.Description" />
+            <ValidationMessage For="@(() => Uom.Description)" />
+        </div>
+        <button type="submit">Submit</button>
+    </EditForm>
+    
+    @if (!string.IsNullOrEmpty(_successMessage))
+    {
+        <div class="alert alert-success">
+            @_successMessage
+        </div>
+    }
+}
+else
+{
+    <p>Loading...</p>
+}
+
+@code {
+    private string? _successMessage;
+    
+    [Parameter]
+    public required Guid UomId { get; set; }
+    
+    [PersistentState]
+    public UpdateUomDto? Uom { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        if (Uom is null)
+        {
+            GetUomDto? uomResult = (await UomService.GetUomByIdAsync(UomId)).Value;
+            
+            if (uomResult is null)
+            {
+                Navigation.NotFound();
+                return;
+            }
+
+            Uom = new()
+            {
+                Name = uomResult.Name,
+                Code = uomResult.Code,
+                Description = uomResult.Description,
+            };
+        }
+    }
+    
+    private async Task HandleSubmit()
+    {
+        if (Uom is not null)
+        {
+            Result<GetUomDto> result = await UomService.UpdateUomAsync(UomId, Uom);
+
+            if (result.IsSuccess)
+            {
+                _successMessage = $"UOM {result.Value?.Name} successfully updated";
+            }
+            else
+            {
+                _successMessage = null;
+            }
+        }
+    }
+}

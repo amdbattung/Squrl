@@ -1,0 +1,93 @@
+﻿@page "/items/new"
+@rendermode InteractiveServer
+@inject IInventoryService InventoryService
+@inject IUomService UomService
+
+<h1>Add Item</h1>
+
+<EditForm Model="_item" OnValidSubmit="HandleSubmit" FormName="AddItemForm">
+    <FluentValidator />
+    <div>
+        <label>Name</label>
+        <InputText @bind-Value="_item.Name" />
+        <ValidationMessage For="@(() => _item.Name)" />
+    </div>
+    <div>
+        <label>Description</label>
+        <InputText @bind-Value="_item.Description" />
+        <ValidationMessage For="@(() => _item.Description)" />
+    </div>
+    <div>
+        <label>UOM</label>
+        <InputSelect @bind-Value="_item.UomId">
+            <option value="">Select a UOM</option>
+            @if (UomSelect != null)
+            {
+                foreach (GetUomDto uom in UomSelect)
+                {
+                    <option value="@uom.Id">@($"{uom.Name} ({uom.Code})")</option>
+                }
+            }
+        </InputSelect>
+        <ValidationMessage For="@(() => _item.UomId)" />
+    </div>
+    <div>
+        <label>Starting Onhand Quantity</label>
+        <InputNumber @bind-Value="_item.Quantity" />
+        <ValidationMessage For="@(() => _item.Quantity)" />
+    </div>
+    <div>
+        <label>Low Stock Alert On Or Below</label>
+        <InputNumber @bind-Value="_item.LowQuantityAlertThreshold" />
+        <ValidationMessage For="@(() => _item.LowQuantityAlertThreshold)" />
+    </div>
+    <button type="submit">Submit</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(_successMessage))
+{
+    <div class="alert alert-success">
+        @_successMessage
+    </div>
+}
+
+@code {
+    private CreateItemDto _item = new()
+    {
+        Quantity = 0m,
+        Locations = new List<string>()
+    };
+    // private IReadOnlyCollection<GetUomDto>? _uomSelect;
+    private string? _successMessage;
+    
+    [PersistentState]
+    public IReadOnlyCollection<GetUomDto>? UomSelect { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (UomSelect is null)
+        {
+            Result<GetManyUomsDto> result = await UomService.GetManyUomsAsync();
+            UomSelect = result.Value?.Uoms ?? Array.Empty<GetUomDto>();
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        Result<GetItemDto> result = await InventoryService.CreateItemAsync(_item);
+
+        if (result.IsSuccess)
+        {
+            _item = new()
+            {
+                Quantity = 0m,
+                Locations = new List<string>()
+            };
+            _successMessage = $"Item {result.Value?.Name} successfully added";
+        }
+        else
+        {
+            _successMessage = null;
+        }
+    }
+}

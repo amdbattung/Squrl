@@ -1,0 +1,49 @@
+﻿@page "/Alerts"
+@implements IDisposable
+@using Squrl.App.Services.Alert
+@attribute [StreamRendering]
+@inject IAlertService AlertService
+
+<h3>Alerts</h3>
+
+@if (_alerts == null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <ul>
+        @foreach (var alert in _alerts)
+        {
+      
+            <li>@alert.Message</li>
+        }
+    </ul>
+}
+
+@code {
+    private IReadOnlyCollection<Alert>? _alerts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        AlertService.AlertsChanged += OnAlertsChanged;
+        await LoadAlerts();
+    }
+    
+    private async Task LoadAlerts()
+    {
+        Result<IReadOnlyCollection<Alert>> result = await AlertService.GetAlertsAsync();
+        _alerts = result.Value ?? Array.Empty<Alert>();
+    }
+    
+    private async Task OnAlertsChanged()
+    {
+        await LoadAlerts();
+        await InvokeAsync(StateHasChanged);
+    }
+    
+    public void Dispose()
+    {
+        AlertService.AlertsChanged -= OnAlertsChanged;
+    }
+}

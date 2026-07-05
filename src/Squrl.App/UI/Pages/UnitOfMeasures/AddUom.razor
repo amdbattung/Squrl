@@ -1,0 +1,49 @@
+﻿@page "/uoms/new"
+@using Squrl.App.Features.UnitOfMeasures.DTOs
+@rendermode InteractiveServer
+@inject IUomService UomService
+
+<h1>Add Unit of Measure</h1>
+
+<EditForm Model="_uom" OnValidSubmit="HandleSubmit" FormName="AddUomForm">
+    <FluentValidator />
+    <div>
+        <label>Name</label>
+        <InputText @bind-Value="_uom.Name" />
+        <ValidationMessage For="@(() => _uom.Name)" />
+    </div>
+    <div>
+        <label>Code</label>
+        <InputText @bind-Value="_uom.Code" />
+        <ValidationMessage For="@(() => _uom.Code)" />
+    </div>
+    <div>
+        <label>Description</label>
+        <InputText @bind-Value="_uom.Description" />
+        <ValidationMessage For="@(() => _uom.Description)" />
+    </div>
+    <button type="submit">Submit</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(_successMessage))
+{
+    <div class="alert alert-success">
+        @_successMessage
+    </div>
+}
+
+@code {
+    private CreateUomDto _uom = new();
+    private string? _successMessage;
+
+    private async Task HandleSubmit()
+    {
+        Result<GetUomDto> result = await UomService.CreateUomAsync(_uom);
+
+        if (result.IsSuccess)
+        {
+            _uom = new();
+            _successMessage = $"Unit of measure {result.Value?.Name} successfully added";
+        }
+    }
+}

@@ -1,0 +1,122 @@
+﻿@page "/items/{ItemId:guid}/edit"
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inject NavigationManager Navigation
+@inject IInventoryService InventoryService
+@inject IUomService UomService
+
+<h1>Edit Item</h1>
+
+@if (Item is not null)
+{
+    <EditForm Model="Item" OnValidSubmit="HandleSubmit" FormName="AddItemForm">
+        <FluentValidator />
+        <div>
+            <label>Name</label>
+            <InputText @bind-Value="Item.Name" />
+            <ValidationMessage For="@(() => Item.Name)" />
+        </div>
+        <div>
+            <label>Description</label>
+            <InputText @bind-Value="Item.Description" />
+            <ValidationMessage For="@(() => Item.Description)" />
+        </div>
+        <div>
+            <label>UOM</label>
+            <InputSelect @bind-Value="Item.UomId">
+                <option value="">Select a UOM</option>
+                @if (UomSelect != null)
+                {
+                    foreach (GetUomDto uom in UomSelect)
+                    {
+                        <option value="@uom.Id">@($"{uom.Name} ({uom.Code})")</option>
+                    }
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => Item.UomId)" />
+        </div>
+        <div>
+            <label>Starting Onhand Quantity</label>
+            <InputNumber @bind-Value="Item.Quantity" />
+            <ValidationMessage For="@(() => Item.Quantity)" />
+        </div>
+        <div>
+            <label>Low Stock Alert On Or Below</label>
+            <InputNumber @bind-Value="Item.LowQuantityAlertThreshold" />
+            <ValidationMessage For="@(() => Item.LowQuantityAlertThreshold)" />
+        </div>
+        <button type="submit">Submit</button>
+    </EditForm>
+    
+    @if (!string.IsNullOrEmpty(_successMessage))
+    {
+        <div class="alert alert-success">
+            @_successMessage
+        </div>
+    }
+}
+else
+{
+    <p>Loading...</p>
+}
+
+@code {
+    private string? _successMessage;
+    
+    [Parameter]
+    public required Guid ItemId { get; set; }
+    
+    [PersistentState]
+    public UpdateItemDto? Item { get; set; }
+    
+    [PersistentState]
+    public IReadOnlyCollection<GetUomDto>? UomSelect { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        GetItemDto? itemResult = null;
+        if (Item is null)
+        {
+            itemResult = (await InventoryService.GetItemByIdAsync(ItemId)).Value;
+        }
+        
+        if (itemResult is null)
+        {
+            Navigation.NotFound();
+            return;
+        }
+        
+        if (UomSelect is null)
+        {
+            Result<GetManyUomsDto> uomResult = await UomService.GetManyUomsAsync();
+            UomSelect = uomResult.Value?.Uoms ?? Array.Empty<GetUomDto>();
+        }
+        
+        Item = new()
+        {
+            Name = itemResult.Name,
+            UomId = itemResult.UomId,
+            Description = itemResult.Description,
+            Quantity = itemResult.Quantity,
+            LowQuantityAlertThreshold = itemResult.LowQuantityAlertThreshold,
+            Locations = itemResult.Locations?.ToList()
+        };
+    }
+    
+    private async Task HandleSubmit()
+    {
+        if (Item is not null)
+        {
+            Result<GetItemDto> result = await InventoryService.UpdateItemAsync(ItemId, Item);
+
+            if (result.IsSuccess)
+            {
+                _successMessage = $"Item {result.Value?.Name} successfully updated";
+            }
+            else
+            {
+                _successMessage = null;
+            }
+        }
+    }
+}

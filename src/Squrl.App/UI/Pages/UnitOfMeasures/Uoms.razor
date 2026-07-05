@@ -1,0 +1,100 @@
+﻿@page "/uoms"
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inject IUomService UomService
+@inject NavigationManager Navigation
+
+<h1>Unit of Measures</h1>
+
+<button class="btn btn-primary" @onclick="HandleAddUomButtonClick">+ Add UOM</button>
+
+<QuickGrid TGridItem="GetUomDto"
+           ItemsProvider="LoadUoms"
+           Pagination="@_pagination">
+    <PropertyColumn Property="u => u.Name" />
+    <PropertyColumn Property="u => u.Code" />
+    <PropertyColumn Property="u => u.Description" />
+    <TemplateColumn Title="Actions">
+        <button class="btn btn-secondary"
+                @onclick="@(() => HandleEditUomButtonClick(context.Id ?? Guid.Empty))">
+            Edit UOM
+        </button>
+        <button class="btn btn-danger"
+                @onclick="@(() => HandleDeleteUomButtonClick(context.Id ?? Guid.Empty))">
+            Delete UOM
+        </button>
+    </TemplateColumn>
+</QuickGrid>
+
+<Paginator State="@_pagination" />
+
+<select @bind="@_pagination.ItemsPerPage"> 
+    <option>5</option> 
+    <option>10</option> 
+    <option>15</option> 
+    <option>20</option> 
+    <option>25</option> 
+</select>
+
+@code {
+    private readonly PaginationState _pagination = new()
+    {
+        ItemsPerPage = 10
+    };
+    
+    // private string? _errorMessage;
+
+    private async ValueTask<GridItemsProviderResult<GetUomDto>> LoadUoms(
+        GridItemsProviderRequest<GetUomDto> request)
+    {
+        try
+        {
+            int pageSize = request.Count ?? _pagination.ItemsPerPage;
+
+            int pageNumber = (request.StartIndex / pageSize) + 1;
+
+            Result<GetManyUomsDto> result =
+                await UomService.GetManyUomsAsync(
+                    pageNumber: pageNumber,
+                    pageSize: pageSize);
+
+            if (!result.IsSuccess || result.Value is null)
+            {
+                // errorMessage = string.Join(", ", result.Errors);
+
+                return GridItemsProviderResult.From(
+                    Array.Empty<GetUomDto>(),
+                    0);
+            }
+
+            // errorMessage = null;
+
+            return GridItemsProviderResult.From(
+                result.Value?.Uoms?.ToList() ?? [],
+                result.Value?.TotalCount ?? 0);
+        }
+        catch (Exception ex)
+        {
+            // errorMessage = ex.Message;
+
+            return GridItemsProviderResult.From(
+                Array.Empty<GetUomDto>(),
+                0);
+        }
+    }
+
+    private void HandleAddUomButtonClick()
+    {
+        Navigation.NavigateTo("/uoms/new");
+    }
+    
+    private void HandleEditUomButtonClick(Guid uomId)
+    {
+        Navigation.NavigateTo($"/uoms/{uomId}/edit");
+    }
+    
+    private async void HandleDeleteUomButtonClick(Guid uomId)
+    {
+        Result<GetUomDto> result = await UomService.DeleteUomAsync(uomId);
+    }
+}

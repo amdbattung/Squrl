@@ -1,0 +1,96 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inject IInventoryService InventoryService
+@inject IUomService UomService
+
+<h1>Stocks</h1>
+
+<QuickGrid TGridItem="GetItemDto"
+           ItemsProvider="LoadItems"
+           Pagination="@_pagination">
+    <PropertyColumn Property="i => i.Name" />
+    @* <PropertyColumn Property="i => i.Quantity" Title="Onhand" Format="#,##0.##" /> *@
+    <TemplateColumn Title="Onhand">
+        @(context.Quantity.HasValue
+            ? $"{ToStringFormatters.FormatDecimal(context.Quantity.Value)} " +
+              $"{(_uomCache.TryGetValue(context.UomId ?? Guid.Empty, out string? uom)
+                  ? uom
+                  : "")}"
+            : "")
+    </TemplateColumn>
+    <TemplateColumn Title="Location(s)">
+        @string.Join(", ", context.Locations ?? Array.Empty<string>())
+    </TemplateColumn>
+</QuickGrid>
+
+<Paginator State="@_pagination" />
+
+<select @bind="@_pagination.ItemsPerPage"> 
+    <option>5</option> 
+    <option>10</option> 
+    <option>15</option> 
+    <option>20</option> 
+    <option>25</option> 
+</select>
+
+@code {
+    private readonly PaginationState _pagination = new()
+    {
+        ItemsPerPage = 10
+    };
+    
+    private readonly Dictionary<Guid, string> _uomCache = new();
+    
+    // private string? _errorMessage;
+
+    private async ValueTask<GridItemsProviderResult<GetItemDto>> LoadItems(
+        GridItemsProviderRequest<GetItemDto> request)
+    {
+        try
+        {
+            int pageSize = request.Count ?? _pagination.ItemsPerPage;
+
+            int pageNumber = (request.StartIndex / pageSize) + 1;
+
+            Result<GetManyItemsDto> result =
+                await InventoryService.GetManyItemsAsync(
+                    pageNumber: pageNumber,
+                    pageSize: pageSize);
+
+            if (result.Value?.Items is null)
+            {
+                // errorMessage = string.Join(", ", result.Errors);
+
+                return GridItemsProviderResult.From(
+                    Array.Empty<GetItemDto>(),
+                    0);
+            }
+            
+            foreach (GetItemDto item in result.Value.Items)
+            {
+                if (!_uomCache.ContainsKey(item.UomId ?? Guid.Empty))
+                {
+                    var uom = await UomService.GetUomByIdAsync(item.UomId ?? Guid.Empty);
+
+                    if (uom.IsSuccess)
+                        _uomCache[item.UomId ?? Guid.Empty] = uom.Value?.Code ?? "";
+                }
+            }
+
+            // errorMessage = null;
+
+            return GridItemsProviderResult.From(
+                result.Value?.Items?.ToList() ?? [],
+                result.Value?.TotalCount ?? 0);
+        }
+        catch (Exception ex)
+        {
+            // errorMessage = ex.Message;
+
+            return GridItemsProviderResult.From(
+                Array.Empty<GetItemDto>(),
+                0);
+        }
+    }
+}

@@ -1,0 +1,83 @@
+﻿@using Squrl.App.UI.Shared
+@implements IDisposable
+@inject NavigationManager Navigation
+
+@if (_currentSection?.Children.Any() == true)
+{
+    <nav class="nav nav-tabs top-nav">
+        @foreach (var item in _currentSection.Children)
+        {
+            <a href="@item.Url"
+               class="nav-link @GetActiveClass(item)">
+                @item.Text
+            </a>
+        }
+    </nav>
+}
+
+@code {
+    private MenuItems? _currentSection;
+
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += OnLocationChanged;
+        UpdateCurrentSection();
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        UpdateCurrentSection();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private void UpdateCurrentSection()
+    {
+        var path = NormalizePath(new Uri(Navigation.Uri).AbsolutePath);
+
+        _currentSection = MenuItems.Root.Children
+            .Select(section => new
+            {
+                Section = section,
+                MatchLength = section.Children
+                    .Where(child =>
+                        child.Url == "/"
+                            ? path == "/"
+                            : path.StartsWith(child.Url + "/", StringComparison.OrdinalIgnoreCase) ||
+                              path.Equals(child.Url, StringComparison.OrdinalIgnoreCase))
+                    .Select(child => child.Url.Length)
+                    .DefaultIfEmpty(0)
+                    .Max()
+            })
+            .Where(x => x.MatchLength > 0)
+            .OrderByDescending(x => x.MatchLength)
+            .Select(x => x.Section)
+            .FirstOrDefault();
+    }
+
+    private string GetActiveClass(MenuItems item)
+    {
+        var path = NormalizePath(new Uri(Navigation.Uri).AbsolutePath);
+        
+        var itemUrl = NormalizePath(item.Url);
+
+        var isActive =
+            itemUrl == "/"
+                ? path == "/"
+                : path.Equals(itemUrl, StringComparison.OrdinalIgnoreCase);
+
+        return isActive ? "active" : "";
+    }
+    
+    private static string NormalizePath(string path)
+    {
+        if (string.IsNullOrEmpty(path) || path == "/")
+            return "/";
+
+        return path.TrimEnd('/');
+    }
+
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+    }
+}

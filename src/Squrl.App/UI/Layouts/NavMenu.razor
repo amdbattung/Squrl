@@ -1,0 +1,51 @@
+﻿@using Squrl.App.UI.Shared
+@inject NavigationManager Navigation
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">Squrl</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler"/>
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="nav flex-column">
+        @foreach (var item in MenuItems.Root.Children)
+        {
+            <div class="nav-item px-3">
+                <a href="@item.Url"
+                   class="@GetActiveClass(item)">
+                    @item.Text
+                </a>
+            </div>
+        }
+    </nav>
+</div>
+
+@code
+{
+    private string GetActiveClass(MenuItems item)
+    {
+        var path = NormalizePath(new Uri(Navigation.Uri).AbsolutePath);
+
+        var urls = new[] { item.Url }
+            .Concat(item.Children.Select(c => c.Url));
+
+        var isActive = urls.Any(url =>
+            url == "/"
+                ? path == "/"
+                : path.Equals(url, StringComparison.OrdinalIgnoreCase) ||
+                  path.StartsWith(url + "/", StringComparison.OrdinalIgnoreCase));
+
+        return isActive ? "nav-link active" : "nav-link";
+    }
+    
+    private static string NormalizePath(string path)
+    {
+        if (string.IsNullOrEmpty(path) || path == "/")
+            return "/";
+
+        return path.TrimEnd('/');
+    }
+}

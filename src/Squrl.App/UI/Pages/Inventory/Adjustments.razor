@@ -1,0 +1,86 @@
+﻿@page "/inventory/adjustments"
+@using Squrl.App.UI.Shared
+@rendermode InteractiveServer
+@inject IInventoryService InventoryService
+
+<h1>Adjust Item Stock</h1>
+
+<EditForm Model="_adjustment" OnValidSubmit="HandleSubmit" FormName="AddItemForm">
+    <FluentValidator />
+    <div>
+        <label>Item</label>
+        <InputSelect @bind-Value="_adjustment.ItemId" @bind-Value:after="LoadCurrentStock">
+            <option value="">Select an Item</option>
+            @if (ItemSelect != null)
+            {
+                foreach (GetItemDto item in ItemSelect)
+                {
+                    <option value="@item.Id">@item.Name</option>
+                }
+            }
+        </InputSelect>
+    </div>
+    <div>
+        <label>Adjustment</label>
+        <InputText @bind-Value="_adjustment.Adjustment" />
+        @* <ValidationMessage For="@(() => _adjustment)" /> *@
+    </div>
+    @* <p>Current Stock: @_currentStock?.ToString("#,##0.##")</p> *@
+    <p>Current Stock: @(_currentStock.HasValue
+                          ? ToStringFormatters.FormatDecimal(_currentStock.Value)
+                          : "")</p>
+    <button type="submit">Submit</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(_successMessage))
+{
+    <div class="alert alert-success">
+        @_successMessage
+    </div>
+}
+
+@code {
+    private decimal? _currentStock;
+    private StockAdjustmentFormModel _adjustment = new();
+    private string? _successMessage;
+    
+    [PersistentState]
+    public IReadOnlyCollection<GetItemDto>? ItemSelect { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (ItemSelect is null)
+        {
+            Result<GetManyItemsDto> result = await InventoryService.GetManyItemsAsync();
+            ItemSelect = result.Value?.Items ?? Array.Empty<GetItemDto>();
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        Result<GetItemDto> result = await InventoryService.DynamicStockUpdateAsync(_adjustment.ItemId ?? Guid.Empty, _adjustment.Adjustment ?? "");
+        
+        if (result.IsSuccess)
+        {
+            _currentStock = result.Value?.Quantity;
+            _adjustment.Adjustment = null;
+            _successMessage = $"Item {result.Value?.Name} stock successfully adjusted";
+        }
+        else
+        {
+            _successMessage = null;
+        }
+    }
+
+    private async Task LoadCurrentStock()
+    {
+        Result<GetItemDto> result = await InventoryService.GetItemByIdAsync(_adjustment.ItemId ?? Guid.Empty);
+        _currentStock = result.Value?.Quantity;
+    }
+    
+    private class StockAdjustmentFormModel
+    {
+        public Guid? ItemId { get; set; }
+        public string? Adjustment { get; set; }
+    }
+}

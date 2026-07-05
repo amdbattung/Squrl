@@ -1,0 +1,241 @@
+############################################
+# OS files
+############################################
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+############################################
+# IDE - JetBrains (Rider / IntelliJ)
+############################################
+
+# User-specific
+.idea/
+**/.idea/**/workspace.xml
+**/.idea/**/tasks.xml
+**/.idea/shelf/
+**/.idea/dictionaries/
+**/.idea/httpRequests/
+
+# Data sources / DB configs
+**/.idea/**/dataSources/
+**/.idea/**/dataSources.ids
+**/.idea/**/dataSources.xml
+**/.idea/**/dataSources.local.xml
+**/.idea/**/sqlDataSources.xml
+**/.idea/**/dynamic.xml
+
+# Modules / build metadata
+**/.idea/**/*.iml
+**/.idea/**/contentModel.xml
+**/.idea/**/modules.xml
+
+# Rider caches
+_ReSharper.Caches/
+
+############################################
+# IDE - Visual Studio
+############################################
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.userprefs
+*.sln.docstates
+*.rsuser
+
+# Visual Studio folder
+.vs/
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+out/
+log/
+logs/
+
+# Test / build logs
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+*.log
+
+# Coverage / test tools
+coverage*.json
+coverage*.xml
+coverage*.info
+*.coverage
+*.coveragexml
+
+# ReSharper
+_ReSharper*/
+*.DotSettings.user
+
+# NUnit / test outputs
+TestResult.xml
+nunit-*.xml
+
+# Benchmark
+BenchmarkDotNet.Artifacts/
+
+############################################
+# .NET / NuGet / ASP.NET
+############################################
+
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+*.nupkg
+*.snupkg
+
+# NuGet packages
+**/[Pp]ackages/
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+
+# ASP.NET scaffolding
+ScaffoldingReadMe.txt
+
+# Publish
+publish/
+*.pubxml
+*.publishproj
+*.azurePubxml
+PublishScripts/
+
+############################################
+# Build artifacts / generated files
+############################################
+
+*_i.c
+*_p.c
+*_h.h
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
+*.pdb
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.dll
+*.exe
+
+############################################
+# Visual C++ / legacy
+############################################
+
+ipch/
+*.aps
+*.ncb
+*.opendb
+*.opensdf
+*.sdf
+*.cachefile
+*.VC.db
+*.VC.VC.opendb
+
+############################################
+# Logs / temp / backups
+############################################
+
+*.log
+*.tmp
+*~
+~$*
+*.bak
+
+############################################
+# Databases
+############################################
+
+*.db
+*.db-shm
+*.db-wal
+*.mdf
+*.ldf
+*.ndf
+
+############################################
+# Security / secrets
+############################################
+
+*.pfx
+*.snk
+
+############################################
+# Node / JS tools
+############################################
+
+node_modules/
+
+############################################
+# Python
+############################################
+
+__pycache__/
+*.pyc
+
+############################################
+# Misc tools / CI / plugins
+############################################
+
+_TeamCity*
+_NCrunch_*
+.fake/
+.paket/
+paket-files/
+.ionide/
+.mfractor/
+.localhistory/
+FodyWeavers.xsd
+
+############################################
+# Azure / MS tooling
+############################################
+
+ecf/
+rcf/
+ASALocalRun/
+AppPackages/
+BundleArtifacts/
+Package.StoreAssociation.xml
+*.appx*
+*_PackageInfo.txt
+
+############################################
+# SQL / BI
+############################################
+
+*.sqlproj.user
+*.rptproj.bak
+*.mdf
+*.ldf
+
+############################################
+# Misc
+############################################
+
+GeneratedCode/
+Generated\ Files/
+ClientBin/
