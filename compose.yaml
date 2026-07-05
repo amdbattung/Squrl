@@ -1,0 +1,7 @@
+﻿services:
+  squrl:
+    image: squrl
+    build:
+      context: .
+      dockerfile: src/Squrl.App/Dockerfile
+
