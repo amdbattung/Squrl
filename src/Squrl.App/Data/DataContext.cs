@@ -28,6 +28,12 @@ public class DataContext : DbContext
         
         modelBuilder.Entity<UnitOfMeasure>()
             .Property<Instant?>("DateCreated");
+        
+        modelBuilder.Entity<PurchaseOrder>()
+            .Property<Instant?>("DateCreated");
+        
+        modelBuilder.Entity<PurchaseOrderDetail>()
+            .Property<Instant?>("DateCreated");
 
         // Defaults
 
@@ -49,11 +55,31 @@ public class DataContext : DbContext
         
         modelBuilder.Entity<UnitOfMeasure>()
             .HasIndex("DateCreated");
+        
+        modelBuilder.Entity<PurchaseOrder>()
+            .HasIndex("DateCreated");
+        
+        modelBuilder.Entity<PurchaseOrderDetail>()
+            .HasIndex("DateCreated");
 
         // Relationships
-        modelBuilder.Entity<UnitOfMeasure>()
-            .HasMany<Item>()
-            .WithOne(e => e.Uom)
+        modelBuilder.Entity<Item>()
+            .HasOne(e => e.Uom)
+            .WithMany()
+            .IsRequired();
+        
+        modelBuilder.Entity<PurchaseOrder>()
+            .HasOne(e => e.Supplier)
+            .WithMany();
+
+        modelBuilder.Entity<PurchaseOrderDetail>()
+            .HasOne(e => e.PurchaseOrder)
+            .WithMany()
+            .IsRequired();
+
+        modelBuilder.Entity<PurchaseOrderDetail>()
+            .HasOne(e => e.PurchaseOrderItem)
+            .WithMany()
             .IsRequired();
     }
 }
