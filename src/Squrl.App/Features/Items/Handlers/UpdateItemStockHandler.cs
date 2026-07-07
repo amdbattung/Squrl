@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Squrl.App.Common;
 using Squrl.App.Data;
+using Squrl.App.Enums;
 using Squrl.App.Features.Items.Commands;
 using Squrl.App.Models;
 

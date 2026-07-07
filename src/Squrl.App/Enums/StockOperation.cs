@@ -1,4 +1,4 @@
-﻿namespace Squrl.App.Common;
+﻿namespace Squrl.App.Enums;
 
 public enum StockOperation
 {

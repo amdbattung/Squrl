@@ -1,4 +1,5 @@
 ﻿using Squrl.App.Common;
+using Squrl.App.Enums;
 using Squrl.App.Features.UnitOfMeasures.DTOs;
 
 namespace Squrl.App.Services.UnitOfMeasure;

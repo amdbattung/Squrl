@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Squrl.App.Common;
+using Squrl.App.Enums;
 using Squrl.App.Models;
 
 namespace Squrl.App.Features.Items.Commands;

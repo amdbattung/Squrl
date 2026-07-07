@@ -16,11 +16,15 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Features\PurchaseOrders\Commands\" />
+      <Folder Include="Features\PurchaseOrders\DTOs\" />
+      <Folder Include="Features\PurchaseOrders\Handlers\" />
+      <Folder Include="Features\PurchaseOrders\Mapping\" />
+      <Folder Include="Features\PurchaseOrders\Queries\" />
+      <Folder Include="Features\PurchaseOrders\Validators\" />
       <Folder Include="Features\Suppliers\Commands\" />
       <Folder Include="Features\Suppliers\DTOs\" />
-      <Folder Include="Features\Suppliers\Handlers\" />
       <Folder Include="Features\Suppliers\Mapping\" />
-      <Folder Include="Features\Suppliers\Queries\" />
       <Folder Include="Features\Suppliers\Validators\" />
       <Folder Include="Migrations\" />
     </ItemGroup>

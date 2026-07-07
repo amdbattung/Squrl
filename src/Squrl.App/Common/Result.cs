@@ -1,4 +1,6 @@
-﻿namespace Squrl.App.Common;
+﻿using Squrl.App.Enums;
+
+namespace Squrl.App.Common;
 
 public class Result<T>
 {
@@ -21,6 +23,7 @@ public class Result<T>
         Value = value;
         Message = message;
         Errors = errors ?? Array.Empty<string>();
+        Exception = exception;
         FailureType = failureType;
     }
 

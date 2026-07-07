@@ -2,6 +2,7 @@
 using FluentValidation.Results;
 using MediatR;
 using Squrl.App.Common;
+using Squrl.App.Enums;
 using Squrl.App.Features.UnitOfMeasures.Commands;
 using Squrl.App.Features.UnitOfMeasures.DTOs;
 using Squrl.App.Features.UnitOfMeasures.Mapping;

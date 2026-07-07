@@ -1,4 +1,5 @@
 ﻿using Squrl.App.Common;
+using Squrl.App.Enums;
 using Squrl.App.Features.Items.DTOs;
 
 namespace Squrl.App.Services.Inventory;
