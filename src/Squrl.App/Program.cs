@@ -8,6 +8,7 @@ using Squrl.App.Extensions;
 using Squrl.App.Services.Alert;
 using Squrl.App.Services.BackgroundTaskQueue;
 using Squrl.App.Services.Inventory;
+using Squrl.App.Services.PlatformDialogService;
 using Squrl.App.Services.UnitOfMeasure;
 using Squrl.App.UI;
 
@@ -52,6 +53,16 @@ try
         }
 
         return new BackgroundTaskQueue(queueCapacity);
+    });
+    
+    builder.Services.AddSingleton<IPlatformDialogService>(_ =>
+    {
+        if (OperatingSystem.IsWindows())
+        {
+            return new WindowsDialogService();
+        }
+
+        return new NullPlatformDialogService();
     });
 
     builder.Services.AddRazorComponents()
@@ -109,6 +120,13 @@ try
 catch (Exception ex)
 {
     Log.Fatal(ex, "Application terminated unexpectedly");
+    
+    if (OperatingSystem.IsWindows())
+    {
+        new WindowsDialogService().ShowError(
+            "Squrl Startup Error",
+            ex.Message);
+    }
 }
 finally
 {

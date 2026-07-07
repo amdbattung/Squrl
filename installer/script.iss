@@ -3,7 +3,7 @@
 ; Non-commercial use only
 
 #define MyAppName "Squrl"
-#define MyAppVersion "beta-0.1.1"
+#define MyAppVersion "0.1.1-alpha"
 #define MyAppExeName "Squrl.App.exe"
 #define OutputFileName "squrl"
 
