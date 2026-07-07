@@ -22,8 +22,6 @@
       <Folder Include="Features\PurchaseOrders\Mapping\" />
       <Folder Include="Features\PurchaseOrders\Queries\" />
       <Folder Include="Features\PurchaseOrders\Validators\" />
-      <Folder Include="Features\Suppliers\Commands\" />
-      <Folder Include="Features\Suppliers\DTOs\" />
       <Folder Include="Features\Suppliers\Mapping\" />
       <Folder Include="Features\Suppliers\Validators\" />
       <Folder Include="Migrations\" />
