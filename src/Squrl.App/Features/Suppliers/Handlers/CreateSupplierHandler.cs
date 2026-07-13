@@ -19,8 +19,8 @@ public class CreateSupplierHandler : IRequestHandler<CreateSupplierCommand, Supp
         Supplier newSupplier = new()
         {
             Id = Guid.NewGuid(),
-            Name = request.Uom.Name ?? "",
-            Description = request.Uom.Description,
+            Name = request.Supplier.Name ?? "",
+            Description = request.Supplier.Description,
         };
         
         await _dataContext.Suppliers.AddAsync(newSupplier, cancellationToken);
