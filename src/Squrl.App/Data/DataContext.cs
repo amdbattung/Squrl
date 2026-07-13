@@ -78,7 +78,7 @@ public class DataContext : DbContext
             .IsRequired();
 
         modelBuilder.Entity<PurchaseOrderDetail>()
-            .HasOne(e => e.PurchaseOrderItem)
+            .HasOne(e => e.Item)
             .WithMany()
             .IsRequired();
     }

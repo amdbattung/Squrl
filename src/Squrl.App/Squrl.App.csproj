@@ -16,6 +16,10 @@
     </ItemGroup>
 
     <ItemGroup>
+      <Folder Include="Features\PurchaseOrderDetails\Commands\" />
+      <Folder Include="Features\PurchaseOrderDetails\Handlers\" />
+      <Folder Include="Features\PurchaseOrderDetails\Queries\" />
+      <Folder Include="Features\PurchaseOrderDetails\Validators\" />
       <Folder Include="Features\PurchaseOrders\Commands\" />
       <Folder Include="Features\PurchaseOrders\DTOs\" />
       <Folder Include="Features\PurchaseOrders\Handlers\" />
