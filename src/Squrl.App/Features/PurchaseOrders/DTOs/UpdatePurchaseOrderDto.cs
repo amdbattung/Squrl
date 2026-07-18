@@ -5,7 +5,6 @@ namespace Squrl.App.Features.PurchaseOrders.DTOs;
 
 public class UpdatePurchaseOrderDto
 {
-    public Guid? PurchaseOrderId { get; set; }
     public Guid? SupplierId { get; set; }
     public PurchaseOrderStatus? Status { get; set; }
     public Instant? DateOrdered { get; set; }

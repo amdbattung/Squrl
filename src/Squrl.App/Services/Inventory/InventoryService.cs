@@ -26,7 +26,8 @@ public class InventoryService : IInventoryService
         _updateItemValidator = updateItemValidator;
     }
     
-    public async Task<Result<GetManyItemsDto>> GetManyItemsAsync(string? query = null, int? pageNumber = null, int? pageSize = null, CancellationToken cancellationToken = default)
+    public async Task<Result<GetManyItemsDto>> GetManyItemsAsync(string? query = null, int? pageNumber = null, int? pageSize = null,
+        CancellationToken cancellationToken = default)
     {
         try
         {
@@ -38,7 +39,7 @@ public class InventoryService : IInventoryService
             GetManyItemsDto payload = new GetManyItemsDto(
                 result.PageSize,
                 result.PageNumber,
-                result.ItemCount,
+                result.TotalCount,
                 result.Value.Select(ItemMapper.ToDto).ToList());
             
             return Result<GetManyItemsDto>.Ok(payload);
@@ -314,8 +315,11 @@ public class InventoryService : IInventoryService
             StockOperation operation;
             decimal value;
         
+            // Determine OPERATION and Extract QUANTITY
+            // SHORTCUT: Check whether first character is a digit/numerical (which means no explicit operator).
             if (char.IsDigit(quantity[0]))
             {
+                // No explicit operator means we do a SET operation using the value.
                 if (!decimal.TryParse(quantity, out value))
                 {
                     return Result<GetItemDto>.Fail("Invalid quantity.")
@@ -327,11 +331,13 @@ public class InventoryService : IInventoryService
                     return Result<GetItemDto>.Fail("Invalid negative quantity.")
                         .WithFailureType(FailureType.Validation);
                 }
-            
+                
                 operation = StockOperation.Set;
             }
+            // MAIN LOGIC.
             else
             {
+                // Validate and determine operation.
                 switch (quantity[0])
                 {
                     case '+':
@@ -359,12 +365,14 @@ public class InventoryService : IInventoryService
                             .WithFailureType(FailureType.Validation);
                 }
 
+                // Extract quantity by excluding the first character (operator).
                 if (!decimal.TryParse(quantity.AsSpan(1), out value))
                 {
                     return Result<GetItemDto>.Fail("Invalid quantity.")
                         .WithFailureType(FailureType.Validation);
                 }
 
+                // Validate quantity
                 if (operation == StockOperation.Set)
                 {
                     if (value < 0m)
@@ -380,6 +388,7 @@ public class InventoryService : IInventoryService
                 }
             }
         
+            // Perform stock update with the given OPERATION and QUANTITY.
             Item? result = await _mediator.Send(new UpdateItemStockCommand(itemId, operation, value), cancellationToken);
 
             if (result == null)
