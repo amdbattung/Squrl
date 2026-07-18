@@ -14,6 +14,8 @@ public class DataContext : DbContext
     public DbSet<Item> Items { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
     public DbSet<UnitOfMeasure> UnitOfMeasures { get; set; }
+    public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
+    public DbSet<PurchaseOrderDetail> PurchaseOrderDetails { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
