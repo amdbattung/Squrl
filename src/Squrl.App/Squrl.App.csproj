@@ -18,9 +18,7 @@
     <ItemGroup>
       <Folder Include="Features\PurchaseOrderDetails\Validators\" />
       <Folder Include="Features\PurchaseOrders\Commands\" />
-      <Folder Include="Features\PurchaseOrders\DTOs\" />
       <Folder Include="Features\PurchaseOrders\Handlers\" />
-      <Folder Include="Features\PurchaseOrders\Mapping\" />
       <Folder Include="Features\PurchaseOrders\Queries\" />
       <Folder Include="Features\PurchaseOrders\Validators\" />
       <Folder Include="Migrations\" />
