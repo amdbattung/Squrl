@@ -6,11 +6,17 @@
 
 <h1>Unit of Measures</h1>
 
+<input class="form-control"
+       @bind="_searchInput"
+       @bind:event="oninput"
+       @bind:after="SearchAsync" />
+
 <button class="btn btn-primary" @onclick="HandleAddUomButtonClick">+ Add UOM</button>
 
-<QuickGrid TGridItem="GetUomDto"
-           ItemsProvider="LoadUoms"
-           Pagination="@_pagination">
+<QuickGrid @ref="_grid"
+    TGridItem="GetUomDto"
+    ItemsProvider="LoadUoms"
+    Pagination="@_pagination">
     <PropertyColumn Property="u => u.Name" />
     <PropertyColumn Property="u => u.Code" />
     <PropertyColumn Property="u => u.Description" />
@@ -26,21 +32,29 @@
     </TemplateColumn>
 </QuickGrid>
 
-<Paginator State="@_pagination" />
+<Paginator State="_pagination" />
 
-<select @bind="@_pagination.ItemsPerPage"> 
-    <option>5</option> 
-    <option>10</option> 
-    <option>15</option> 
-    <option>20</option> 
-    <option>25</option> 
+<select class="form-select mt-3"
+        style="width:120px"
+        @bind="_pagination.ItemsPerPage">
+    <option>5</option>
+    <option>10</option>
+    <option>15</option>
+    <option>20</option>
+    <option>25</option>
 </select>
 
 @code {
+    private QuickGrid<GetUomDto>? _grid;
+    
     private readonly PaginationState _pagination = new()
     {
         ItemsPerPage = 10
     };
+    
+    private string _searchInput = "";
+    private string _search = "";
+    private CancellationTokenSource? _debounceCts;
     
     // private string? _errorMessage;
 
@@ -55,8 +69,9 @@
 
             Result<GetManyUomsDto> result =
                 await UomService.GetManyUomsAsync(
-                    pageNumber: pageNumber,
-                    pageSize: pageSize);
+                    _search,
+                    pageNumber,
+                    pageSize);
 
             if (!result.IsSuccess || result.Value is null)
             {
@@ -82,6 +97,31 @@
                 0);
         }
     }
+    
+    private async Task SearchAsync()
+    {
+        _debounceCts?.Cancel();
+        _debounceCts?.Dispose();
+
+        _debounceCts = new();
+        CancellationToken token = _debounceCts.Token;
+
+        try
+        {
+            await Task.Delay(500, token);
+
+            // Apply the search only after the delay
+            _search = _searchInput;
+
+            await _pagination.SetCurrentPageIndexAsync(0);
+
+            if (_grid is not null)
+            {
+                await _grid.RefreshDataAsync();
+            }
+        }
+        catch (OperationCanceledException) { }
+    }
 
     private void HandleAddUomButtonClick()
     {
@@ -93,8 +133,13 @@
         Navigation.NavigateTo($"/uoms/{uomId}/edit");
     }
     
-    private async void HandleDeleteUomButtonClick(Guid uomId)
+    private async Task HandleDeleteUomButtonClick(Guid uomId)
     {
         Result<GetUomDto> result = await UomService.DeleteUomAsync(uomId);
+
+        if (result.IsSuccess && _grid is not null)
+        {
+            await _grid.RefreshDataAsync();
+        }
     }
 }
