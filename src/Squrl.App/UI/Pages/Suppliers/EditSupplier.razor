@@ -1,0 +1,83 @@
+﻿@page "/suppliers/{SupplierId:guid}/edit"
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inject NavigationManager Navigation
+@inject ISupplierService SupplierService
+
+<h1>Edit Supplier</h1>
+
+@if (Supplier is not null)
+{
+    <EditForm Model="Supplier" OnValidSubmit="HandleSubmit" FormName="EditSupplierForm">
+        <FluentValidator />
+        <div>
+            <label>Name</label>
+            <InputText @bind-Value="Supplier.Name" />
+            <ValidationMessage For="@(() => Supplier.Name)" />
+        </div>
+        <div>
+            <label>Description</label>
+            <InputText @bind-Value="Supplier.Description" />
+            <ValidationMessage For="@(() => Supplier.Description)" />
+        </div>
+        <button type="submit">Submit</button>
+    </EditForm>
+    
+    @if (!string.IsNullOrEmpty(_successMessage))
+    {
+        <div class="alert alert-success">
+            @_successMessage
+        </div>
+    }
+}
+else
+{
+    <p>Loading...</p>
+}
+
+@code {
+    private string? _successMessage;
+    
+    [Parameter]
+    public required Guid SupplierId { get; set; }
+    
+    [PersistentState]
+    public UpdateSupplierDto? Supplier { get; set; }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        if (Supplier is null)
+        {
+            GetSupplierDto? supplierResult = (await SupplierService.GetSupplierByIdAsync(SupplierId)).Value;
+            
+            if (supplierResult is null)
+            {
+                Navigation.NotFound();
+                return;
+            }
+
+            Supplier = new()
+            {
+                Name = supplierResult.Name,
+                Description = supplierResult.Description
+            };
+        }
+    }
+    
+    private async Task HandleSubmit()
+    {
+        if (Supplier is not null)
+        {
+            Result<GetSupplierDto> result = await SupplierService.UpdateSupplierAsync(SupplierId, Supplier);
+
+            if (result.IsSuccess)
+            {
+                _successMessage = $"Supplier {result.Value?.Name} successfully updated";
+            }
+            else
+            {
+                _successMessage = null;
+            }
+        }
+    }
+}

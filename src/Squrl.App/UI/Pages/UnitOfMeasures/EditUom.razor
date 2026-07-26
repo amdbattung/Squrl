@@ -8,7 +8,7 @@
 
 @if (Uom is not null)
 {
-    <EditForm Model="Uom" OnValidSubmit="HandleSubmit" FormName="AddUomForm">
+    <EditForm Model="Uom" OnValidSubmit="HandleSubmit" FormName="EditUomForm">
         <FluentValidator />
         <div>
             <label>Name</label>
@@ -65,7 +65,7 @@ else
             {
                 Name = uomResult.Name,
                 Code = uomResult.Code,
-                Description = uomResult.Description,
+                Description = uomResult.Description
             };
         }
     }

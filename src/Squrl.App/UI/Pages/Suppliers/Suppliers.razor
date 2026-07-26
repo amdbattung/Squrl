@@ -1,6 +1,99 @@
 ﻿@page "/suppliers"
-<h3>Suppliers</h3>
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inject ISupplierService SupplierService
+@inject NavigationManager Navigation
+
+<h1>Suppliers</h1>
+
+<button class="btn btn-primary" @onclick="HandleAddSupplierButtonClick">+ Add Supplier</button>
+
+<QuickGrid TGridItem="GetSupplierDto"
+           ItemsProvider="LoadSuppliers"
+           Pagination="@_pagination">
+    <PropertyColumn Property="u => u.Name" />
+    <PropertyColumn Property="u => u.Description" />
+    <TemplateColumn Title="Actions">
+        <button class="btn btn-secondary"
+                @onclick="@(() => HandleEditSupplierButtonClick(context.Id ?? Guid.Empty))">
+            Edit UOM
+        </button>
+        <button class="btn btn-danger"
+                @onclick="@(() => HandleDeleteSupplierButtonClick(context.Id ?? Guid.Empty))">
+            Delete UOM
+        </button>
+    </TemplateColumn>
+</QuickGrid>
+
+<Paginator State="@_pagination" />
+
+<select @bind="@_pagination.ItemsPerPage"> 
+    <option>5</option> 
+    <option>10</option> 
+    <option>15</option> 
+    <option>20</option> 
+    <option>25</option> 
+</select>
 
 @code {
+    private readonly PaginationState _pagination = new()
+    {
+        ItemsPerPage = 10
+    };
     
+    // private string? _errorMessage;
+
+    private async ValueTask<GridItemsProviderResult<GetSupplierDto>> LoadSuppliers(
+        GridItemsProviderRequest<GetSupplierDto> request)
+    {
+        try
+        {
+            int pageSize = request.Count ?? _pagination.ItemsPerPage;
+
+            int pageNumber = (request.StartIndex / pageSize) + 1;
+
+            Result<GetManySuppliersDto> result =
+                await SupplierService.GetManySuppliersAsync(
+                    pageNumber: pageNumber,
+                    pageSize: pageSize);
+
+            if (!result.IsSuccess || result.Value is null)
+            {
+                // errorMessage = string.Join(", ", result.Errors);
+
+                return GridItemsProviderResult.From(
+                    Array.Empty<GetSupplierDto>(),
+                    0);
+            }
+
+            // errorMessage = null;
+
+            return GridItemsProviderResult.From(
+                result.Value?.Suppliers?.ToList() ?? [],
+                result.Value?.TotalCount ?? 0);
+        }
+        catch (Exception ex)
+        {
+            // errorMessage = ex.Message;
+
+            return GridItemsProviderResult.From(
+                Array.Empty<GetSupplierDto>(),
+                0);
+        }
+    }
+
+    private void HandleAddSupplierButtonClick()
+    {
+        Navigation.NavigateTo("/suppliers/new");
+    }
+    
+    private void HandleEditSupplierButtonClick(Guid supplierId)
+    {
+        Navigation.NavigateTo($"/suppliers/{supplierId}/edit");
+    }
+    
+    private async void HandleDeleteSupplierButtonClick(Guid supplierId)
+    {
+        Result<GetSupplierDto> result = await SupplierService.DeleteSupplierAsync(supplierId);
+    }
 }
