@@ -11,16 +11,16 @@
 <QuickGrid TGridItem="GetSupplierDto"
            ItemsProvider="LoadSuppliers"
            Pagination="@_pagination">
-    <PropertyColumn Property="u => u.Name" />
-    <PropertyColumn Property="u => u.Description" />
+    <PropertyColumn Property="s => s.Name" />
+    <PropertyColumn Property="s => s.Description" />
     <TemplateColumn Title="Actions">
         <button class="btn btn-secondary"
                 @onclick="@(() => HandleEditSupplierButtonClick(context.Id ?? Guid.Empty))">
-            Edit UOM
+            Edit Supplier
         </button>
         <button class="btn btn-danger"
                 @onclick="@(() => HandleDeleteSupplierButtonClick(context.Id ?? Guid.Empty))">
-            Delete UOM
+            Delete Supplier
         </button>
     </TemplateColumn>
 </QuickGrid>

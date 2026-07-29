@@ -40,6 +40,17 @@ public class MenuItems
             },
             new()
             {
+                Text = "Purchase Orders",
+                Url = "/pos",
+                Children =
+                [
+                    new() { Text = "Pending Orders", Url = "/pos" },
+                    new() { Text = "New Order", Url = "/pos/new" },
+                    new() { Text = "History", Url = "/pos/history" }
+                ]
+            },
+            new()
+            {
                 Text = "Alerts",
                 Url = "/alerts"
             },

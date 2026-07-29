@@ -7,11 +7,6 @@ public class CreatePurchaseOrderValidator : AbstractValidator<CreatePurchaseOrde
 {
     public CreatePurchaseOrderValidator()
     {
-        RuleFor(x => x.SupplierId)
-            .NotEmpty()
-            .WithName("Supplier")
-            .WithMessage("{PropertyName} is required.");
-
         RuleFor(x => x.Status)
             .NotNull()
             .WithMessage("{PropertyName} is required.")

@@ -1,0 +1,136 @@
+﻿@page "/pos"
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inject IPurchaseOrderService PurchaseOrderService
+@inject ISupplierService SupplierService
+@inject NavigationManager Navigation
+
+<h1>Purchase Orders</h1>
+
+<button class="btn btn-primary" @onclick="HandleAddPurchaseOrderButtonClick">+ New PO</button>
+
+<QuickGrid TGridItem="GetPurchaseOrderDto"
+           ItemsProvider="LoadPurchaseOrders"
+           Pagination="@_pagination">
+    <PropertyColumn Title="Purchase Order" Property="p => p.Id" />
+    <TemplateColumn Title="Supplier">
+        @(_supplierCache.TryGetValue(context.SupplierId ?? Guid.Empty, out string? supplier)
+            ? supplier
+            : "")
+    </TemplateColumn>
+    <PropertyColumn Property="p => p.Status" />
+    <TemplateColumn Title="Date Ordered">
+        @context.DateOrdered?.InZone(_userTimeZone).Date.ToDateOnly().ToString("dd MMM yyyy")
+    </TemplateColumn>
+    <TemplateColumn Title="Date Required">
+        @context.DateRequired?.InZone(_userTimeZone).Date.ToDateOnly().ToString("dd MMM yyyy")
+    </TemplateColumn>
+    <TemplateColumn Title="Actions">
+        <button class="btn btn-success"
+                @onclick="@(() => HandleReceivePurchaseOrderButtonClick(context.Id ?? Guid.Empty))">
+            Receive
+        </button>
+        <button class="btn btn-secondary"
+                @onclick="@(() => HandleEditPurchaseOrderButtonClick(context.Id ?? Guid.Empty))">
+            Edit
+        </button>
+        <button class="btn btn-danger"
+                @onclick="@(() => HandleCancelPurchaseOrderButtonClick(context.Id ?? Guid.Empty))">
+            Cancel
+        </button>
+    </TemplateColumn>
+</QuickGrid>
+
+<Paginator State="@_pagination" />
+
+<select @bind="@_pagination.ItemsPerPage"> 
+    <option>5</option> 
+    <option>10</option> 
+    <option>15</option> 
+    <option>20</option> 
+    <option>25</option> 
+</select>
+
+@code {
+    private readonly PaginationState _pagination = new()
+    {
+        ItemsPerPage = 10
+    };
+    
+    private readonly Dictionary<Guid, string> _supplierCache = new();
+    
+    private readonly DateTimeZone _userTimeZone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+    
+    // private string? _errorMessage;
+
+    private async ValueTask<GridItemsProviderResult<GetPurchaseOrderDto>> LoadPurchaseOrders(
+        GridItemsProviderRequest<GetPurchaseOrderDto> request)
+    {
+        try
+        {
+            int pageSize = request.Count ?? _pagination.ItemsPerPage;
+
+            int pageNumber = (request.StartIndex / pageSize) + 1;
+
+            Result<GetManyPurchaseOrdersDto> result =
+                await PurchaseOrderService.GetManyPurchaseOrdersAsync(
+                    pageNumber: pageNumber,
+                    pageSize: pageSize);
+
+            if (result.Value?.PurchaseOrders is null)
+            {
+                // errorMessage = string.Join(", ", result.Errors);
+
+                return GridItemsProviderResult.From(
+                    Array.Empty<GetPurchaseOrderDto>(),
+                    0);
+            }
+            
+            foreach (GetPurchaseOrderDto purchaseOrder in result.Value.PurchaseOrders)
+            {
+                if (!_supplierCache.ContainsKey(purchaseOrder.SupplierId ?? Guid.Empty))
+                {
+                    Result<GetSupplierDto> supplier = await SupplierService
+                        .GetSupplierByIdAsync(purchaseOrder.SupplierId ?? Guid.Empty);
+
+                    if (supplier.IsSuccess)
+                        _supplierCache[purchaseOrder.SupplierId ?? Guid.Empty] = supplier.Value?.Name ?? "";
+                }
+            }
+
+            // errorMessage = null;
+
+            return GridItemsProviderResult.From(
+                result.Value?.PurchaseOrders?.ToList() ?? [],
+                result.Value?.TotalCount ?? 0);
+        }
+        catch (Exception ex)
+        {
+            // errorMessage = ex.Message;
+
+            return GridItemsProviderResult.From(
+                Array.Empty<GetPurchaseOrderDto>(),
+                0);
+        }
+    }
+
+    private void HandleAddPurchaseOrderButtonClick()
+    {
+        Navigation.NavigateTo("/pos/new");
+    }
+    
+    private void HandleReceivePurchaseOrderButtonClick(Guid purchaseOrderId)
+    {
+        // TODO
+    }
+    
+    private void HandleEditPurchaseOrderButtonClick(Guid purchaseOrderId)
+    {
+        Navigation.NavigateTo($"/pos/{purchaseOrderId}/edit");
+    }
+    
+    private async void HandleCancelPurchaseOrderButtonClick(Guid purchaseOrderId)
+    {
+        // TODO
+    }
+}

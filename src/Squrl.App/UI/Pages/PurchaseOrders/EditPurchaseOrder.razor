@@ -1,0 +1,177 @@
+﻿@page "/pos/{PurchaseOrderId:guid}/edit"
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inject NavigationManager Navigation
+@inject IPurchaseOrderService PurchaseOrderService
+@inject ISupplierService SupplierService
+@inject IClock Clock
+
+<h1>Edit Purchase Order</h1>
+
+@if (PurchaseOrder is not null)
+{
+    <EditForm Model="PurchaseOrder" OnValidSubmit="HandleSubmit" FormName="EditPurchaseOrderForm">
+        <FluentValidator />
+        <div>
+            <label>Supplier</label>
+            <InputSelect @bind-Value="PurchaseOrder.SupplierId">
+                <option value="">Select Supplier</option>
+                @if (SupplierSelect != null)
+                {
+                    foreach (GetSupplierDto supplier in SupplierSelect)
+                    {
+                        <option value="@supplier.Id">@supplier.Name</option>
+                    }
+                }
+            </InputSelect>
+            <ValidationMessage For="@(() => PurchaseOrder.SupplierId)" />
+        </div>
+        <div>
+            <label>Status</label>
+            <InputSelect @bind-Value="PurchaseOrder.Status">
+                <option value="">Select Status</option>
+                <option value="@PurchaseOrderStatus.Pending">Pending</option>
+                <option value="@PurchaseOrderStatus.ToOrder">To Order</option>
+                <option value="@PurchaseOrderStatus.InTransit">In Transit</option>
+            </InputSelect>
+            <ValidationMessage For="@(() => PurchaseOrder.Status)" />
+        </div>
+        <div>
+            <label>Order Date</label>
+            <InputDate @bind-Value="DateOrderedLocal"
+                       Type="InputDateType.Date" />
+            <ValidationMessage For="@(() => PurchaseOrder.DateOrdered)" />
+        </div>
+        <div>
+            <label>Date Required</label>
+            <InputDate @bind-Value="DateRequiredLocal"
+                       Type="InputDateType.Date" />
+            <ValidationMessage For="@(() => PurchaseOrder.DateRequired)" />
+        </div>
+        <div>
+            <label>Date Shipped</label>
+            <InputDate @bind-Value="DateShippedLocal"
+                       Type="InputDateType.Date" />
+            <ValidationMessage For="@(() => PurchaseOrder.DateShipped)" />
+        </div>
+        <button type="submit">Submit</button>
+    </EditForm>
+    
+    @if (!string.IsNullOrEmpty(_successMessage))
+    {
+        <div class="alert alert-success">
+            @_successMessage
+        </div>
+    }
+}
+else
+{
+    <p>Loading...</p>
+}
+
+@code {
+    private readonly DateTimeZone _userTimeZone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+    private string? _successMessage;
+    
+    [Parameter]
+    public required Guid PurchaseOrderId { get; set; }
+    
+    [PersistentState]
+    public UpdatePurchaseOrderDto? PurchaseOrder { get; set; }
+    
+    [PersistentState]
+    public IReadOnlyCollection<GetSupplierDto>? SupplierSelect { get; set; }
+    
+    private DateOnly? DateOrderedLocal
+    {
+        get => PurchaseOrder?.DateOrdered?
+            .InZone(_userTimeZone)
+            .Date
+            .ToDateOnly();
+
+        set => PurchaseOrder?.DateOrdered = value is null
+            ? null
+            : LocalDate.FromDateOnly(value.Value)
+                .AtMidnight()
+                .InZoneLeniently(_userTimeZone)
+                .ToInstant();
+    }
+    
+    private DateOnly? DateRequiredLocal
+    {
+        get => PurchaseOrder?.DateRequired?
+            .InZone(_userTimeZone)
+            .Date
+            .ToDateOnly();
+
+        set => PurchaseOrder?.DateRequired = value is null
+            ? null
+            : LocalDate.FromDateOnly(value.Value)
+                .AtMidnight()
+                .InZoneLeniently(_userTimeZone)
+                .ToInstant();
+    }
+    
+    private DateOnly? DateShippedLocal
+    {
+        get => PurchaseOrder?.DateShipped?
+            .InZone(_userTimeZone)
+            .Date
+            .ToDateOnly();
+
+        set => PurchaseOrder?.DateShipped = value is null
+            ? null
+            : LocalDate.FromDateOnly(value.Value)
+                .AtMidnight()
+                .InZoneLeniently(_userTimeZone)
+                .ToInstant();
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        GetPurchaseOrderDto? purchaseOrderResult = null;
+        if (PurchaseOrder is null)
+        {
+            purchaseOrderResult = (await PurchaseOrderService.GetPurchaseOrderByIdAsync(PurchaseOrderId)).Value;
+        }
+        
+        if (purchaseOrderResult is null)
+        {
+            Navigation.NotFound();
+            return;
+        }
+        
+        if (SupplierSelect is null)
+        {
+            Result<GetManySuppliersDto> supplierResult = await SupplierService.GetManySuppliersAsync();
+            SupplierSelect = supplierResult.Value?.Suppliers ?? Array.Empty<GetSupplierDto>();
+        }
+
+        PurchaseOrder = new()
+        {
+            SupplierId = purchaseOrderResult.SupplierId,
+            Status = purchaseOrderResult.Status,
+            DateOrdered = purchaseOrderResult.DateOrdered,
+            DateRequired = purchaseOrderResult.DateRequired,
+            DateShipped = purchaseOrderResult.DateShipped
+        };
+    }
+    
+    private async Task HandleSubmit()
+    {
+        if (PurchaseOrder is not null)
+        {
+            Result<GetPurchaseOrderDto> result = await PurchaseOrderService
+                .UpdatePurchaseOrderAsync(PurchaseOrderId, PurchaseOrder);
+
+            if (result.IsSuccess)
+            {
+                _successMessage = $"Purchase order successfully updated";
+            }
+            else
+            {
+                _successMessage = null;
+            }
+        }
+    }
+}

@@ -1,0 +1,123 @@
+﻿@page "/pos/new"
+@rendermode InteractiveServer
+@inject IPurchaseOrderService PurchaseOrderService
+@inject ISupplierService SupplierService
+@inject IClock Clock
+
+<h1>Add Purchase Order</h1>
+
+<EditForm Model="_purchaseOrder" OnValidSubmit="HandleSubmit" FormName="AddPurchaseOrderForm">
+    <FluentValidator />
+    <div>
+        <label>Supplier</label>
+        <InputSelect @bind-Value="_purchaseOrder.SupplierId">
+            <option value="">Select Supplier</option>
+            @if (SupplierSelect != null)
+            {
+                foreach (GetSupplierDto supplier in SupplierSelect)
+                {
+                    <option value="@supplier.Id">@supplier.Name</option>
+                }
+            }
+        </InputSelect>
+        <ValidationMessage For="@(() => _purchaseOrder.SupplierId)" />
+    </div>
+    <div>
+        <label>Status</label>
+        <InputSelect @bind-Value="_purchaseOrder.Status">
+            <option value="">Select Status</option>
+            <option value="@PurchaseOrderStatus.Pending">Pending</option>
+            <option value="@PurchaseOrderStatus.ToOrder">To Order</option>
+            <option value="@PurchaseOrderStatus.InTransit">In Transit</option>
+        </InputSelect>
+        <ValidationMessage For="@(() => _purchaseOrder.Status)" />
+    </div>
+    <div>
+        <label>Order Date</label>
+        <InputDate @bind-Value="DateOrderedLocal"
+                   Type="InputDateType.Date" />
+        <ValidationMessage For="@(() => _purchaseOrder.DateOrdered)" />
+    </div>
+    <div>
+        <label>Date Required</label>
+        <InputDate @bind-Value="DateRequiredLocal"
+                   Type="InputDateType.Date" />
+        <ValidationMessage For="@(() => _purchaseOrder.DateRequired)" />
+    </div>
+    <button type="submit">Submit</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(_successMessage))
+{
+    <div class="alert alert-success">
+        @_successMessage
+    </div>
+}
+
+@code {
+    private readonly DateTimeZone _userTimeZone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+    private CreatePurchaseOrderDto _purchaseOrder = new()
+    {
+        Status = PurchaseOrderStatus.Pending
+    };
+    private string? _successMessage;
+    
+    [PersistentState]
+    public IReadOnlyCollection<GetSupplierDto>? SupplierSelect { get; set; }
+    
+    private DateOnly? DateOrderedLocal
+    {
+        get => _purchaseOrder.DateOrdered?
+            .InZone(_userTimeZone)
+            .Date
+            .ToDateOnly();
+
+        set => _purchaseOrder.DateOrdered = value is null
+            ? null
+            : LocalDate.FromDateOnly(value.Value)
+                .AtMidnight()
+                .InZoneLeniently(_userTimeZone)
+                .ToInstant();
+    }
+    
+    private DateOnly? DateRequiredLocal
+    {
+        get => _purchaseOrder.DateRequired?
+            .InZone(_userTimeZone)
+            .Date
+            .ToDateOnly();
+
+        set => _purchaseOrder.DateRequired = value is null
+            ? null
+            : LocalDate.FromDateOnly(value.Value)
+                .AtMidnight()
+                .InZoneLeniently(_userTimeZone)
+                .ToInstant();
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _purchaseOrder.DateOrdered = Clock.GetCurrentInstant();
+        
+        if (SupplierSelect is null)
+        {
+            Result<GetManySuppliersDto> result = await SupplierService.GetManySuppliersAsync();
+            SupplierSelect = result.Value?.Suppliers ?? Array.Empty<GetSupplierDto>();
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        Result<GetPurchaseOrderDto> result = await PurchaseOrderService.CreatePurchaseOrderAsync(_purchaseOrder);
+
+        if (result.IsSuccess)
+        {
+            _purchaseOrder = new()
+            {
+                Status = PurchaseOrderStatus.Pending
+            };
+            _purchaseOrder.DateOrdered = Clock.GetCurrentInstant();
+            _successMessage = "Purchase Order successfully added";
+        }
+    }
+}

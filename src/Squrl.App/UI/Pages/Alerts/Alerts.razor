@@ -33,7 +33,7 @@ else
     private async Task LoadAlerts()
     {
         Result<IReadOnlyCollection<Alert>> result = await AlertService.GetAlertsAsync();
-        _alerts = result.Value ?? Array.Empty<Alert>();
+        _alerts = result.Value?.Reverse().ToArray() ?? Array.Empty<Alert>();
     }
     
     private async Task OnAlertsChanged()
