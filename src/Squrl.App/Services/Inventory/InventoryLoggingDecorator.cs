@@ -29,13 +29,13 @@ public class InventoryLoggingDecorator : IInventoryService
         {
             _logger.LogError(result.Exception, "Get Many Items Request: unhandled exception.");
             return Result<GetManyItemsDto>.Fail(result.Message ?? "Failed to retrieve items.")
-                .WithFailureType(FailureType.Unexcepted);
+                .WithFailureType(FailureType.Unexpected);
         }
         else
         {
             _logger.LogError(result.Exception, "Get Many Items Request: failed to fetch items.");
             return Result<GetManyItemsDto>.Fail(result.Message ?? "Failed to retrieve items.")
-                .WithFailureType(FailureType.Unexcepted);
+                .WithFailureType(FailureType.Unexpected);
         }
         
         return result;

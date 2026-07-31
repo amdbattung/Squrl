@@ -9,5 +9,6 @@ public enum PurchaseOrderStatus
     Received,
     Cancelled,
     Lost,
+    Failed,
     Returned
 }

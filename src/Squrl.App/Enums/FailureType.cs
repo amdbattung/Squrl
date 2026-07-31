@@ -5,6 +5,6 @@ public enum FailureType
     Validation,
     NotFound,
     BusinessLogic,
-    Unexcepted,
+    Unexpected,
     Exception
 }
