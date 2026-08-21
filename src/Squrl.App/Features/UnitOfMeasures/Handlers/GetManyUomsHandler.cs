@@ -24,6 +24,15 @@ public class GetManyUomsHandler : IRequestHandler<GetManyUomsQuery, (IReadOnlyLi
         IQueryable<UnitOfMeasure> query = _dataContext.UnitOfMeasures
             .AsNoTracking();
         
+        if (!string.IsNullOrWhiteSpace(request.Query))
+        {
+            string pattern = $"%{request.Query.Trim()}%";
+
+            query = query.Where(u =>
+                EF.Functions.Like(u.Name, pattern) ||
+                EF.Functions.Like(u.Code, pattern));
+        }
+        
         int totalCount = await query.CountAsync(cancellationToken);
         
         IReadOnlyList<UnitOfMeasure> existingUoms = await query
