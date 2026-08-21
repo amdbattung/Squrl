@@ -9,6 +9,7 @@ using Squrl.App.Services.Alert;
 using Squrl.App.Services.BackgroundTaskQueue;
 using Squrl.App.Services.Inventory;
 using Squrl.App.Services.PlatformDialogService;
+using Squrl.App.Services.TransactionManager;
 using Squrl.App.Services.UnitOfMeasure;
 using Squrl.App.UI;
 
@@ -71,6 +72,8 @@ try
     builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
     builder.Services.AddDataContext(builder.Configuration);
+    
+    builder.Services.AddScoped<ITransactionManager, EfTransactionManager>();
 
     builder.Services.AddSingleton<IClock>(SystemClock.Instance);
     builder.Services.AddSingleton<DataSaveChangesInterceptor>();
