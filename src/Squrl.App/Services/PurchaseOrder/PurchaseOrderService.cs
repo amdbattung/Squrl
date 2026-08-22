@@ -32,7 +32,7 @@ public partial class PurchaseOrderService : IPurchaseOrderService
         _updatePoDetailValidator = updatePoDetailValidator;
     }
 
-    public async Task<Result<GetManyPurchaseOrdersDto>> GetManyPurchaseOrdersAsync(string? query = null, int? pageNumber = null, int? pageSize = null,
+    public async Task<Result<GetManyPurchaseOrdersDto>> GetManyPurchaseOrdersAsync(string? query = null, Guid? supplierId = null, PurchaseOrderStatus? status = null, int? pageNumber = null, int? pageSize = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -40,7 +40,11 @@ public partial class PurchaseOrderService : IPurchaseOrderService
             pageNumber = pageNumber >= 1 ? pageNumber : null;
             pageSize = pageSize is >= 1 and <= 50 ? pageSize : null;
             
-            var result = await _mediator.Send(new GetManyPurchaseOrdersQuery(query, pageNumber, pageSize), cancellationToken);
+            var result = await _mediator.Send(new GetManyPurchaseOrdersQuery(query,
+                supplierId,
+                status,
+                pageNumber,
+                pageSize), cancellationToken);
             
             GetManyPurchaseOrdersDto payload = new GetManyPurchaseOrdersDto(
                 result.PageSize,

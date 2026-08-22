@@ -25,6 +25,11 @@ public class GetManyPoDetailsHandler : IRequestHandler<GetManyPoDetailsQuery, (I
             .AsNoTracking()
             .Include(p => p.PurchaseOrder)
             .Include(p => p.Item);
+        
+        if (request.PurchaseOrderId.HasValue)
+        {
+            query = query.Where(p => p.PurchaseOrder.Id == request.PurchaseOrderId);
+        }
 
         int totalCount = await query.CountAsync(cancellationToken);
 

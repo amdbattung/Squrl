@@ -24,6 +24,16 @@ public class GetManyPurchaseOrdersHandler : IRequestHandler<GetManyPurchaseOrder
         IQueryable<PurchaseOrder> query = _dataContext.PurchaseOrders
             .AsNoTracking()
             .Include(p => p.Supplier);
+        
+        if (request.SupplierId.HasValue)
+        {
+            query = query.Where(p => p.Supplier != null && p.Supplier.Id == request.SupplierId);
+        }
+        
+        if (request.Status.HasValue)
+        {
+            query = query.Where(p => p.Status == request.Status);
+        }
 
         int totalCount = await query.CountAsync(cancellationToken);
 

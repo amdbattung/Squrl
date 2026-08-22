@@ -11,23 +11,14 @@ namespace Squrl.App.Services.PurchaseOrder;
 
 public partial class PurchaseOrderService
 {
-    public async Task<Result<GetManyPoDetailsDto>> GetManyPoDetailsAsync(string? query = null, int? pageNumber = null, int? pageSize = null,
+    public async Task<Result<GetManyPoDetailsDto>> GetPoDetailsAsync(Guid purchaseOrderId,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            pageNumber = pageNumber >= 1 ? pageNumber : null;
-
-            if (pageSize is null && pageNumber is null)
-            {
-                pageSize = 1000;
-            }
-            else if (pageSize is not >= 1 and <= 50)
-            {
-                pageSize = null;
-            }
+            const int pageSize = 500;
             
-            var result = await _mediator.Send(new GetManyPoDetailsQuery(query, pageNumber, pageSize), cancellationToken);
+            var result = await _mediator.Send(new GetManyPoDetailsQuery(PurchaseOrderId: purchaseOrderId, PageSize: pageSize), cancellationToken);
             
             GetManyPoDetailsDto payload = new GetManyPoDetailsDto(
                 result.PageSize,
