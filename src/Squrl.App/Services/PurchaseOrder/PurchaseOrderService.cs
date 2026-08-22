@@ -3,29 +3,34 @@ using FluentValidation.Results;
 using MediatR;
 using Squrl.App.Common;
 using Squrl.App.Enums;
+using Squrl.App.Features.PurchaseOrderDetails.Commands;
 using Squrl.App.Features.PurchaseOrderDetails.DTOs;
 using Squrl.App.Features.PurchaseOrders.Commands;
 using Squrl.App.Features.PurchaseOrders.DTOs;
 using Squrl.App.Features.PurchaseOrders.Mapping;
 using Squrl.App.Features.PurchaseOrders.Queries;
+using Squrl.App.Services.TransactionManager;
 
 namespace Squrl.App.Services.PurchaseOrder;
 
 public partial class PurchaseOrderService : IPurchaseOrderService
 {
     private readonly IMediator _mediator;
+    private readonly ITransactionManager _transactionManager;
     private readonly IValidator<CreatePurchaseOrderDto> _createPurchaseOrderValidator;
     private readonly IValidator<UpdatePurchaseOrderDto> _updatePurchaseOrderValidator;
     private readonly IValidator<CreatePoDetailDto> _createPoDetailValidator;
     private readonly IValidator<UpdatePoDetailDto> _updatePoDetailValidator;
 
     public PurchaseOrderService(IMediator mediator,
+        ITransactionManager transactionManager,
         IValidator<CreatePurchaseOrderDto> createPurchaseOrderValidator,
         IValidator<UpdatePurchaseOrderDto> updatePurchaseOrderValidator,
         IValidator<CreatePoDetailDto> createPoDetailValidator,
         IValidator<UpdatePoDetailDto> updatePoDetailValidator)
     {
         _mediator = mediator;
+        _transactionManager = transactionManager;
         _createPurchaseOrderValidator = createPurchaseOrderValidator;
         _updatePurchaseOrderValidator = updatePurchaseOrderValidator;
         _createPoDetailValidator = createPoDetailValidator;
@@ -66,23 +71,63 @@ public partial class PurchaseOrderService : IPurchaseOrderService
         }
     }
 
-    public async Task<Result<GetPurchaseOrderDto>> CreatePurchaseOrderAsync(CreatePurchaseOrderDto purchaseOrder, CancellationToken cancellationToken = default)
+    public async Task<Result<GetPurchaseOrderDto>> CreatePurchaseOrderAsync(CreatePurchaseOrderDto purchaseOrder, List<CreatePoDetailDto> poDetails, CancellationToken cancellationToken = default)
     {
         try
         {
             purchaseOrder.Status ??= PurchaseOrderStatus.Pending;
             
-            ValidationResult validationResult = await _createPurchaseOrderValidator.ValidateAsync(purchaseOrder, cancellationToken);
+            ValidationResult poValidationResult = await _createPurchaseOrderValidator.ValidateAsync(purchaseOrder, cancellationToken);
             
-            if (!validationResult.IsValid)
+            if (!poValidationResult.IsValid)
             {
-                return Result<GetPurchaseOrderDto>.Fail(validationResult.Errors
+                return Result<GetPurchaseOrderDto>.Fail(poValidationResult.Errors
                         .Select(e => e.ErrorMessage)
                         .ToArray())
                     .WithFailureType(FailureType.Validation);
             }
             
-            Models.PurchaseOrder? result = await _mediator.Send(new CreatePurchaseOrderCommand(purchaseOrder), cancellationToken);
+            for (int index = 0; index < poDetails.Count; index++)
+            {
+                CreatePoDetailDto poDetail = poDetails[index];
+
+                poDetail.PurchaseOrderId = Guid.Empty;
+                
+                ValidationResult? poDetailsValidationResult = await _createPoDetailValidator
+                    .ValidateAsync(poDetail, cancellationToken);
+
+                if (!poDetailsValidationResult.IsValid)
+                {
+                    string[] errors = new[]
+                        {
+                            $"PO detail {index} is invalid"
+                        }
+                        .Concat(poValidationResult.Errors.Select(e => e.ErrorMessage))
+                        .ToArray();
+
+                    return Result<GetPurchaseOrderDto>.Fail(errors)
+                        .WithFailureType(FailureType.Validation);
+                }
+            }
+            
+            Models.PurchaseOrder? result = await _transactionManager.ExecuteAsync(async ct =>
+            {
+                Models.PurchaseOrder? purchaseOrderResult = await _mediator.Send(
+                    new CreatePurchaseOrderCommand(purchaseOrder), ct);
+                
+                if (purchaseOrderResult is null)
+                {
+                    return null;
+                }
+
+                foreach (CreatePoDetailDto poDetail in poDetails)
+                {
+                    poDetail.PurchaseOrderId = purchaseOrderResult.Id;
+                    await _mediator.Send(new CreatePoDetailCommand(poDetail), ct);
+                }
+
+                return purchaseOrderResult;
+            }, cancellationToken);
             
             if (result == null)
             {
@@ -157,7 +202,9 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                     .WithFailureType(FailureType.Validation);
             }
             
-            Models.PurchaseOrder? result = await _mediator.Send(new UpdatePurchaseOrderCommand(id, purchaseOrder), cancellationToken);
+            Models.PurchaseOrder? result = await _transactionManager.ExecuteAsync(async ct =>
+                    await _mediator.Send(new UpdatePurchaseOrderCommand(id, purchaseOrder), ct),
+                cancellationToken);
             
             if (result == null)
             {
@@ -189,7 +236,9 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                     .WithFailureType(FailureType.Validation);
             }
             
-            Models.PurchaseOrder? result = await _mediator.Send(new DeletePurchaseOrderCommand(id), cancellationToken);
+            Models.PurchaseOrder? result = await _transactionManager.ExecuteAsync(async ct =>
+                    await _mediator.Send(new DeletePurchaseOrderCommand(id), ct),
+                cancellationToken);
             
             if (result == null)
             {

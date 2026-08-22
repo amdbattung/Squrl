@@ -47,6 +47,6 @@ public class CreatePoDetailHandler : IRequestHandler<CreatePoDetailCommand, Purc
         
         await _dataContext.PurchaseOrderDetails.AddAsync(newPoDetail, cancellationToken);
         
-        return await _dataContext.SaveChangesAsync(cancellationToken) > 0 ? newPoDetail : null;
+        return newPoDetail;
     }
 }

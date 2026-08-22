@@ -36,8 +36,7 @@ public class UpdatePurchaseOrderHandler : IRequestHandler<UpdatePurchaseOrderCom
         existingPurchaseOrder.DateOrdered = requestPurchaseOrder.DateOrdered ?? existingPurchaseOrder.DateOrdered;
         existingPurchaseOrder.DateRequired = requestPurchaseOrder.DateRequired ?? existingPurchaseOrder.DateRequired;
         existingPurchaseOrder.DateShipped = requestPurchaseOrder.DateShipped ?? existingPurchaseOrder.DateShipped;
-
-        await _dataContext.SaveChangesAsync(cancellationToken);
+        
         return existingPurchaseOrder;
     }
 }

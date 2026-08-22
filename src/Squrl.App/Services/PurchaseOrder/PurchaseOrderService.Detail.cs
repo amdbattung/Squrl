@@ -56,7 +56,9 @@ public partial class PurchaseOrderService
                     .WithFailureType(FailureType.Validation);
             }
             
-            PurchaseOrderDetail? result = await _mediator.Send(new CreatePoDetailCommand(poDetail), cancellationToken);
+            PurchaseOrderDetail? result = await _transactionManager.ExecuteAsync(async ct =>
+                    await _mediator.Send(new CreatePoDetailCommand(poDetail), ct),
+                cancellationToken);
             
             if (result == null)
             {
@@ -130,7 +132,9 @@ public partial class PurchaseOrderService
                     .WithFailureType(FailureType.Validation);
             }
             
-            PurchaseOrderDetail? result = await _mediator.Send(new UpdatePoDetailCommand(id, poDetail), cancellationToken);
+            PurchaseOrderDetail? result = await _transactionManager.ExecuteAsync(async ct =>
+                    await _mediator.Send(new UpdatePoDetailCommand(id, poDetail), ct),
+                cancellationToken);
             
             if (result == null)
             {
@@ -162,7 +166,9 @@ public partial class PurchaseOrderService
                     .WithFailureType(FailureType.Validation);
             }
             
-            PurchaseOrderDetail? result = await _mediator.Send(new DeletePoDetailCommand(id), cancellationToken);
+            PurchaseOrderDetail? result = await _transactionManager.ExecuteAsync(async ct =>
+                    await _mediator.Send(new DeletePoDetailCommand(id), ct),
+                cancellationToken);
             
             if (result == null)
             {

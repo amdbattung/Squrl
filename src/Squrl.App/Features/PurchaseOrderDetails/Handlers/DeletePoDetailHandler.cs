@@ -29,6 +29,6 @@ public class DeletePoDetailHandler : IRequestHandler<DeletePoDetailCommand, Purc
         
         _dataContext.PurchaseOrderDetails.Remove(existingPoDetail);
         
-        return await _dataContext.SaveChangesAsync(cancellationToken) > 0 ? existingPoDetail : null;
+        return existingPoDetail;
     }
 }
