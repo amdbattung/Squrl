@@ -42,7 +42,16 @@ public partial class PurchaseOrderService : IPurchaseOrderService
         _inventoryService = inventoryService;
     }
 
-    public async Task<Result<GetManyPurchaseOrdersDto>> GetManyPurchaseOrdersAsync(string? query = null, Guid? supplierId = null, PurchaseOrderStatus? status = null, int? pageNumber = null, int? pageSize = null,
+    public async Task<Result<GetManyPurchaseOrdersDto>> GetManyPurchaseOrdersAsync(string? query = null,
+        Guid? supplierId = null,
+        bool isPending = false,
+        bool isReceived = false,
+        bool isCancelled = false,
+        bool hasFailed = false,
+        bool isReturned = false,
+        SortDirection orderDirection = SortDirection.Ascending,
+        int? pageNumber = null,
+        int? pageSize = null,
         CancellationToken cancellationToken = default)
     {
         try
@@ -52,7 +61,12 @@ public partial class PurchaseOrderService : IPurchaseOrderService
             
             var result = await _mediator.Send(new GetManyPurchaseOrdersQuery(query,
                 supplierId,
-                status,
+                isPending,
+                isReceived,
+                isCancelled,
+                hasFailed,
+                isReturned,
+                orderDirection,
                 pageNumber,
                 pageSize), cancellationToken);
             

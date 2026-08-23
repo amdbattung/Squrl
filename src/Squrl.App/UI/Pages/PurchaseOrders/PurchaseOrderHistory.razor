@@ -1,4 +1,5 @@
 ﻿@page "/pos/history"
+@using SortDirection = Squrl.App.Enums.SortDirection
 @rendermode InteractiveServer
 @attribute [StreamRendering]
 @inject IPurchaseOrderService PurchaseOrderService
@@ -71,6 +72,7 @@
 
             Result<GetManyPurchaseOrdersDto> result =
                 await PurchaseOrderService.GetManyPurchaseOrdersAsync(
+                    orderDirection: SortDirection.Descending,
                     pageNumber: pageNumber,
                     pageSize: pageSize);
 
