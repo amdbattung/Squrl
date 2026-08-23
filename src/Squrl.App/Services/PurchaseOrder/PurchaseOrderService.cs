@@ -10,6 +10,7 @@ using Squrl.App.Features.PurchaseOrders.DTOs;
 using Squrl.App.Features.PurchaseOrders.Mapping;
 using Squrl.App.Features.PurchaseOrders.Queries;
 using Squrl.App.Models;
+using Squrl.App.Services.Inventory;
 using Squrl.App.Services.TransactionManager;
 
 namespace Squrl.App.Services.PurchaseOrder;
@@ -22,13 +23,15 @@ public partial class PurchaseOrderService : IPurchaseOrderService
     private readonly IValidator<UpdatePurchaseOrderDto> _updatePurchaseOrderValidator;
     private readonly IValidator<CreatePoDetailDto> _createPoDetailValidator;
     private readonly IValidator<UpdatePoDetailDto> _updatePoDetailValidator;
+    private readonly IInventoryService _inventoryService;
 
     public PurchaseOrderService(IMediator mediator,
         ITransactionManager transactionManager,
         IValidator<CreatePurchaseOrderDto> createPurchaseOrderValidator,
         IValidator<UpdatePurchaseOrderDto> updatePurchaseOrderValidator,
         IValidator<CreatePoDetailDto> createPoDetailValidator,
-        IValidator<UpdatePoDetailDto> updatePoDetailValidator)
+        IValidator<UpdatePoDetailDto> updatePoDetailValidator,
+        IInventoryService inventoryService)
     {
         _mediator = mediator;
         _transactionManager = transactionManager;
@@ -36,6 +39,7 @@ public partial class PurchaseOrderService : IPurchaseOrderService
         _updatePurchaseOrderValidator = updatePurchaseOrderValidator;
         _createPoDetailValidator = createPoDetailValidator;
         _updatePoDetailValidator = updatePoDetailValidator;
+        _inventoryService = inventoryService;
     }
 
     public async Task<Result<GetManyPurchaseOrdersDto>> GetManyPurchaseOrdersAsync(string? query = null, Guid? supplierId = null, PurchaseOrderStatus? status = null, int? pageNumber = null, int? pageSize = null,

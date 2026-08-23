@@ -119,9 +119,10 @@
         Navigation.NavigateTo("/pos/new");
     }
     
-    private void HandleReceivePurchaseOrderButtonClick(Guid purchaseOrderId)
+    private async Task HandleReceivePurchaseOrderButtonClick(Guid purchaseOrderId)
     {
-        // TODO
+        Result<GetPurchaseOrderDto> result = await PurchaseOrderService
+            .ReceivePurchaseOrderAsync(purchaseOrderId);
     }
     
     private void HandleEditPurchaseOrderButtonClick(Guid purchaseOrderId)

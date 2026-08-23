@@ -167,7 +167,7 @@ public class InventoryLoggingDecorator : IInventoryService
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Add Stocks Request: stocks added to item {result.Value?.Name}," +
+            _logger.LogInformation($"Add Stocks Request: stocks added to item {result.Value?.Name}, " +
                                    $"{quantity} stocks added.");
         }
         else switch (result.FailureType)
