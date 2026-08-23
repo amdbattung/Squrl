@@ -38,6 +38,7 @@ public class UpdatePoDetailHandler : IRequestHandler<UpdatePoDetailCommand, Purc
             : await _dataContext.Items.FirstOrDefaultAsync(p => p.Id == requestPoDetail.ItemId, cancellationToken) ?? existingPoDetail.Item;
         existingPoDetail.Quantity = requestPoDetail.Quantity ?? existingPoDetail.Quantity;
 
+        await _dataContext.SaveChangesAsync(cancellationToken);
         return existingPoDetail;
     }
 }

@@ -9,6 +9,7 @@ using Squrl.App.Features.PurchaseOrders.Commands;
 using Squrl.App.Features.PurchaseOrders.DTOs;
 using Squrl.App.Features.PurchaseOrders.Mapping;
 using Squrl.App.Features.PurchaseOrders.Queries;
+using Squrl.App.Models;
 using Squrl.App.Services.TransactionManager;
 
 namespace Squrl.App.Services.PurchaseOrder;
@@ -123,7 +124,13 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                 foreach (CreatePoDetailDto poDetail in poDetails)
                 {
                     poDetail.PurchaseOrderId = purchaseOrderResult.Id;
-                    await _mediator.Send(new CreatePoDetailCommand(poDetail), ct);
+                    PurchaseOrderDetail? poDetailResult = await _mediator
+                        .Send(new CreatePoDetailCommand(poDetail), ct);
+                    
+                    if (poDetailResult is null)
+                    {
+                        return null;
+                    }
                 }
 
                 return purchaseOrderResult;
@@ -201,10 +208,9 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                         .ToArray())
                     .WithFailureType(FailureType.Validation);
             }
-            
-            Models.PurchaseOrder? result = await _transactionManager.ExecuteAsync(async ct =>
-                    await _mediator.Send(new UpdatePurchaseOrderCommand(id, purchaseOrder), ct),
-                cancellationToken);
+
+            Models.PurchaseOrder? result = await _mediator
+                .Send(new UpdatePurchaseOrderCommand(id, purchaseOrder), cancellationToken);
             
             if (result == null)
             {
@@ -235,10 +241,8 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                 return Result<GetPurchaseOrderDto>.Fail("Null or invalid ID.")
                     .WithFailureType(FailureType.Validation);
             }
-            
-            Models.PurchaseOrder? result = await _transactionManager.ExecuteAsync(async ct =>
-                    await _mediator.Send(new DeletePurchaseOrderCommand(id), ct),
-                cancellationToken);
+
+            Models.PurchaseOrder? result = await _mediator.Send(new DeletePurchaseOrderCommand(id), cancellationToken);
             
             if (result == null)
             {

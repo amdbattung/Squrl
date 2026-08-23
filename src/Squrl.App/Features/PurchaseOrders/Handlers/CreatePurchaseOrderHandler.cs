@@ -40,6 +40,6 @@ public class CreatePurchaseOrderHandler : IRequestHandler<CreatePurchaseOrderCom
         
         await _dataContext.PurchaseOrders.AddAsync(newPurchaseOrder, cancellationToken);
 
-        return newPurchaseOrder;
+        return await _dataContext.SaveChangesAsync(cancellationToken) > 0 ? newPurchaseOrder : null;
     }
 }

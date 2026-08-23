@@ -17,20 +17,15 @@ public class CreatePoDetailHandler : IRequestHandler<CreatePoDetailCommand, Purc
 
     public async Task<PurchaseOrderDetail?> Handle(CreatePoDetailCommand request, CancellationToken cancellationToken)
     {
-        Task<PurchaseOrder?> purchaseOrderTask =
-            _dataContext.PurchaseOrders.FirstOrDefaultAsync(
+        PurchaseOrder? purchaseOrder = await _dataContext.PurchaseOrders
+            .FirstOrDefaultAsync(
                 p => p.Id == request.PoDetail.PurchaseOrderId,
                 cancellationToken);
 
-        Task<Item?> itemTask =
-            _dataContext.Items.FirstOrDefaultAsync(
+        Item? item = await _dataContext.Items
+            .FirstOrDefaultAsync(
                 i => i.Id == request.PoDetail.ItemId,
                 cancellationToken);
-
-        await Task.WhenAll(purchaseOrderTask, itemTask);
-
-        PurchaseOrder? purchaseOrder = purchaseOrderTask.Result;
-        Item? item = itemTask.Result;
         
         if (purchaseOrder == null || item == null)
         {
@@ -47,6 +42,6 @@ public class CreatePoDetailHandler : IRequestHandler<CreatePoDetailCommand, Purc
         
         await _dataContext.PurchaseOrderDetails.AddAsync(newPoDetail, cancellationToken);
         
-        return newPoDetail;
+        return await _dataContext.SaveChangesAsync(cancellationToken) > 0 ? newPoDetail : null;
     }
 }

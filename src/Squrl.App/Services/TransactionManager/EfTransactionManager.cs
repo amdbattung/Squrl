@@ -12,27 +12,21 @@ public class EfTransactionManager : ITransactionManager
         _dataContext = dataContext;
     }
 
-    public async Task ExecuteAsync(
-        Func<CancellationToken, Task> action,
-        CancellationToken cancellationToken)
-    {
-        await using IDbContextTransaction transaction = await _dataContext.Database.BeginTransactionAsync(cancellationToken);
-
-        await action(cancellationToken);
-
-        await _dataContext.SaveChangesAsync(cancellationToken);
-        await transaction.CommitAsync(cancellationToken);
-    }
-
-    public async Task<T> ExecuteAsync<T>(
-        Func<CancellationToken, Task<T>> action,
+    public async Task<T?> ExecuteAsync<T>(
+        Func<CancellationToken, Task<T?>> action,
         CancellationToken cancellationToken)
     {
         await using IDbContextTransaction transaction = await _dataContext.Database.BeginTransactionAsync(cancellationToken);
 
         try
         {
-            T result = await action(cancellationToken);
+            T? result = await action(cancellationToken);
+            
+            if (result is null)
+            {
+                await transaction.RollbackAsync(cancellationToken);
+                return default;
+            }
 
             await _dataContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);

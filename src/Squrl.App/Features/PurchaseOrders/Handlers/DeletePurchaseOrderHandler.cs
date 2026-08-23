@@ -28,6 +28,6 @@ public class DeletePurchaseOrderHandler : IRequestHandler<DeletePurchaseOrderCom
         
         _dataContext.PurchaseOrders.Remove(existingPurchaseOrder);
         
-        return existingPurchaseOrder;
+        return await _dataContext.SaveChangesAsync(cancellationToken) > 0 ? existingPurchaseOrder : null;
     }
 }

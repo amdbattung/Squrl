@@ -55,10 +55,8 @@ public partial class PurchaseOrderService
                         .ToArray())
                     .WithFailureType(FailureType.Validation);
             }
-            
-            PurchaseOrderDetail? result = await _transactionManager.ExecuteAsync(async ct =>
-                    await _mediator.Send(new CreatePoDetailCommand(poDetail), ct),
-                cancellationToken);
+
+            PurchaseOrderDetail? result = await _mediator.Send(new CreatePoDetailCommand(poDetail), cancellationToken);
             
             if (result == null)
             {
@@ -131,10 +129,9 @@ public partial class PurchaseOrderService
                         .ToArray())
                     .WithFailureType(FailureType.Validation);
             }
-            
-            PurchaseOrderDetail? result = await _transactionManager.ExecuteAsync(async ct =>
-                    await _mediator.Send(new UpdatePoDetailCommand(id, poDetail), ct),
-                cancellationToken);
+
+            PurchaseOrderDetail? result = await _mediator
+                .Send(new UpdatePoDetailCommand(id, poDetail), cancellationToken);
             
             if (result == null)
             {
@@ -165,10 +162,9 @@ public partial class PurchaseOrderService
                 return Result<GetPoDetailDto>.Fail("Null or invalid ID.")
                     .WithFailureType(FailureType.Validation);
             }
-            
-            PurchaseOrderDetail? result = await _transactionManager.ExecuteAsync(async ct =>
-                    await _mediator.Send(new DeletePoDetailCommand(id), ct),
-                cancellationToken);
+
+            PurchaseOrderDetail? result = await _mediator
+                .Send(new DeletePoDetailCommand(id), cancellationToken);
             
             if (result == null)
             {
