@@ -54,7 +54,8 @@ public partial class PurchaseOrderService
 
                 UpdatePurchaseOrderDto updatePurchaseOrder = new()
                 {
-                    Status = PurchaseOrderStatus.Received
+                    Status = PurchaseOrderStatus.Received,
+                    DateShipped = _clock.GetCurrentInstant()
                 };
                 
                 Models.PurchaseOrder? updatePurchaseOrderResult = await _mediator

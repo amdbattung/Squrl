@@ -118,7 +118,7 @@
         Navigation.NavigateTo($"/pos/{purchaseOrderId}/edit");
     }
     
-    private async void HandleDeletePurchaseOrderButtonClick(Guid purchaseOrderId)
+    private async Task HandleDeletePurchaseOrderButtonClick(Guid purchaseOrderId)
     {
         Result<GetPurchaseOrderDto> result = await PurchaseOrderService.DeletePurchaseOrderAsync(purchaseOrderId);
     }

@@ -1,6 +1,7 @@
 ﻿using FluentValidation;
 using FluentValidation.Results;
 using MediatR;
+using NodaTime;
 using Squrl.App.Common;
 using Squrl.App.Enums;
 using Squrl.App.Features.PurchaseOrderDetails.Commands;
@@ -24,6 +25,7 @@ public partial class PurchaseOrderService : IPurchaseOrderService
     private readonly IValidator<CreatePoDetailDto> _createPoDetailValidator;
     private readonly IValidator<UpdatePoDetailDto> _updatePoDetailValidator;
     private readonly IInventoryService _inventoryService;
+    private readonly IClock _clock;
 
     public PurchaseOrderService(IMediator mediator,
         ITransactionManager transactionManager,
@@ -31,7 +33,8 @@ public partial class PurchaseOrderService : IPurchaseOrderService
         IValidator<UpdatePurchaseOrderDto> updatePurchaseOrderValidator,
         IValidator<CreatePoDetailDto> createPoDetailValidator,
         IValidator<UpdatePoDetailDto> updatePoDetailValidator,
-        IInventoryService inventoryService)
+        IInventoryService inventoryService,
+        IClock clock)
     {
         _mediator = mediator;
         _transactionManager = transactionManager;
@@ -40,6 +43,7 @@ public partial class PurchaseOrderService : IPurchaseOrderService
         _createPoDetailValidator = createPoDetailValidator;
         _updatePoDetailValidator = updatePoDetailValidator;
         _inventoryService = inventoryService;
+        _clock = clock;
     }
 
     public async Task<Result<GetManyPurchaseOrdersDto>> GetManyPurchaseOrdersAsync(string? query = null,
