@@ -3,6 +3,7 @@
 @rendermode InteractiveServer
 @inject IPurchaseOrderService PurchaseOrderService
 @inject ISupplierService SupplierService
+@inject IInventoryService InventoryService
 @inject IClock Clock
 
 <h1>Add Purchase Order</h1>
@@ -63,9 +64,17 @@
             <h3>Detail @(index + 1)</h3>
 
             <div>
-                <label>Item ID</label>
-                <InputGuid @bind-Value="detail.ItemId" />
-                <ValidationMessage For="@(() => detail.ItemId)" />
+                <label>Item</label>
+                <InputSelect @bind-Value="detail.ItemId">
+                    <option value="">Select an Item</option>
+                    @if (ItemSelect != null)
+                    {
+                        foreach (GetItemDto item in ItemSelect)
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
+                    }
+                </InputSelect>
             </div>
 
             <div>
@@ -117,6 +126,9 @@
 
     [PersistentState]
     public IReadOnlyCollection<GetSupplierDto>? SupplierSelect { get; set; }
+    
+    [PersistentState]
+    public IReadOnlyCollection<GetItemDto>? ItemSelect { get; set; }
 
     private DateOnly? DateOrderedLocal
     {
@@ -154,12 +166,14 @@
 
         if (SupplierSelect is null)
         {
-            Result<GetManySuppliersDto> result =
-                await SupplierService.GetManySuppliersAsync();
-
-            SupplierSelect =
-                result.Value?.Suppliers ??
-                Array.Empty<GetSupplierDto>();
+            Result<GetManySuppliersDto> result = await SupplierService.GetManySuppliersAsync();
+            SupplierSelect = result.Value?.Suppliers ?? Array.Empty<GetSupplierDto>();
+        }
+        
+        if (ItemSelect is null)
+        {
+            Result<GetManyItemsDto> result = await InventoryService.GetManyItemsAsync();
+            ItemSelect = result.Value?.Items ?? Array.Empty<GetItemDto>();
         }
     }
 
