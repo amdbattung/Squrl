@@ -132,8 +132,9 @@
         Navigation.NavigateTo($"/pos/{purchaseOrderId}/edit");
     }
     
-    private async void HandleCancelPurchaseOrderButtonClick(Guid purchaseOrderId)
+    private async Task HandleCancelPurchaseOrderButtonClick(Guid purchaseOrderId)
     {
-        // TODO
+        Result<GetPurchaseOrderDto> result = await PurchaseOrderService
+            .CancelPurchaseOrderAsync(purchaseOrderId);
     }
 }
