@@ -65,7 +65,7 @@ public class UpdateItemStockHandler : IRequestHandler<UpdateItemStockCommand, It
                      UPDATE Items
                      SET Quantity = Quantity - {request.Value}
                      WHERE Id = {request.ItemId}
-                       AND Quantity >= {request.Value}
+                        AND CAST(Quantity AS REAL) >= {request.Value}
                      """,
                     cancellationToken),
 
