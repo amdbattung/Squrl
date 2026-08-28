@@ -28,14 +28,20 @@ public class GetManyPoDetailsHandler : IRequestHandler<GetManyPoDetailsQuery, (I
         
         if (request.PurchaseOrderId.HasValue)
         {
-            query = query.Where(p => p.PurchaseOrder.Id == request.PurchaseOrderId);
+            query = query.Where(p => p.PurchaseOrder.Id == request.PurchaseOrderId)
+                .OrderBy(p => p.LineSequence)
+                .ThenBy(p => EF.Property<Instant>(p, "DateCreated"))
+                .ThenBy(p => p.Id);
+        }
+        else
+        {
+            query = query.OrderBy(p => EF.Property<Instant>(p, "DateCreated"))
+                .ThenBy(p => p.Id);
         }
 
         int totalCount = await query.CountAsync(cancellationToken);
 
         IReadOnlyList<PurchaseOrderDetail> existingPoDetails = await query
-            .OrderBy(p => EF.Property<Instant>(p, "DateCreated"))
-            .ThenBy(p => p.Id)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);

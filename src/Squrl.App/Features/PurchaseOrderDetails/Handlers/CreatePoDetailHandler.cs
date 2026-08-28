@@ -36,6 +36,7 @@ public class CreatePoDetailHandler : IRequestHandler<CreatePoDetailCommand, Purc
         {
             Id = Guid.NewGuid(),
             PurchaseOrder = purchaseOrder,
+            LineSequence = request.PoDetail.LineSequence ?? 0,
             Item = item,
             Quantity = request.PoDetail.Quantity ?? 0m
         };

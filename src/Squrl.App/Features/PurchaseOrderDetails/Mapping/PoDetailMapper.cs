@@ -11,6 +11,7 @@ public class PoDetailMapper
         return new GetPoDetailDto(
             poDetail.Id,
             poDetail.PurchaseOrder.Id,
+            poDetail.LineSequence,
             poDetail.Item.Id,
             poDetail.Quantity
         );
@@ -23,6 +24,7 @@ public class PoDetailMapper
             return poDetail => new GetPoDetailDto(
                 poDetail.Id,
                 poDetail.PurchaseOrder.Id,
+                poDetail.LineSequence,
                 poDetail.Item.Id,
                 poDetail.Quantity
             );
