@@ -18,7 +18,7 @@ public class GetItemDto
         string? description,
         decimal? quantity,
         decimal? lowQuantityAlertThreshold,
-        List<string>? locations)
+        IReadOnlyList<string>? locations)
     {
         Id = id;
         Name = name;

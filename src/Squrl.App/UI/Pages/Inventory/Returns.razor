@@ -107,6 +107,6 @@
     
     private async Task HandleReturnPurchaseOrderButtonClick(Guid purchaseOrderId)
     {
-        Result<GetPurchaseOrderDto> result = await PurchaseOrderService.RevertReceivedPurchaseOrderToPendingAsync(purchaseOrderId);
+        Result<GetPurchaseOrderDto> result = await PurchaseOrderService.ReturnPurchaseOrderAsync(purchaseOrderId);
     }
 }

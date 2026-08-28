@@ -20,7 +20,7 @@ public interface IPurchaseOrderService
         CancellationToken cancellationToken = default);
     Task<Result<GetPurchaseOrderDto>> CreatePurchaseOrderAsync(CreatePurchaseOrderDto purchaseOrder, List<CreatePoDetailDto> poDetails, CancellationToken cancellationToken = default);
     Task<Result<GetPurchaseOrderDto>> GetPurchaseOrderByIdAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<Result<GetPurchaseOrderDto>> UpdatePurchaseOrderAsync(Guid id, UpdatePurchaseOrderDto purchaseOrder, CancellationToken cancellationToken = default);
+    Task<Result<GetPurchaseOrderDto>> UpdatePurchaseOrderAsync(Guid id, UpdatePurchaseOrderDto purchaseOrder, List<CreatePoDetailDto> poDetails, CancellationToken cancellationToken = default);
     Task<Result<GetPurchaseOrderDto>> DeletePurchaseOrderAsync(Guid id, CancellationToken cancellationToken = default);
     
     Task<Result<GetManyPoDetailsDto>> GetPoDetailsAsync(Guid purchaseOrderId, CancellationToken cancellationToken = default);
@@ -31,6 +31,7 @@ public interface IPurchaseOrderService
     
     Task<Result<GetPurchaseOrderDto>> ReceivePurchaseOrderAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Result<GetPurchaseOrderDto>> CancelPurchaseOrderAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<Result<GetPurchaseOrderDto>> ReturnPurchaseOrderAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Result<GetPurchaseOrderDto>> UpdatePurchaseOrderStatusAsync(Guid id, PurchaseOrderStatus status, CancellationToken cancellationToken = default);
     Task<Result<GetPurchaseOrderDto>> RevertReceivedPurchaseOrderToPendingAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Result<GetPurchaseOrderDto>> UncancelPurchaseOrderAsync(Guid id, CancellationToken cancellationToken = default);

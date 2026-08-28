@@ -134,6 +134,92 @@ public partial class PurchaseOrderService
                 .WithFailureType(FailureType.Exception);
         }
     }
+    
+    public async Task<Result<GetPurchaseOrderDto>> ReturnPurchaseOrderAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            Models.PurchaseOrder? existingPurchaseOrder = await _mediator.Send(new GetPurchaseOrderByIdQuery(id), cancellationToken);
+            
+            if (existingPurchaseOrder == null)
+            {
+                return Result<GetPurchaseOrderDto>.Fail("Purchase order not found.")
+                    .WithFailureType(FailureType.NotFound);
+            }
+
+            if (existingPurchaseOrder.Status != PurchaseOrderStatus.Received)
+            {
+                return Result<GetPurchaseOrderDto>.Fail("Purchase order cannot be returned.")
+                    .WithFailureType(FailureType.BusinessLogic);
+            }
+
+            var poDetailsResult = await _mediator
+                .Send(new GetManyPoDetailsQuery(PurchaseOrderId: id, PageSize: 500), cancellationToken);
+
+            var failure = Result<GetPurchaseOrderDto>.Fail("Failed to return purchase order.")
+                .WithFailureType(FailureType.BusinessLogic);
+            
+            Models.PurchaseOrder? result = await _transactionManager.ExecuteAsync(async ct =>
+            {
+                foreach (PurchaseOrderDetail poDetail in poDetailsResult.Value)
+                {
+                    Item? item = await _mediator
+                        .Send(new GetItemByIdQuery(poDetail.Item.Id), ct);
+
+                    if (item is null)
+                    {
+                        return null;
+                    }
+
+                    if (item.Quantity < poDetail.Quantity)
+                    {
+                        failure.WithMessage($"Not enough quantity to remove from item {item.Name}.");
+                        return null;
+                    }
+                    
+                    Result<GetItemDto> removeStocksResult = await _inventoryService
+                        .RemoveStocksAsync(poDetail.Item.Id, poDetail.Quantity, ct);
+
+                    if (!removeStocksResult.IsSuccess)
+                    {
+                        return null;
+                    }
+                }
+
+                UpdatePurchaseOrderDto updatePurchaseOrder = new()
+                {
+                    Status = PurchaseOrderStatus.Returned
+                };
+                
+                Models.PurchaseOrder? updatePurchaseOrderResult = await _mediator
+                    .Send(new UpdatePurchaseOrderCommand(id, updatePurchaseOrder), ct);
+
+                if (updatePurchaseOrderResult is null)
+                {
+                    return null;
+                }
+
+                return updatePurchaseOrderResult;
+            }, cancellationToken);
+                
+            if (result == null)
+            {
+                return failure;
+            }
+            
+            return Result<GetPurchaseOrderDto>.Ok(PurchaseOrderMapper.ToDto(result));
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception e)
+        {
+            return Result<GetPurchaseOrderDto>.Fail("Failed to return purchase order.")
+                .WithException(e)
+                .WithFailureType(FailureType.Exception);
+        }
+    }
 
     public Task<Result<GetPurchaseOrderDto>> UpdatePurchaseOrderStatusAsync(Guid id, PurchaseOrderStatus status, CancellationToken cancellationToken = default)
     {
@@ -157,14 +243,14 @@ public partial class PurchaseOrderService
 
             if (existingPurchaseOrder.Status != PurchaseOrderStatus.Received)
             {
-                return Result<GetPurchaseOrderDto>.Fail("Purchase order cannot be returned.")
+                return Result<GetPurchaseOrderDto>.Fail("Purchase order cannot be reverted to pending.")
                     .WithFailureType(FailureType.BusinessLogic);
             }
 
             var poDetailsResult = await _mediator
                 .Send(new GetManyPoDetailsQuery(PurchaseOrderId: id, PageSize: 500), cancellationToken);
 
-            var failure = Result<GetPurchaseOrderDto>.Fail("Failed to return purchase order.")
+            var failure = Result<GetPurchaseOrderDto>.Fail("Failed to revert purchase order to pending.")
                 .WithFailureType(FailureType.BusinessLogic);
             
             Models.PurchaseOrder? result = await _transactionManager.ExecuteAsync(async ct =>
@@ -223,7 +309,7 @@ public partial class PurchaseOrderService
         }
         catch (Exception e)
         {
-            return Result<GetPurchaseOrderDto>.Fail("Failed to return purchase order.")
+            return Result<GetPurchaseOrderDto>.Fail("Failed to revert purchase order to pending.")
                 .WithException(e)
                 .WithFailureType(FailureType.Exception);
         }

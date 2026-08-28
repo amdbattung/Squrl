@@ -1,10 +1,11 @@
 ﻿@page "/pos/{PurchaseOrderId:guid}/edit"
+@using Squrl.App.Features.PurchaseOrderDetails.DTOs
 @rendermode InteractiveServer
 @attribute [StreamRendering]
 @inject NavigationManager Navigation
 @inject IPurchaseOrderService PurchaseOrderService
 @inject ISupplierService SupplierService
-@inject IClock Clock
+@inject IInventoryService InventoryService
 
 <h1>Edit Purchase Order</h1>
 
@@ -32,7 +33,13 @@
                 <option value="">Select Status</option>
                 <option value="@PurchaseOrderStatus.Pending">Pending</option>
                 <option value="@PurchaseOrderStatus.ToOrder">To Order</option>
+                <option value="@PurchaseOrderStatus.Ordered">Ordered</option>
                 <option value="@PurchaseOrderStatus.InTransit">In Transit</option>
+                <option value="@PurchaseOrderStatus.Received">Received</option>
+                <option value="@PurchaseOrderStatus.Cancelled">Cancelled</option>
+                <option value="@PurchaseOrderStatus.Lost">Lost</option>
+                <option value="@PurchaseOrderStatus.Failed">Failed</option>
+                <option value="@PurchaseOrderStatus.Returned">Returned</option>
             </InputSelect>
             <ValidationMessage For="@(() => PurchaseOrder.Status)" />
         </div>
@@ -54,6 +61,55 @@
                        Type="InputDateType.Date" />
             <ValidationMessage For="@(() => PurchaseOrder.DateShipped)" />
         </div>
+        
+        <hr />
+        
+        <h2>Purchase Order Details</h2>
+        
+        @if (PoDetails is not null)
+        {
+            @for (int i = 0; i < PoDetails.Count; i++)
+            {
+                int index = i;
+                CreatePoDetailDto detail = PoDetails[index];
+
+                <div class="po-detail" @key="detail">
+                    <h3>Detail @(index + 1)</h3>
+
+                    <div>
+                        <label>Item</label>
+                        <InputSelect @bind-Value="detail.ItemId">
+                            <option value="">Select an Item</option>
+                            @if (ItemSelect != null)
+                            {
+                                foreach (GetItemDto item in ItemSelect)
+                                {
+                                    <option value="@item.Id">@item.Name</option>
+                                }
+                            }
+                        </InputSelect>
+                    </div>
+
+                    <div>
+                        <label>Quantity</label>
+                        <InputNumber @bind-Value="detail.Quantity" />
+                        <ValidationMessage For="@(() => detail.Quantity)" />
+                    </div>
+
+                    @if (PoDetails.Count > 1)
+                    {
+                        <button type="button" @onclick="() => RemoveDetail(detail)">
+                            Remove
+                        </button>
+                    }
+                </div>
+            }
+
+            <button type="button" @onclick="AddDetail">
+                +
+            </button>
+        }
+        
         <button type="submit">Submit</button>
     </EditForm>
     
@@ -80,7 +136,13 @@ else
     public UpdatePurchaseOrderDto? PurchaseOrder { get; set; }
     
     [PersistentState]
+    public List<CreatePoDetailDto>? PoDetails { get; set; }
+    
+    [PersistentState]
     public IReadOnlyCollection<GetSupplierDto>? SupplierSelect { get; set; }
+    
+    [PersistentState]
+    public IReadOnlyCollection<GetItemDto>? ItemSelect { get; set; }
     
     private DateOnly? DateOrderedLocal
     {
@@ -129,16 +191,42 @@ else
     
     protected override async Task OnInitializedAsync()
     {
-        GetPurchaseOrderDto? purchaseOrderResult = null;
         if (PurchaseOrder is null)
         {
-            purchaseOrderResult = (await PurchaseOrderService.GetPurchaseOrderByIdAsync(PurchaseOrderId)).Value;
+            GetPurchaseOrderDto? purchaseOrderResult =
+                (await PurchaseOrderService.GetPurchaseOrderByIdAsync(PurchaseOrderId)).Value;
+            
+            if (purchaseOrderResult is null)
+            {
+                Navigation.NotFound();
+                return;
+            }
+            
+            PurchaseOrder = new()
+            {
+                SupplierId = purchaseOrderResult.SupplierId,
+                Status = purchaseOrderResult.Status,
+                DateOrdered = purchaseOrderResult.DateOrdered,
+                DateRequired = purchaseOrderResult.DateRequired,
+                DateShipped = purchaseOrderResult.DateShipped
+            };
         }
         
-        if (purchaseOrderResult is null)
+        if (PoDetails is null)
         {
-            Navigation.NotFound();
-            return;
+            PoDetails = new List<CreatePoDetailDto>();
+            
+            Result<GetManyPoDetailsDto> poDetailsResult = await PurchaseOrderService
+                .GetPoDetailsAsync(PurchaseOrderId);
+
+            foreach (GetPoDetailDto poDetail in poDetailsResult.Value?.PoDetails ?? Array.Empty<GetPoDetailDto>())
+            {
+                PoDetails.Add(new CreatePoDetailDto
+                {
+                    ItemId = poDetail.ItemId,
+                    Quantity = poDetail.Quantity
+                });
+            }
         }
         
         if (SupplierSelect is null)
@@ -146,23 +234,44 @@ else
             Result<GetManySuppliersDto> supplierResult = await SupplierService.GetManySuppliersAsync();
             SupplierSelect = supplierResult.Value?.Suppliers ?? Array.Empty<GetSupplierDto>();
         }
-
-        PurchaseOrder = new()
+        
+        if (ItemSelect is null)
         {
-            SupplierId = purchaseOrderResult.SupplierId,
-            Status = purchaseOrderResult.Status,
-            DateOrdered = purchaseOrderResult.DateOrdered,
-            DateRequired = purchaseOrderResult.DateRequired,
-            DateShipped = purchaseOrderResult.DateShipped
-        };
+            Result<GetManyItemsDto> itemResult = await InventoryService.GetManyItemsAsync();
+            ItemSelect = itemResult.Value?.Items ?? Array.Empty<GetItemDto>();
+        }
+    }
+    
+    private void AddDetail()
+    {
+        if (PoDetails is not null)
+        {
+            PoDetails.Add(new CreatePoDetailDto
+            {
+                PurchaseOrderId = null
+            });
+        }
+    }
+
+    private void RemoveDetail(CreatePoDetailDto detail)
+    {
+        if (PoDetails is not null)
+        {
+            if (PoDetails.Count <= 1)
+            {
+                return;
+            }
+
+            PoDetails.Remove(detail);
+        }
     }
     
     private async Task HandleSubmit()
     {
-        if (PurchaseOrder is not null)
+        if (PurchaseOrder is not null && PoDetails is not null)
         {
             Result<GetPurchaseOrderDto> result = await PurchaseOrderService
-                .UpdatePurchaseOrderAsync(PurchaseOrderId, PurchaseOrder);
+                .UpdatePurchaseOrderAsync(PurchaseOrderId, PurchaseOrder, PoDetails);
 
             if (result.IsSuccess)
             {

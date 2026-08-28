@@ -6,6 +6,7 @@ using Squrl.App.Common;
 using Squrl.App.Enums;
 using Squrl.App.Features.PurchaseOrderDetails.Commands;
 using Squrl.App.Features.PurchaseOrderDetails.DTOs;
+using Squrl.App.Features.PurchaseOrderDetails.Queries;
 using Squrl.App.Features.PurchaseOrders.Commands;
 using Squrl.App.Features.PurchaseOrders.DTOs;
 using Squrl.App.Features.PurchaseOrders.Mapping;
@@ -125,7 +126,7 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                         {
                             $"PO detail {index} is invalid"
                         }
-                        .Concat(poValidationResult.Errors.Select(e => e.ErrorMessage))
+                        .Concat(poDetailsValidationResult.Errors.Select(e => e.ErrorMessage))
                         .ToArray();
 
                     return Result<GetPurchaseOrderDto>.Fail(errors)
@@ -210,7 +211,9 @@ public partial class PurchaseOrderService : IPurchaseOrderService
         }
     }
 
-    public async Task<Result<GetPurchaseOrderDto>> UpdatePurchaseOrderAsync(Guid id, UpdatePurchaseOrderDto purchaseOrder,
+    public async Task<Result<GetPurchaseOrderDto>> UpdatePurchaseOrderAsync(Guid id,
+        UpdatePurchaseOrderDto purchaseOrder,
+        List<CreatePoDetailDto> poDetails,
         CancellationToken cancellationToken = default)
     {
         try
@@ -221,15 +224,42 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                     .WithFailureType(FailureType.Validation);
             }
             
-            ValidationResult validationResult = await _updatePurchaseOrderValidator.ValidateAsync(purchaseOrder, cancellationToken);
+            ValidationResult poValidationResult = await _updatePurchaseOrderValidator.ValidateAsync(purchaseOrder, cancellationToken);
             
-            if (!validationResult.IsValid)
+            if (!poValidationResult.IsValid)
             {
-                return Result<GetPurchaseOrderDto>.Fail(validationResult.Errors
+                return Result<GetPurchaseOrderDto>.Fail(poValidationResult.Errors
                         .Select(e => e.ErrorMessage)
                         .ToArray())
                     .WithFailureType(FailureType.Validation);
             }
+            
+            for (int index = 0; index < poDetails.Count; index++)
+            {
+                CreatePoDetailDto poDetail = poDetails[index];
+
+                poDetail.PurchaseOrderId = Guid.Empty;
+                
+                ValidationResult? poDetailsValidationResult = await _createPoDetailValidator
+                    .ValidateAsync(poDetail, cancellationToken);
+
+                if (!poDetailsValidationResult.IsValid)
+                {
+                    string[] errors = new[]
+                        {
+                            $"PO detail {index} is invalid"
+                        }
+                        .Concat(poDetailsValidationResult.Errors.Select(e => e.ErrorMessage))
+                        .ToArray();
+
+                    return Result<GetPurchaseOrderDto>.Fail(errors)
+                        .WithFailureType(FailureType.Validation);
+                }
+            }
+            
+            var existingPoDetails = (await _mediator
+                .Send(new GetManyPoDetailsQuery(PurchaseOrderId: id), cancellationToken))
+                .Value;
 
             Models.PurchaseOrder? result = await _mediator
                 .Send(new UpdatePurchaseOrderCommand(id, purchaseOrder), cancellationToken);

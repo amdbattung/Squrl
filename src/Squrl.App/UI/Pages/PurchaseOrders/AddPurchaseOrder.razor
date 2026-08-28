@@ -32,6 +32,7 @@
             <option value="">Select Status</option>
             <option value="@PurchaseOrderStatus.Pending">Pending</option>
             <option value="@PurchaseOrderStatus.ToOrder">To Order</option>
+            <option value="@PurchaseOrderStatus.Ordered">Ordered</option>
             <option value="@PurchaseOrderStatus.InTransit">In Transit</option>
         </InputSelect>
         <ValidationMessage For="@(() => _purchaseOrder.Status)" />
@@ -95,8 +96,6 @@
     <button type="button" @onclick="AddDetail">
         +
     </button>
-
-    <br />
 
     <button type="submit">Submit</button>
 </EditForm>
