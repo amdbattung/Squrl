@@ -56,10 +56,10 @@
 
     <h2>Purchase Order Details</h2>
 
-    @for (int i = 0; i < _poDetails.Count; i++)
+    @for (int i = 0; i < _purchaseOrder.PurchaseOrderDetails?.Count; i++)
     {
         int index = i;
-        CreatePoDetailDto detail = _poDetails[index];
+        CreatePoDetailDto detail = _purchaseOrder.PurchaseOrderDetails[index];
 
         <div class="po-detail" @key="detail">
             <h3>Detail @(index + 1)</h3>
@@ -84,7 +84,7 @@
                 <ValidationMessage For="@(() => detail.Quantity)" />
             </div>
 
-            @if (_poDetails.Count > 1)
+            @if (_purchaseOrder.PurchaseOrderDetails.Count > 1)
             {
                 <button type="button" @onclick="() => RemoveDetail(detail)">
                     Remove
@@ -113,15 +113,14 @@
 
     private CreatePurchaseOrderDto _purchaseOrder = new()
     {
-        Status = PurchaseOrderStatus.Pending
-    };
-
-    private List<CreatePoDetailDto> _poDetails = new()
-    {
-        new CreatePoDetailDto
+        Status = PurchaseOrderStatus.Pending,
+        PurchaseOrderDetails = new()
         {
-            PurchaseOrderId = null,
-            LineSequence = 1
+            new CreatePoDetailDto
+            {
+                PurchaseOrderId = Guid.Empty,
+                LineSequence = 1
+            }
         }
     };
 
@@ -182,49 +181,54 @@
 
     private void AddDetail()
     {
-        _poDetails.Add(new CreatePoDetailDto
+        _purchaseOrder.PurchaseOrderDetails?.Add(new CreatePoDetailDto
         {
-            PurchaseOrderId = null,
-            LineSequence = _poDetails.Count + 1
+            PurchaseOrderId = Guid.Empty,
+            LineSequence = _purchaseOrder.PurchaseOrderDetails.Count + 1
         });
     }
 
     private void RemoveDetail(CreatePoDetailDto detail)
     {
-        if (_poDetails.Count <= 1)
+        if (_purchaseOrder.PurchaseOrderDetails?.Count <= 1)
         {
             return;
         }
 
-        _poDetails.Remove(detail);
+        _purchaseOrder.PurchaseOrderDetails?.Remove(detail);
+            
+        for (int i = 0; i < _purchaseOrder.PurchaseOrderDetails?.Count; i++)
+        {
+            _purchaseOrder.PurchaseOrderDetails[i].LineSequence = i + 1;
+        }
     }
 
     private async Task HandleSubmit()
     {
-        if (_poDetails.Count <= 0)
+        Console.WriteLine("TEST");
+        if (_purchaseOrder.PurchaseOrderDetails?.Count <= 0)
         {
             return;
         }
-        
-        _purchaseOrder.PurchaseOrderDetails = _poDetails;
 
         Result<GetPurchaseOrderDto> result = await PurchaseOrderService.CreatePurchaseOrderAsync(_purchaseOrder);
-        
-        _purchaseOrder.PurchaseOrderDetails = null;
 
         if (result.IsSuccess)
         {
             _purchaseOrder = new()
             {
-                Status = PurchaseOrderStatus.Pending
+                Status = PurchaseOrderStatus.Pending,
+                PurchaseOrderDetails = new()
+                {
+                    new CreatePoDetailDto
+                    {
+                        PurchaseOrderId = Guid.Empty,
+                        LineSequence = 1
+                    }
+                }
             };
 
             _purchaseOrder.DateOrdered = Clock.GetCurrentInstant();
-
-            _poDetails = new()
-            {
-                new CreatePoDetailDto()
-            };
 
             _successMessage = "Purchase Order successfully added";
         }

@@ -110,31 +110,6 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                         .ToArray())
                     .WithFailureType(FailureType.Validation);
             }
-
-            List<CreatePoDetailDto>? poDetails = purchaseOrder.PurchaseOrderDetails;
-            
-            for (int index = 0; index < poDetails?.Count; index++)
-            {
-                CreatePoDetailDto poDetail = poDetails[index];
-
-                poDetail.PurchaseOrderId = Guid.Empty;
-                
-                ValidationResult? poDetailsValidationResult = await _createPoDetailValidator
-                    .ValidateAsync(poDetail, cancellationToken);
-
-                if (!poDetailsValidationResult.IsValid)
-                {
-                    string[] errors = new[]
-                        {
-                            $"PO detail {index} is invalid"
-                        }
-                        .Concat(poDetailsValidationResult.Errors.Select(e => e.ErrorMessage))
-                        .ToArray();
-
-                    return Result<GetPurchaseOrderDto>.Fail(errors)
-                        .WithFailureType(FailureType.Validation);
-                }
-            }
             
             Models.PurchaseOrder? result = await _transactionManager.ExecuteAsync(async ct =>
             {
@@ -146,7 +121,7 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                     return null;
                 }
 
-                foreach (CreatePoDetailDto poDetail in poDetails ?? [])
+                foreach (CreatePoDetailDto poDetail in purchaseOrder.PurchaseOrderDetails ?? [])
                 {
                     poDetail.PurchaseOrderId = purchaseOrderResult.Id;
                     PurchaseOrderDetail? poDetailResult = await _mediator
@@ -235,31 +210,6 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                     .WithFailureType(FailureType.Validation);
             }
             
-            List<UpdatePoDetailDto>? updatePoDetails = purchaseOrder.PurchaseOrderDetails;
-            
-            for (int index = 0; index < updatePoDetails?.Count; index++)
-            {
-                UpdatePoDetailDto poDetail = updatePoDetails[index];
-
-                poDetail.PurchaseOrderId = Guid.Empty;
-                
-                ValidationResult? poDetailsValidationResult = await _updatePoDetailValidator
-                    .ValidateAsync(poDetail, cancellationToken);
-
-                if (!poDetailsValidationResult.IsValid)
-                {
-                    string[] errors = new[]
-                        {
-                            $"PO detail {index} is invalid"
-                        }
-                        .Concat(poDetailsValidationResult.Errors.Select(e => e.ErrorMessage))
-                        .ToArray();
-
-                    return Result<GetPurchaseOrderDto>.Fail(errors)
-                        .WithFailureType(FailureType.Validation);
-                }
-            }
-            
             IReadOnlyList<PurchaseOrderDetail> existingPoDetails = (await _mediator
                     .Send(new GetManyPoDetailsQuery(PurchaseOrderId: id, PageSize: 500), cancellationToken))
                 .Value;
@@ -271,12 +221,13 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                 
                 if (purchaseOrderResult is null)
                 {
-                    Console.WriteLine("FILED HERE 1");
                     return null;
                 }
                 
-                foreach (UpdatePoDetailDto poDetail in updatePoDetails ?? [])
+                foreach (UpdatePoDetailDto poDetail in purchaseOrder.PurchaseOrderDetails ?? [])
                 {
+                    poDetail.PurchaseOrderId = null;
+                    
                     PurchaseOrderDetail? existingPoDetail = existingPoDetails
                         .FirstOrDefault(p => p.LineSequence == poDetail.LineSequence);
 
@@ -285,7 +236,7 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                     if (existingPoDetail is not null)
                     {
                         poDetailResult = await _mediator
-                            .Send(new UpdatePoDetailCommand(id, poDetail), ct);
+                            .Send(new UpdatePoDetailCommand(existingPoDetail.Id, poDetail), ct);
                     }
                     else
                     {
@@ -301,21 +252,19 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                     
                     if (poDetailResult is null)
                     {
-                        Console.WriteLine("FILED HERE 2");
                         return null;
                     }
                 }
 
                 foreach (PurchaseOrderDetail poDetail in existingPoDetails
-                             .Where(e => (updatePoDetails ?? [])
+                             .Where(e => (purchaseOrder.PurchaseOrderDetails ?? [])
                                  .All(u => u.LineSequence != e.LineSequence)))
                 {
-                    var poDetailResult = await _mediator
+                    PurchaseOrderDetail? poDetailResult = await _mediator
                         .Send(new DeletePoDetailCommand(poDetail.Id), ct);
                     
                     if (poDetailResult is null)
                     {
-                        Console.WriteLine("FILED HERE 3");
                         return null;
                     }
                 }

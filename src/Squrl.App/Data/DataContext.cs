@@ -19,8 +19,6 @@ public class DataContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Enums
-        
         // Shadow Properties
         modelBuilder.Entity<Item>()
             .Property<Instant?>("DateCreated");
@@ -62,6 +60,10 @@ public class DataContext : DbContext
             .HasIndex("DateCreated");
         
         modelBuilder.Entity<PurchaseOrderDetail>()
+            .HasIndex("PurchaseOrderId", nameof(PurchaseOrderDetail.LineSequence))
+            .IsUnique();
+        
+        modelBuilder.Entity<PurchaseOrderDetail>()
             .HasIndex("DateCreated");
 
         // Relationships
@@ -83,5 +85,14 @@ public class DataContext : DbContext
             .HasOne(e => e.Item)
             .WithMany()
             .IsRequired();
+        
+        // Constraints
+        modelBuilder.Entity<PurchaseOrderDetail>()
+            .ToTable("purchase_order_details", t =>
+            {
+                t.HasCheckConstraint(
+                    "CK_purchase_order_details_line_sequence",
+                    "line_sequence >= 1");
+            });
     }
 }

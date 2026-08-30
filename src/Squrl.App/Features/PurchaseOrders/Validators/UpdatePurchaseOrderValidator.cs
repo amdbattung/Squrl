@@ -1,17 +1,29 @@
 ﻿using FluentValidation;
+using Squrl.App.Extensions;
+using Squrl.App.Features.PurchaseOrderDetails.DTOs;
 using Squrl.App.Features.PurchaseOrders.DTOs;
 
 namespace Squrl.App.Features.PurchaseOrders.Validators;
 
 public class UpdatePurchaseOrderValidator : AbstractValidator<UpdatePurchaseOrderDto>
 {
-    public UpdatePurchaseOrderValidator()
+    public UpdatePurchaseOrderValidator(IValidator<UpdatePoDetailDto> poDetailValidator)
     {
         RuleFor(x => x.Status)
             .NotNull()
             .WithMessage("{PropertyName} is required.")
             .IsInEnum()
             .WithMessage("{PropertyName} is invalid.");
+        
+        RuleFor(x => x.PurchaseOrderDetails)
+            .NotEmpty()
+            .WithName("Purchase Order Details")
+            .WithMessage("{PropertyName} is required.")
+            .BeSequential()
+            .WithMessage("Line sequences must start at 1 and be consecutive.");
+        
+        RuleForEach(x => x.PurchaseOrderDetails)
+            .SetValidator(poDetailValidator);
 
         RuleFor(x => x.DateOrdered)
             .NotNull()

@@ -12,6 +12,14 @@ public class UpdatePoDetailValidator : AbstractValidator<UpdatePoDetailDto>
             .WithName("Purchase Order")
             .WithMessage("{PropertyName} is required.");
         
+        RuleFor(x => x.LineSequence)
+            .NotNull()
+            .WithName("Line Sequence")
+            .WithMessage("{PropertyName} is required.")
+            .GreaterThanOrEqualTo(1)
+            .WithName("Line Sequence")
+            .WithMessage("{PropertyName} must start at 1.");
+        
         RuleFor(x => x.ItemId)
             .NotEmpty()
             .WithName("Item")
