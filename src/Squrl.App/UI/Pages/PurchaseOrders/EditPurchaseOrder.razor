@@ -66,12 +66,12 @@
         
         <h2>Purchase Order Details</h2>
         
-        @if (PurchaseOrder.PurchaseOrderDetails is not null)
+        @if (PurchaseOrder.Details is not null)
         {
-            @for (int i = 0; i < PurchaseOrder.PurchaseOrderDetails.Count; i++)
+            @for (int i = 0; i < PurchaseOrder.Details.Count; i++)
             {
                 int index = i;
-                UpdatePoDetailDto detail = PurchaseOrder.PurchaseOrderDetails[index];
+                UpdatePoDetailDto detail = PurchaseOrder.Details[index];
 
                 <div class="po-detail" @key="detail">
                     <h3>Detail @(index + 1)</h3>
@@ -96,7 +96,7 @@
                         <ValidationMessage For="@(() => detail.Quantity)" />
                     </div>
 
-                    @if (PurchaseOrder.PurchaseOrderDetails.Count > 1)
+                    @if (PurchaseOrder.Details.Count > 1)
                     {
                         <button type="button" @onclick="() => RemoveDetail(detail)">
                             Remove
@@ -209,16 +209,16 @@ else
             };
         }
         
-        if (PurchaseOrder is not null && PurchaseOrder.PurchaseOrderDetails is null)
+        if (PurchaseOrder is not null && PurchaseOrder.Details is null)
         {
-            PurchaseOrder.PurchaseOrderDetails = new List<UpdatePoDetailDto>();
+            PurchaseOrder.Details = new List<UpdatePoDetailDto>();
             
             Result<GetManyPoDetailsDto> poDetailsResult = await PurchaseOrderService
                 .GetPoDetailsAsync(PurchaseOrderId);
 
             foreach (GetPoDetailDto poDetail in poDetailsResult.Value?.PoDetails ?? Array.Empty<GetPoDetailDto>())
             {
-                PurchaseOrder.PurchaseOrderDetails.Add(new UpdatePoDetailDto
+                PurchaseOrder.Details.Add(new UpdatePoDetailDto
                 {
                     PurchaseOrderId = Guid.Empty,
                     LineSequence =  poDetail.LineSequence,
@@ -243,37 +243,37 @@ else
     
     private void AddDetail()
     {
-        if (PurchaseOrder?.PurchaseOrderDetails is not null)
+        if (PurchaseOrder?.Details is not null)
         {
-            PurchaseOrder.PurchaseOrderDetails.Add(new UpdatePoDetailDto
+            PurchaseOrder.Details.Add(new UpdatePoDetailDto
             {
                 PurchaseOrderId = Guid.Empty,
-                LineSequence = PurchaseOrder.PurchaseOrderDetails.Count + 1,
+                LineSequence = PurchaseOrder.Details.Count + 1,
             });
         }
     }
 
     private void RemoveDetail(UpdatePoDetailDto detail)
     {
-        if (PurchaseOrder?.PurchaseOrderDetails is not null)
+        if (PurchaseOrder?.Details is not null)
         {
-            if (PurchaseOrder.PurchaseOrderDetails.Count <= 1)
+            if (PurchaseOrder.Details.Count <= 1)
             {
                 return;
             }
 
-            PurchaseOrder.PurchaseOrderDetails.Remove(detail);
+            PurchaseOrder.Details.Remove(detail);
             
-            for (int i = 0; i < PurchaseOrder.PurchaseOrderDetails.Count; i++)
+            for (int i = 0; i < PurchaseOrder.Details.Count; i++)
             {
-                PurchaseOrder.PurchaseOrderDetails[i].LineSequence = i + 1;
+                PurchaseOrder.Details[i].LineSequence = i + 1;
             }
         }
     }
     
     private async Task HandleSubmit()
     {
-        if (PurchaseOrder is not null && PurchaseOrder.PurchaseOrderDetails is not null)
+        if (PurchaseOrder is not null && PurchaseOrder.Details is not null)
         {
             Result<GetPurchaseOrderDto> result = await PurchaseOrderService
                 .UpdatePurchaseOrderAsync(PurchaseOrderId, PurchaseOrder);

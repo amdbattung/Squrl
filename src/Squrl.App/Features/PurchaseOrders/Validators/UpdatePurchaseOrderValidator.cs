@@ -15,14 +15,14 @@ public class UpdatePurchaseOrderValidator : AbstractValidator<UpdatePurchaseOrde
             .IsInEnum()
             .WithMessage("{PropertyName} is invalid.");
         
-        RuleFor(x => x.PurchaseOrderDetails)
+        RuleFor(x => x.Details)
             .NotEmpty()
             .WithName("Purchase Order Details")
             .WithMessage("{PropertyName} is required.")
             .BeSequential()
             .WithMessage("Line sequences must start at 1 and be consecutive.");
         
-        RuleForEach(x => x.PurchaseOrderDetails)
+        RuleForEach(x => x.Details)
             .SetValidator(poDetailValidator);
 
         RuleFor(x => x.DateOrdered)

@@ -8,7 +8,7 @@ public class UpdatePurchaseOrderDto
 {
     public Guid? SupplierId { get; set; }
     public PurchaseOrderStatus? Status { get; set; }
-    public List<UpdatePoDetailDto>? PurchaseOrderDetails { get; set; }
+    public List<UpdatePoDetailDto>? Details { get; set; }
     public Instant? DateOrdered { get; set; }
     public Instant? DateRequired { get; set; }
     public Instant? DateShipped { get; set; }

@@ -121,7 +121,7 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                     return null;
                 }
 
-                foreach (CreatePoDetailDto poDetail in purchaseOrder.PurchaseOrderDetails ?? [])
+                foreach (CreatePoDetailDto poDetail in purchaseOrder.Details ?? [])
                 {
                     poDetail.PurchaseOrderId = purchaseOrderResult.Id;
                     PurchaseOrderDetail? poDetailResult = await _mediator
@@ -224,7 +224,7 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                     return null;
                 }
                 
-                foreach (UpdatePoDetailDto poDetail in purchaseOrder.PurchaseOrderDetails ?? [])
+                foreach (UpdatePoDetailDto poDetail in purchaseOrder.Details ?? [])
                 {
                     poDetail.PurchaseOrderId = null;
                     
@@ -257,7 +257,7 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                 }
 
                 foreach (PurchaseOrderDetail poDetail in existingPoDetails
-                             .Where(e => (purchaseOrder.PurchaseOrderDetails ?? [])
+                             .Where(e => (purchaseOrder.Details ?? [])
                                  .All(u => u.LineSequence != e.LineSequence)))
                 {
                     PurchaseOrderDetail? poDetailResult = await _mediator

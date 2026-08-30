@@ -56,10 +56,10 @@
 
     <h2>Purchase Order Details</h2>
 
-    @for (int i = 0; i < _purchaseOrder.PurchaseOrderDetails?.Count; i++)
+    @for (int i = 0; i < _purchaseOrder.Details?.Count; i++)
     {
         int index = i;
-        CreatePoDetailDto detail = _purchaseOrder.PurchaseOrderDetails[index];
+        CreatePoDetailDto detail = _purchaseOrder.Details[index];
 
         <div class="po-detail" @key="detail">
             <h3>Detail @(index + 1)</h3>
@@ -84,7 +84,7 @@
                 <ValidationMessage For="@(() => detail.Quantity)" />
             </div>
 
-            @if (_purchaseOrder.PurchaseOrderDetails.Count > 1)
+            @if (_purchaseOrder.Details.Count > 1)
             {
                 <button type="button" @onclick="() => RemoveDetail(detail)">
                     Remove
@@ -114,7 +114,7 @@
     private CreatePurchaseOrderDto _purchaseOrder = new()
     {
         Status = PurchaseOrderStatus.Pending,
-        PurchaseOrderDetails = new()
+        Details = new()
         {
             new CreatePoDetailDto
             {
@@ -181,32 +181,31 @@
 
     private void AddDetail()
     {
-        _purchaseOrder.PurchaseOrderDetails?.Add(new CreatePoDetailDto
+        _purchaseOrder.Details?.Add(new CreatePoDetailDto
         {
             PurchaseOrderId = Guid.Empty,
-            LineSequence = _purchaseOrder.PurchaseOrderDetails.Count + 1
+            LineSequence = _purchaseOrder.Details.Count + 1
         });
     }
 
     private void RemoveDetail(CreatePoDetailDto detail)
     {
-        if (_purchaseOrder.PurchaseOrderDetails?.Count <= 1)
+        if (_purchaseOrder.Details?.Count <= 1)
         {
             return;
         }
 
-        _purchaseOrder.PurchaseOrderDetails?.Remove(detail);
+        _purchaseOrder.Details?.Remove(detail);
             
-        for (int i = 0; i < _purchaseOrder.PurchaseOrderDetails?.Count; i++)
+        for (int i = 0; i < _purchaseOrder.Details?.Count; i++)
         {
-            _purchaseOrder.PurchaseOrderDetails[i].LineSequence = i + 1;
+            _purchaseOrder.Details[i].LineSequence = i + 1;
         }
     }
 
     private async Task HandleSubmit()
     {
-        Console.WriteLine("TEST");
-        if (_purchaseOrder.PurchaseOrderDetails?.Count <= 0)
+        if (_purchaseOrder.Details?.Count <= 0)
         {
             return;
         }
@@ -218,7 +217,7 @@
             _purchaseOrder = new()
             {
                 Status = PurchaseOrderStatus.Pending,
-                PurchaseOrderDetails = new()
+                Details = new()
                 {
                     new CreatePoDetailDto
                     {
