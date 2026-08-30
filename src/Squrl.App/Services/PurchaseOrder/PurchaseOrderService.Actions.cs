@@ -37,7 +37,7 @@ public partial class PurchaseOrderService
             }
 
             var poDetailsResult = await _mediator
-                .Send(new GetManyPoDetailsQuery(PurchaseOrderId: id, PageSize: 500), cancellationToken);
+                .Send(new GetManyPoDetailsQuery(PurchaseOrderId: id, PageSize: null), cancellationToken);
             
             var result = await _transactionManager.ExecuteAsync(async ct =>
             {
@@ -154,7 +154,7 @@ public partial class PurchaseOrderService
             }
 
             var poDetailsResult = await _mediator
-                .Send(new GetManyPoDetailsQuery(PurchaseOrderId: id, PageSize: 500), cancellationToken);
+                .Send(new GetManyPoDetailsQuery(PurchaseOrderId: id, PageSize: null), cancellationToken);
 
             var failure = Result<GetPurchaseOrderDto>.Fail("Failed to return purchase order.")
                 .WithFailureType(FailureType.BusinessLogic);
@@ -248,7 +248,7 @@ public partial class PurchaseOrderService
             }
 
             var poDetailsResult = await _mediator
-                .Send(new GetManyPoDetailsQuery(PurchaseOrderId: id, PageSize: 500), cancellationToken);
+                .Send(new GetManyPoDetailsQuery(PurchaseOrderId: id, PageSize: null), cancellationToken);
 
             var failure = Result<GetPurchaseOrderDto>.Fail("Failed to revert purchase order to pending.")
                 .WithFailureType(FailureType.BusinessLogic);

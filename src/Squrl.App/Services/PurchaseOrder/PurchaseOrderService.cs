@@ -211,7 +211,7 @@ public partial class PurchaseOrderService : IPurchaseOrderService
             }
             
             IReadOnlyList<PurchaseOrderDetail> existingPoDetails = (await _mediator
-                    .Send(new GetManyPoDetailsQuery(PurchaseOrderId: id, PageSize: 500), cancellationToken))
+                    .Send(new GetManyPoDetailsQuery(PurchaseOrderId: id, PageSize: null), cancellationToken))
                 .Value;
             
             Models.PurchaseOrder? result = await _transactionManager.ExecuteAsync(async ct =>

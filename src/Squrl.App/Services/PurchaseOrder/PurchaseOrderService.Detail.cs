@@ -16,9 +16,7 @@ public partial class PurchaseOrderService
     {
         try
         {
-            const int pageSize = 500;
-            
-            var result = await _mediator.Send(new GetManyPoDetailsQuery(PurchaseOrderId: purchaseOrderId, PageSize: pageSize), cancellationToken);
+            var result = await _mediator.Send(new GetManyPoDetailsQuery(PurchaseOrderId: purchaseOrderId, PageSize: null), cancellationToken);
             
             GetManyPoDetailsDto payload = new GetManyPoDetailsDto(
                 result.PageSize,

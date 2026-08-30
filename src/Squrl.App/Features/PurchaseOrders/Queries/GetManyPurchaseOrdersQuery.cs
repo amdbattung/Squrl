@@ -14,4 +14,4 @@ public record GetManyPurchaseOrdersQuery(string? Query = null,
     SortDirection OrderDirection = SortDirection.Ascending,
     int? PageNumber = null,
     int? PageSize = null)
-    : IRequest<(IReadOnlyList<PurchaseOrder> Value, int PageNumber, int PageSize, int TotalCount)>;
+    : IRequest<(IReadOnlyList<PurchaseOrder> Value, int? PageNumber, int? PageSize, int TotalCount)>;

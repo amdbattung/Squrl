@@ -8,7 +8,7 @@ using Squrl.App.Models;
 
 namespace Squrl.App.Features.PurchaseOrders.Handlers;
 
-public class GetManyPurchaseOrdersHandler : IRequestHandler<GetManyPurchaseOrdersQuery, (IReadOnlyList<PurchaseOrder> Value, int PageNumber, int PageSize, int TotalCount)>
+public class GetManyPurchaseOrdersHandler : IRequestHandler<GetManyPurchaseOrdersQuery, (IReadOnlyList<PurchaseOrder> Value, int? PageNumber, int? PageSize, int TotalCount)>
 {
     private readonly DataContext _dataContext;
 
@@ -17,11 +17,8 @@ public class GetManyPurchaseOrdersHandler : IRequestHandler<GetManyPurchaseOrder
         _dataContext = dataContext;
     }
 
-    public async Task<(IReadOnlyList<PurchaseOrder> Value, int PageNumber, int PageSize, int TotalCount)> Handle(GetManyPurchaseOrdersQuery request, CancellationToken cancellationToken)
+    public async Task<(IReadOnlyList<PurchaseOrder> Value, int? PageNumber, int? PageSize, int TotalCount)> Handle(GetManyPurchaseOrdersQuery request, CancellationToken cancellationToken)
     {
-        int pageNumber = request.PageNumber ?? 1;
-        int pageSize = request.PageSize ?? 10;
-
         IQueryable<PurchaseOrder> query = _dataContext.PurchaseOrders
             .AsNoTracking()
             .Include(p => p.Supplier);
@@ -85,12 +82,28 @@ public class GetManyPurchaseOrdersHandler : IRequestHandler<GetManyPurchaseOrder
         }
 
         int totalCount = await query.CountAsync(cancellationToken);
+        
+        IReadOnlyList<PurchaseOrder> existingPurchaseOrders;
+        
+        if (request.PageSize is null)
+        {
+            existingPurchaseOrders = await query
+                .ToListAsync(cancellationToken);
+        }
+        else
+        {
+            int pageNumber = request.PageNumber ?? 1;
+            int pageSize = request.PageSize ?? 10;
 
-        IReadOnlyList<PurchaseOrder> existingPurchaseOrders = await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
+            existingPurchaseOrders = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+        }
 
-        return (existingPurchaseOrders, pageNumber, pageSize, totalCount);
+        return (existingPurchaseOrders,
+            request.PageNumber ?? 1,
+            request.PageSize ?? 0,
+            totalCount);
     }
 }

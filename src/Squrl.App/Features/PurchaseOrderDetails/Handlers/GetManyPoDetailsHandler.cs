@@ -7,7 +7,7 @@ using Squrl.App.Models;
 
 namespace Squrl.App.Features.PurchaseOrderDetails.Handlers;
 
-public class GetManyPoDetailsHandler : IRequestHandler<GetManyPoDetailsQuery, (IReadOnlyList<PurchaseOrderDetail> Value, int PageNumber, int PageSize, int TotalCount)>
+public class GetManyPoDetailsHandler : IRequestHandler<GetManyPoDetailsQuery, (IReadOnlyList<PurchaseOrderDetail> Value, int? PageNumber, int? PageSize, int TotalCount)>
 {
     private readonly DataContext _dataContext;
 
@@ -16,11 +16,8 @@ public class GetManyPoDetailsHandler : IRequestHandler<GetManyPoDetailsQuery, (I
         _dataContext = dataContext;
     }
 
-    public async Task<(IReadOnlyList<PurchaseOrderDetail> Value, int PageNumber, int PageSize, int TotalCount)> Handle(GetManyPoDetailsQuery request, CancellationToken cancellationToken)
+    public async Task<(IReadOnlyList<PurchaseOrderDetail> Value, int? PageNumber, int? PageSize, int TotalCount)> Handle(GetManyPoDetailsQuery request, CancellationToken cancellationToken)
     {
-        int pageNumber = request.PageNumber ?? 1;
-        int pageSize = request.PageSize ?? 10;
-
         IQueryable<PurchaseOrderDetail> query = _dataContext.PurchaseOrderDetails
             .AsNoTracking()
             .Include(p => p.PurchaseOrder)
@@ -41,11 +38,27 @@ public class GetManyPoDetailsHandler : IRequestHandler<GetManyPoDetailsQuery, (I
 
         int totalCount = await query.CountAsync(cancellationToken);
 
-        IReadOnlyList<PurchaseOrderDetail> existingPoDetails = await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
+        IReadOnlyList<PurchaseOrderDetail> existingPoDetails;
+        
+        if (request.PageSize is null)
+        {
+            existingPoDetails = await query
+                .ToListAsync(cancellationToken);
+        }
+        else
+        {
+            int pageNumber = request.PageNumber ?? 1;
+            int pageSize = request.PageSize ?? 10;
 
-        return (existingPoDetails, pageNumber, pageSize, totalCount);
+            existingPoDetails = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+        }
+
+        return (existingPoDetails,
+            request.PageNumber ?? 1,
+            request.PageSize ?? 0,
+            totalCount);
     }
 }
