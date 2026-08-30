@@ -118,7 +118,11 @@
 
     private List<CreatePoDetailDto> _poDetails = new()
     {
-        new CreatePoDetailDto()
+        new CreatePoDetailDto
+        {
+            PurchaseOrderId = null,
+            LineSequence = 1
+        }
     };
 
     private string? _successMessage;
@@ -180,7 +184,8 @@
     {
         _poDetails.Add(new CreatePoDetailDto
         {
-            PurchaseOrderId = null
+            PurchaseOrderId = null,
+            LineSequence = _poDetails.Count + 1
         });
     }
 
@@ -200,8 +205,12 @@
         {
             return;
         }
+        
+        _purchaseOrder.PurchaseOrderDetails = _poDetails;
 
-        Result<GetPurchaseOrderDto> result = await PurchaseOrderService.CreatePurchaseOrderAsync(_purchaseOrder, _poDetails);
+        Result<GetPurchaseOrderDto> result = await PurchaseOrderService.CreatePurchaseOrderAsync(_purchaseOrder);
+        
+        _purchaseOrder.PurchaseOrderDetails = null;
 
         if (result.IsSuccess)
         {

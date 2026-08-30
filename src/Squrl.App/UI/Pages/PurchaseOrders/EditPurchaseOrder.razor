@@ -71,7 +71,7 @@
             @for (int i = 0; i < PoDetails.Count; i++)
             {
                 int index = i;
-                CreatePoDetailDto detail = PoDetails[index];
+                UpdatePoDetailDto detail = PoDetails[index];
 
                 <div class="po-detail" @key="detail">
                     <h3>Detail @(index + 1)</h3>
@@ -136,7 +136,7 @@ else
     public UpdatePurchaseOrderDto? PurchaseOrder { get; set; }
     
     [PersistentState]
-    public List<CreatePoDetailDto>? PoDetails { get; set; }
+    public List<UpdatePoDetailDto>? PoDetails { get; set; }
     
     [PersistentState]
     public IReadOnlyCollection<GetSupplierDto>? SupplierSelect { get; set; }
@@ -214,15 +214,16 @@ else
         
         if (PoDetails is null)
         {
-            PoDetails = new List<CreatePoDetailDto>();
+            PoDetails = new List<UpdatePoDetailDto>();
             
             Result<GetManyPoDetailsDto> poDetailsResult = await PurchaseOrderService
                 .GetPoDetailsAsync(PurchaseOrderId);
 
             foreach (GetPoDetailDto poDetail in poDetailsResult.Value?.PoDetails ?? Array.Empty<GetPoDetailDto>())
             {
-                PoDetails.Add(new CreatePoDetailDto
+                PoDetails.Add(new UpdatePoDetailDto
                 {
+                    LineSequence =  poDetail.LineSequence,
                     ItemId = poDetail.ItemId,
                     Quantity = poDetail.Quantity
                 });
@@ -246,14 +247,15 @@ else
     {
         if (PoDetails is not null)
         {
-            PoDetails.Add(new CreatePoDetailDto
+            PoDetails.Add(new UpdatePoDetailDto
             {
-                PurchaseOrderId = null
+                PurchaseOrderId = null,
+                LineSequence = PoDetails.Count + 1,
             });
         }
     }
 
-    private void RemoveDetail(CreatePoDetailDto detail)
+    private void RemoveDetail(UpdatePoDetailDto detail)
     {
         if (PoDetails is not null)
         {
@@ -263,6 +265,11 @@ else
             }
 
             PoDetails.Remove(detail);
+            
+            for (int i = 0; i < PoDetails.Count; i++)
+            {
+                PoDetails[i].LineSequence = i + 1;
+            }
         }
     }
     
@@ -270,8 +277,17 @@ else
     {
         if (PurchaseOrder is not null && PoDetails is not null)
         {
+            PurchaseOrder.PurchaseOrderDetails = PoDetails;
+            
             Result<GetPurchaseOrderDto> result = await PurchaseOrderService
-                .UpdatePurchaseOrderAsync(PurchaseOrderId, PurchaseOrder, PoDetails);
+                .UpdatePurchaseOrderAsync(PurchaseOrderId, PurchaseOrder);
+            
+            PurchaseOrder.PurchaseOrderDetails = null;
+            
+            foreach (var error in result.Errors)
+            {
+                Console.WriteLine(error);
+            }
 
             if (result.IsSuccess)
             {

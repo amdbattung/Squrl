@@ -95,7 +95,7 @@ public partial class PurchaseOrderService : IPurchaseOrderService
         }
     }
 
-    public async Task<Result<GetPurchaseOrderDto>> CreatePurchaseOrderAsync(CreatePurchaseOrderDto purchaseOrder, List<CreatePoDetailDto> poDetails, CancellationToken cancellationToken = default)
+    public async Task<Result<GetPurchaseOrderDto>> CreatePurchaseOrderAsync(CreatePurchaseOrderDto purchaseOrder, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -110,8 +110,10 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                         .ToArray())
                     .WithFailureType(FailureType.Validation);
             }
+
+            List<CreatePoDetailDto>? poDetails = purchaseOrder.PurchaseOrderDetails;
             
-            for (int index = 0; index < poDetails.Count; index++)
+            for (int index = 0; index < poDetails?.Count; index++)
             {
                 CreatePoDetailDto poDetail = poDetails[index];
 
@@ -144,7 +146,7 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                     return null;
                 }
 
-                foreach (CreatePoDetailDto poDetail in poDetails)
+                foreach (CreatePoDetailDto poDetail in poDetails ?? [])
                 {
                     poDetail.PurchaseOrderId = purchaseOrderResult.Id;
                     PurchaseOrderDetail? poDetailResult = await _mediator
@@ -213,7 +215,6 @@ public partial class PurchaseOrderService : IPurchaseOrderService
 
     public async Task<Result<GetPurchaseOrderDto>> UpdatePurchaseOrderAsync(Guid id,
         UpdatePurchaseOrderDto purchaseOrder,
-        List<CreatePoDetailDto> poDetails,
         CancellationToken cancellationToken = default)
     {
         try
@@ -234,13 +235,15 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                     .WithFailureType(FailureType.Validation);
             }
             
-            for (int index = 0; index < poDetails.Count; index++)
+            List<UpdatePoDetailDto>? updatePoDetails = purchaseOrder.PurchaseOrderDetails;
+            
+            for (int index = 0; index < updatePoDetails?.Count; index++)
             {
-                CreatePoDetailDto poDetail = poDetails[index];
+                UpdatePoDetailDto poDetail = updatePoDetails[index];
 
                 poDetail.PurchaseOrderId = Guid.Empty;
                 
-                ValidationResult? poDetailsValidationResult = await _createPoDetailValidator
+                ValidationResult? poDetailsValidationResult = await _updatePoDetailValidator
                     .ValidateAsync(poDetail, cancellationToken);
 
                 if (!poDetailsValidationResult.IsValid)
@@ -257,16 +260,72 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                 }
             }
             
-            var existingPoDetails = (await _mediator
-                .Send(new GetManyPoDetailsQuery(PurchaseOrderId: id), cancellationToken))
+            IReadOnlyList<PurchaseOrderDetail> existingPoDetails = (await _mediator
+                    .Send(new GetManyPoDetailsQuery(PurchaseOrderId: id, PageSize: 500), cancellationToken))
                 .Value;
+            
+            Models.PurchaseOrder? result = await _transactionManager.ExecuteAsync(async ct =>
+            {
+                Models.PurchaseOrder? purchaseOrderResult = await _mediator
+                    .Send(new UpdatePurchaseOrderCommand(id, purchaseOrder), ct);
+                
+                if (purchaseOrderResult is null)
+                {
+                    Console.WriteLine("FILED HERE 1");
+                    return null;
+                }
+                
+                foreach (UpdatePoDetailDto poDetail in updatePoDetails ?? [])
+                {
+                    PurchaseOrderDetail? existingPoDetail = existingPoDetails
+                        .FirstOrDefault(p => p.LineSequence == poDetail.LineSequence);
 
-            Models.PurchaseOrder? result = await _mediator
-                .Send(new UpdatePurchaseOrderCommand(id, purchaseOrder), cancellationToken);
+                    PurchaseOrderDetail? poDetailResult;
+
+                    if (existingPoDetail is not null)
+                    {
+                        poDetailResult = await _mediator
+                            .Send(new UpdatePoDetailCommand(id, poDetail), ct);
+                    }
+                    else
+                    {
+                        poDetailResult = await _mediator
+                            .Send(new CreatePoDetailCommand(new CreatePoDetailDto
+                            {
+                                PurchaseOrderId = id,
+                                LineSequence = poDetail.LineSequence,
+                                ItemId = poDetail.ItemId,
+                                Quantity = poDetail.Quantity
+                            }), ct);
+                    }
+                    
+                    if (poDetailResult is null)
+                    {
+                        Console.WriteLine("FILED HERE 2");
+                        return null;
+                    }
+                }
+
+                foreach (PurchaseOrderDetail poDetail in existingPoDetails
+                             .Where(e => (updatePoDetails ?? [])
+                                 .All(u => u.LineSequence != e.LineSequence)))
+                {
+                    var poDetailResult = await _mediator
+                        .Send(new DeletePoDetailCommand(poDetail.Id), ct);
+                    
+                    if (poDetailResult is null)
+                    {
+                        Console.WriteLine("FILED HERE 3");
+                        return null;
+                    }
+                }
+
+                return purchaseOrderResult;
+            }, cancellationToken);
             
             if (result == null)
             {
-                return Result<GetPurchaseOrderDto>.Fail("Purchase order not found.")
+                return Result<GetPurchaseOrderDto>.Fail("Failed to update purchase order.")
                     .WithFailureType(FailureType.NotFound);
             }
             

@@ -18,9 +18,9 @@ public interface IPurchaseOrderService
         int? pageNumber = null,
         int? pageSize = null,
         CancellationToken cancellationToken = default);
-    Task<Result<GetPurchaseOrderDto>> CreatePurchaseOrderAsync(CreatePurchaseOrderDto purchaseOrder, List<CreatePoDetailDto> poDetails, CancellationToken cancellationToken = default);
+    Task<Result<GetPurchaseOrderDto>> CreatePurchaseOrderAsync(CreatePurchaseOrderDto purchaseOrder, CancellationToken cancellationToken = default);
     Task<Result<GetPurchaseOrderDto>> GetPurchaseOrderByIdAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<Result<GetPurchaseOrderDto>> UpdatePurchaseOrderAsync(Guid id, UpdatePurchaseOrderDto purchaseOrder, List<CreatePoDetailDto> poDetails, CancellationToken cancellationToken = default);
+    Task<Result<GetPurchaseOrderDto>> UpdatePurchaseOrderAsync(Guid id, UpdatePurchaseOrderDto purchaseOrder, CancellationToken cancellationToken = default);
     Task<Result<GetPurchaseOrderDto>> DeletePurchaseOrderAsync(Guid id, CancellationToken cancellationToken = default);
     
     Task<Result<GetManyPoDetailsDto>> GetPoDetailsAsync(Guid purchaseOrderId, CancellationToken cancellationToken = default);
