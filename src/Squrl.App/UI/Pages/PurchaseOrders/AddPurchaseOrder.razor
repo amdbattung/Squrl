@@ -1,0 +1,235 @@
+﻿@page "/pos/new"
+@using Squrl.App.Features.PurchaseOrderDetails.DTOs
+@rendermode InteractiveServer
+@inject IPurchaseOrderService PurchaseOrderService
+@inject ISupplierService SupplierService
+@inject IInventoryService InventoryService
+@inject IClock Clock
+
+<h1>Add Purchase Order</h1>
+
+<EditForm Model="_purchaseOrder" OnValidSubmit="HandleSubmit" FormName="AddPurchaseOrderForm">
+    <FluentValidator />
+
+    <div>
+        <label>Supplier</label>
+        <InputSelect @bind-Value="_purchaseOrder.SupplierId">
+            <option value="">Select Supplier</option>
+            @if (SupplierSelect != null)
+            {
+                foreach (GetSupplierDto supplier in SupplierSelect)
+                {
+                    <option value="@supplier.Id">@supplier.Name</option>
+                }
+            }
+        </InputSelect>
+        <ValidationMessage For="@(() => _purchaseOrder.SupplierId)" />
+    </div>
+
+    <div>
+        <label>Status</label>
+        <InputSelect @bind-Value="_purchaseOrder.Status">
+            <option value="">Select Status</option>
+            <option value="@PurchaseOrderStatus.Pending">Pending</option>
+            <option value="@PurchaseOrderStatus.ToOrder">To Order</option>
+            <option value="@PurchaseOrderStatus.Ordered">Ordered</option>
+            <option value="@PurchaseOrderStatus.InTransit">In Transit</option>
+        </InputSelect>
+        <ValidationMessage For="@(() => _purchaseOrder.Status)" />
+    </div>
+
+    <div>
+        <label>Order Date</label>
+        <InputDate @bind-Value="DateOrderedLocal"
+                   Type="InputDateType.Date" />
+        <ValidationMessage For="@(() => _purchaseOrder.DateOrdered)" />
+    </div>
+
+    <div>
+        <label>Date Required</label>
+        <InputDate @bind-Value="DateRequiredLocal"
+                   Type="InputDateType.Date" />
+        <ValidationMessage For="@(() => _purchaseOrder.DateRequired)" />
+    </div>
+
+    <hr />
+
+    <h2>Purchase Order Details</h2>
+
+    @for (int i = 0; i < _purchaseOrder.Details?.Count; i++)
+    {
+        int index = i;
+        CreatePoDetailDto detail = _purchaseOrder.Details[index];
+
+        <div class="po-detail" @key="detail">
+            <h3>Detail @(index + 1)</h3>
+
+            <div>
+                <label>Item</label>
+                <InputSelect @bind-Value="detail.ItemId">
+                    <option value="">Select an Item</option>
+                    @if (ItemSelect != null)
+                    {
+                        foreach (GetItemDto item in ItemSelect)
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
+                    }
+                </InputSelect>
+            </div>
+
+            <div>
+                <label>Quantity</label>
+                <InputNumber @bind-Value="detail.Quantity" />
+                <ValidationMessage For="@(() => detail.Quantity)" />
+            </div>
+
+            @if (_purchaseOrder.Details.Count > 1)
+            {
+                <button type="button" @onclick="() => RemoveDetail(detail)">
+                    Remove
+                </button>
+            }
+        </div>
+    }
+
+    <button type="button" @onclick="AddDetail">
+        +
+    </button>
+
+    <button type="submit">Submit</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(_successMessage))
+{
+    <div class="alert alert-success">
+        @_successMessage
+    </div>
+}
+
+@code {
+    private readonly DateTimeZone _userTimeZone =
+        DateTimeZoneProviders.Tzdb.GetSystemDefault();
+
+    private CreatePurchaseOrderDto _purchaseOrder = new()
+    {
+        Status = PurchaseOrderStatus.Pending,
+        Details = new()
+        {
+            new CreatePoDetailDto
+            {
+                PurchaseOrderId = Guid.Empty,
+                LineSequence = 1
+            }
+        }
+    };
+
+    private string? _successMessage;
+
+    [PersistentState]
+    public IReadOnlyCollection<GetSupplierDto>? SupplierSelect { get; set; }
+    
+    [PersistentState]
+    public IReadOnlyCollection<GetItemDto>? ItemSelect { get; set; }
+
+    private DateOnly? DateOrderedLocal
+    {
+        get => _purchaseOrder.DateOrdered?
+            .InZone(_userTimeZone)
+            .Date
+            .ToDateOnly();
+
+        set => _purchaseOrder.DateOrdered = value is null
+            ? null
+            : LocalDate.FromDateOnly(value.Value)
+                .AtMidnight()
+                .InZoneLeniently(_userTimeZone)
+                .ToInstant();
+    }
+
+    private DateOnly? DateRequiredLocal
+    {
+        get => _purchaseOrder.DateRequired?
+            .InZone(_userTimeZone)
+            .Date
+            .ToDateOnly();
+
+        set => _purchaseOrder.DateRequired = value is null
+            ? null
+            : LocalDate.FromDateOnly(value.Value)
+                .AtMidnight()
+                .InZoneLeniently(_userTimeZone)
+                .ToInstant();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _purchaseOrder.DateOrdered = Clock.GetCurrentInstant();
+
+        if (SupplierSelect is null)
+        {
+            Result<GetManySuppliersDto> result = await SupplierService.GetManySuppliersAsync();
+            SupplierSelect = result.Value?.Suppliers ?? Array.Empty<GetSupplierDto>();
+        }
+        
+        if (ItemSelect is null)
+        {
+            Result<GetManyItemsDto> result = await InventoryService.GetManyItemsAsync();
+            ItemSelect = result.Value?.Items ?? Array.Empty<GetItemDto>();
+        }
+    }
+
+    private void AddDetail()
+    {
+        _purchaseOrder.Details?.Add(new CreatePoDetailDto
+        {
+            PurchaseOrderId = Guid.Empty,
+            LineSequence = _purchaseOrder.Details.Count + 1
+        });
+    }
+
+    private void RemoveDetail(CreatePoDetailDto detail)
+    {
+        if (_purchaseOrder.Details?.Count <= 1)
+        {
+            return;
+        }
+
+        _purchaseOrder.Details?.Remove(detail);
+            
+        for (int i = 0; i < _purchaseOrder.Details?.Count; i++)
+        {
+            _purchaseOrder.Details[i].LineSequence = i + 1;
+        }
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (_purchaseOrder.Details?.Count <= 0)
+        {
+            return;
+        }
+
+        Result<GetPurchaseOrderDto> result = await PurchaseOrderService.CreatePurchaseOrderAsync(_purchaseOrder);
+
+        if (result.IsSuccess)
+        {
+            _purchaseOrder = new()
+            {
+                Status = PurchaseOrderStatus.Pending,
+                Details = new()
+                {
+                    new CreatePoDetailDto
+                    {
+                        PurchaseOrderId = Guid.Empty,
+                        LineSequence = 1
+                    }
+                }
+            };
+
+            _purchaseOrder.DateOrdered = Clock.GetCurrentInstant();
+
+            _successMessage = "Purchase Order successfully added";
+        }
+    }
+}

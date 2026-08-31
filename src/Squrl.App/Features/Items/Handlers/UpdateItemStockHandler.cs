@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Squrl.App.Common;
 using Squrl.App.Data;
+using Squrl.App.Enums;
 using Squrl.App.Features.Items.Commands;
 using Squrl.App.Models;
 
@@ -64,7 +65,7 @@ public class UpdateItemStockHandler : IRequestHandler<UpdateItemStockCommand, It
                      UPDATE Items
                      SET Quantity = Quantity - {request.Value}
                      WHERE Id = {request.ItemId}
-                       AND Quantity >= {request.Value}
+                        AND CAST(Quantity AS REAL) >= {request.Value}
                      """,
                     cancellationToken),
 

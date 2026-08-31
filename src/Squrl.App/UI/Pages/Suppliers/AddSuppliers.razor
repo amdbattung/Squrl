@@ -1,6 +1,43 @@
 ﻿@page "/suppliers/new"
-<h3>AddSuppliers</h3>
+@rendermode InteractiveServer
+@inject ISupplierService SupplierService
+
+<h1>Add Supplier</h1>
+
+<EditForm Model="_supplier" OnValidSubmit="HandleSubmit" FormName="AddSupplierForm">
+    <FluentValidator />
+    <div>
+        <label>Name</label>
+        <InputText @bind-Value="_supplier.Name" />
+        <ValidationMessage For="@(() => _supplier.Name)" />
+    </div>
+    <div>
+        <label>Description</label>
+        <InputText @bind-Value="_supplier.Description" />
+        <ValidationMessage For="@(() => _supplier.Description)" />
+    </div>
+    <button type="submit">Submit</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(_successMessage))
+{
+    <div class="alert alert-success">
+        @_successMessage
+    </div>
+}
 
 @code {
-    
+    private CreateSupplierDto _supplier = new();
+    private string? _successMessage;
+
+    private async Task HandleSubmit()
+    {
+        Result<GetSupplierDto> result = await SupplierService.CreateSupplierAsync(_supplier);
+
+        if (result.IsSuccess)
+        {
+            _supplier = new();
+            _successMessage = $"Supplier {result.Value?.Name} successfully added";
+        }
+    }
 }

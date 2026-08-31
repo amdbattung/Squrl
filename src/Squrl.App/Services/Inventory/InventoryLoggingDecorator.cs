@@ -1,4 +1,5 @@
 ﻿using Squrl.App.Common;
+using Squrl.App.Enums;
 using Squrl.App.Features.Items.DTOs;
 
 namespace Squrl.App.Services.Inventory;
@@ -28,13 +29,13 @@ public class InventoryLoggingDecorator : IInventoryService
         {
             _logger.LogError(result.Exception, "Get Many Items Request: unhandled exception.");
             return Result<GetManyItemsDto>.Fail(result.Message ?? "Failed to retrieve items.")
-                .WithFailureType(FailureType.Unexcepted);
+                .WithFailureType(FailureType.Unexpected);
         }
         else
         {
             _logger.LogError(result.Exception, "Get Many Items Request: failed to fetch items.");
             return Result<GetManyItemsDto>.Fail(result.Message ?? "Failed to retrieve items.")
-                .WithFailureType(FailureType.Unexcepted);
+                .WithFailureType(FailureType.Unexpected);
         }
         
         return result;
@@ -166,7 +167,7 @@ public class InventoryLoggingDecorator : IInventoryService
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Add Stocks Request: stocks added to item {result.Value?.Name}," +
+            _logger.LogInformation($"Add Stocks Request: stocks added to item {result.Value?.Name}, " +
                                    $"{quantity} stocks added.");
         }
         else switch (result.FailureType)

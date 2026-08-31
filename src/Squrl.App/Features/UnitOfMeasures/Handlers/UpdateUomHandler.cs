@@ -27,9 +27,9 @@ public class UpdateUomHandler : IRequestHandler<UpdateUomCommand, UnitOfMeasure?
         
         UpdateUomDto requestUom = request.Uom;
         
-        existingUom.Name = requestUom.Name?.Trim() ?? existingUom.Name;
-        existingUom.Code = requestUom.Code?.Trim() ?? existingUom.Code;
-        existingUom.Description = requestUom.Name?.Trim() ?? existingUom.Description;
+        existingUom.Name = requestUom.Name ?? existingUom.Name;
+        existingUom.Code = requestUom.Code ?? existingUom.Code;
+        existingUom.Description = requestUom.Name ?? existingUom.Description;
         
         await _dataContext.SaveChangesAsync(cancellationToken);
         return existingUom;

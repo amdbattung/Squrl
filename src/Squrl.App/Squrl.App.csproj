@@ -16,12 +16,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Features\Suppliers\Commands\" />
-      <Folder Include="Features\Suppliers\DTOs\" />
-      <Folder Include="Features\Suppliers\Handlers\" />
-      <Folder Include="Features\Suppliers\Mapping\" />
-      <Folder Include="Features\Suppliers\Queries\" />
-      <Folder Include="Features\Suppliers\Validators\" />
       <Folder Include="Migrations\" />
     </ItemGroup>
 

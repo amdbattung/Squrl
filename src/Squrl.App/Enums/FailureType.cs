@@ -1,10 +1,10 @@
-﻿namespace Squrl.App.Common;
+﻿namespace Squrl.App.Enums;
 
 public enum FailureType
 {
     Validation,
     NotFound,
     BusinessLogic,
-    Unexcepted,
+    Unexpected,
     Exception
 }

@@ -1,4 +1,5 @@
 ﻿using Squrl.App.Common;
+using Squrl.App.Enums;
 using Squrl.App.Features.UnitOfMeasures.DTOs;
 
 namespace Squrl.App.Services.UnitOfMeasure;
@@ -28,13 +29,13 @@ public class UomLoggingDecorator : IUomService
         {
             _logger.LogError(result.Exception, "Get Many UOMs Request: unhandled exception.");
             return Result<GetManyUomsDto>.Fail(result.Message ?? "Failed to retrieve UOMs.")
-                .WithFailureType(FailureType.Unexcepted);
+                .WithFailureType(FailureType.Unexpected);
         }
         else
         {
             _logger.LogError(result.Exception, "Get Many UOMs Request: failed to fetch UOMs.");
             return Result<GetManyUomsDto>.Fail(result.Message ?? "Failed to retrieve UOMs.")
-                .WithFailureType(FailureType.Unexcepted);
+                .WithFailureType(FailureType.Unexpected);
         }
         
         return result;

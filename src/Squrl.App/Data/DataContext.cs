@@ -14,11 +14,11 @@ public class DataContext : DbContext
     public DbSet<Item> Items { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
     public DbSet<UnitOfMeasure> UnitOfMeasures { get; set; }
+    public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
+    public DbSet<PurchaseOrderDetail> PurchaseOrderDetails { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // Enums
-        
         // Shadow Properties
         modelBuilder.Entity<Item>()
             .Property<Instant?>("DateCreated");
@@ -27,6 +27,12 @@ public class DataContext : DbContext
             .Property<Instant?>("DateCreated");
         
         modelBuilder.Entity<UnitOfMeasure>()
+            .Property<Instant?>("DateCreated");
+        
+        modelBuilder.Entity<PurchaseOrder>()
+            .Property<Instant?>("DateCreated");
+        
+        modelBuilder.Entity<PurchaseOrderDetail>()
             .Property<Instant?>("DateCreated");
 
         // Defaults
@@ -49,11 +55,44 @@ public class DataContext : DbContext
         
         modelBuilder.Entity<UnitOfMeasure>()
             .HasIndex("DateCreated");
+        
+        modelBuilder.Entity<PurchaseOrder>()
+            .HasIndex("DateCreated");
+        
+        modelBuilder.Entity<PurchaseOrderDetail>()
+            .HasIndex("PurchaseOrderId", nameof(PurchaseOrderDetail.LineSequence))
+            .IsUnique();
+        
+        modelBuilder.Entity<PurchaseOrderDetail>()
+            .HasIndex("DateCreated");
 
         // Relationships
-        modelBuilder.Entity<UnitOfMeasure>()
-            .HasMany<Item>()
-            .WithOne(e => e.Uom)
+        modelBuilder.Entity<Item>()
+            .HasOne(e => e.Uom)
+            .WithMany()
             .IsRequired();
+        
+        modelBuilder.Entity<PurchaseOrder>()
+            .HasOne(e => e.Supplier)
+            .WithMany();
+
+        modelBuilder.Entity<PurchaseOrderDetail>()
+            .HasOne(e => e.PurchaseOrder)
+            .WithMany()
+            .IsRequired();
+
+        modelBuilder.Entity<PurchaseOrderDetail>()
+            .HasOne(e => e.Item)
+            .WithMany()
+            .IsRequired();
+        
+        // Constraints
+        modelBuilder.Entity<PurchaseOrderDetail>()
+            .ToTable("purchase_order_details", t =>
+            {
+                t.HasCheckConstraint(
+                    "CK_purchase_order_details_line_sequence",
+                    "line_sequence >= 1");
+            });
     }
 }

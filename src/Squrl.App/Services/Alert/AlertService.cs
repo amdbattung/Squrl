@@ -1,5 +1,6 @@
 ﻿using MediatR;
 using Squrl.App.Common;
+using Squrl.App.Enums;
 using Squrl.App.Features.Items.Queries;
 using Squrl.App.Models;
 using AlertObject = Squrl.App.Common.Alert;

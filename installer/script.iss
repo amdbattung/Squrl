@@ -21,7 +21,7 @@ ArchitecturesInstallIn64BitMode=x64compatible
 DisableProgramGroupPage=yes
 PrivilegesRequired=admin
 OutputDir=..\artifacts
-OutputBaseFilename={#OutputFileName}-{#MyAppVersion}
+OutputBaseFilename={#OutputFileName}-{#MyAppVersion}-installer
 SolidCompression=yes
 WizardStyle=modern dynamic
 

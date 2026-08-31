@@ -71,6 +71,96 @@ namespace Squrl.Migrations
                     b.ToTable("items", (string)null);
                 });
 
+            modelBuilder.Entity("Squrl.App.Models.PurchaseOrder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("id");
+
+                    b.Property<string>("DateCreated")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("date_created");
+
+                    b.Property<string>("DateOrdered")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("date_ordered");
+
+                    b.Property<string>("DateRequired")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("date_required");
+
+                    b.Property<string>("DateShipped")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("date_shipped");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("status");
+
+                    b.Property<Guid?>("SupplierId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("supplier_id");
+
+                    b.HasKey("Id")
+                        .HasName("pk_purchase_orders");
+
+                    b.HasIndex("DateCreated")
+                        .HasDatabaseName("ix_purchase_orders_date_created");
+
+                    b.HasIndex("SupplierId")
+                        .HasDatabaseName("ix_purchase_orders_supplier_id");
+
+                    b.ToTable("purchase_orders", (string)null);
+                });
+
+            modelBuilder.Entity("Squrl.App.Models.PurchaseOrderDetail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("id");
+
+                    b.Property<string>("DateCreated")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("date_created");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("item_id");
+
+                    b.Property<int>("LineSequence")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("line_sequence");
+
+                    b.Property<Guid>("PurchaseOrderId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("purchase_order_id");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("quantity");
+
+                    b.HasKey("Id")
+                        .HasName("pk_purchase_order_details");
+
+                    b.HasIndex("DateCreated")
+                        .HasDatabaseName("ix_purchase_order_details_date_created");
+
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("ix_purchase_order_details_item_id");
+
+                    b.HasIndex("PurchaseOrderId", "LineSequence")
+                        .IsUnique()
+                        .HasDatabaseName("ix_purchase_order_details_purchase_order_id_line_sequence");
+
+                    b.ToTable("purchase_order_details", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_purchase_order_details_line_sequence", "line_sequence >= 1");
+                        });
+                });
+
             modelBuilder.Entity("Squrl.App.Models.Supplier", b =>
                 {
                     b.Property<Guid>("Id")
@@ -155,6 +245,37 @@ namespace Squrl.Migrations
                         .HasConstraintName("fk_items_unit_of_measures_uom_id");
 
                     b.Navigation("Uom");
+                });
+
+            modelBuilder.Entity("Squrl.App.Models.PurchaseOrder", b =>
+                {
+                    b.HasOne("Squrl.App.Models.Supplier", "Supplier")
+                        .WithMany()
+                        .HasForeignKey("SupplierId")
+                        .HasConstraintName("fk_purchase_orders_suppliers_supplier_id");
+
+                    b.Navigation("Supplier");
+                });
+
+            modelBuilder.Entity("Squrl.App.Models.PurchaseOrderDetail", b =>
+                {
+                    b.HasOne("Squrl.App.Models.Item", "Item")
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_purchase_order_details_items_item_id");
+
+                    b.HasOne("Squrl.App.Models.PurchaseOrder", "PurchaseOrder")
+                        .WithMany()
+                        .HasForeignKey("PurchaseOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_purchase_order_details_purchase_orders_purchase_order_id");
+
+                    b.Navigation("Item");
+
+                    b.Navigation("PurchaseOrder");
                 });
 #pragma warning restore 612, 618
         }

@@ -9,6 +9,8 @@ using Squrl.App.Services.Alert;
 using Squrl.App.Services.BackgroundTaskQueue;
 using Squrl.App.Services.Inventory;
 using Squrl.App.Services.PlatformDialogService;
+using Squrl.App.Services.PurchaseOrder;
+using Squrl.App.Services.Supplier;
 using Squrl.App.Services.TransactionManager;
 using Squrl.App.Services.UnitOfMeasure;
 using Squrl.App.UI;
@@ -84,6 +86,8 @@ try
     builder.Services.AddScoped<IInventoryService, InventoryService>();
     builder.Services.Decorate<IInventoryService, InventoryAlertDecorator>();
     builder.Services.Decorate<IInventoryService, InventoryLoggingDecorator>();
+    builder.Services.AddScoped<ISupplierService, SupplierService>();
+    builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
     builder.Services.AddScoped<IUomService, UomService>();
     builder.Services.Decorate<IUomService, UomLoggingDecorator>();
     builder.Services.AddSingleton<IAlertService, AlertService>();
