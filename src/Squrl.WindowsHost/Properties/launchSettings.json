@@ -1,0 +1,10 @@
+﻿{
+  "profiles": {
+    "Squrl.WindowsHost": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}
