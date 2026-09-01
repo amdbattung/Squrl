@@ -5,7 +5,7 @@ $root = Split-Path $PSScriptRoot -Parent
 $appProject = Join-Path $root "src\Squrl.App\Squrl.App.csproj"
 $hostProject = Join-Path $root "src\Squrl.WindowsHost\Squrl.WindowsHost.csproj"
 
-$publishRoot = Join-Path $root "publish"
+$publishRoot = Join-Path (Join-Path $root "publish") "windows"
 $serverOutput = Join-Path $publishRoot "Server"
 
 Write-Host ""
