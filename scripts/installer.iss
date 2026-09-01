@@ -3,8 +3,8 @@
 ; Non-commercial use only
 
 #define MyAppName "Squrl"
-#define MyAppVersion "0.1.1-alpha"
-#define MyAppExeName "Squrl.App.exe"
+#define MyAppVersion "0.2.1-alpha"
+#define MyAppExeName "Squrl.WindowsHost.exe"
 #define OutputFileName "squrl"
 
 [Setup]
