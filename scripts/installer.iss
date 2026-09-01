@@ -21,7 +21,7 @@ ArchitecturesInstallIn64BitMode=x64compatible
 DisableProgramGroupPage=yes
 PrivilegesRequired=admin
 OutputDir=..\artifacts
-OutputBaseFilename={#OutputFileName}-{#MyAppVersion}-installer
+OutputBaseFilename={#OutputFileName}-{#MyAppVersion}-win-x64
 SolidCompression=yes
 WizardStyle=modern dynamic
 
@@ -105,12 +105,12 @@ Filename: "netsh"; \
   Parameters: "advfirewall firewall add rule name=""squrl"" dir=in action=allow protocol=TCP localport=33600"; \
   Flags: runhidden waituntilterminated
 
-Filename: "cmd.exe"; \
-  Parameters: "/c start http://localhost:33600"; \
-  Flags: postinstall skipifsilent
+Filename: "{app}\{#MyAppExeName}"; \
+  Description: "Launch Squrl"; \
+  Flags: nowait postinstall skipifsilent
 
 [UninstallRun]
 Filename: "netsh"; \
   Parameters: "advfirewall firewall delete rule name=""squrl"""; \
-  RunOnceId: "DeleteSqurlService"; \
+  RunOnceId: "DeleteSqurlFirewallRule"; \
   Flags: runhidden waituntilterminated
