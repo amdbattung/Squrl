@@ -5,6 +5,22 @@ using Squrl.WindowsHost;
 
 ApplicationConfiguration.Initialize();
 
+using Mutex mutex = new Mutex(
+    initiallyOwned: true,
+    name: @"Global\Squrl",
+    createdNew: out bool createdNew);
+
+if (!createdNew)
+{
+    MessageBox.Show(
+        "Squrl is already running.",
+        "Squrl",
+        MessageBoxButtons.OK,
+        MessageBoxIcon.Information);
+
+    return;
+}
+
 try
 {
     string environment =
