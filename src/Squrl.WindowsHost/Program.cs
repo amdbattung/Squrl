@@ -88,7 +88,7 @@ try
         "localhost",
         StringComparison.OrdinalIgnoreCase);
     
-    // Start Squrl.App
+    // Start Squrl Server
     Process? process;
 
     if (isDevelopment)
@@ -140,16 +140,24 @@ try
     }
     else
     {
-        // Run the production Squrl.App.exe.
+        // Run the production squrl-server.exe.
         string squrlAppExe = Path.Combine(
             AppContext.BaseDirectory,
             "server",
-            "Squrl.App.exe");
+            "squrl-server.exe");
+        
+        if (!File.Exists(squrlAppExe))
+        {
+            squrlAppExe = Path.Combine(
+                AppContext.BaseDirectory,
+                "server",
+                "Squrl.App.exe");
+        }
 
         if (!File.Exists(squrlAppExe))
         {
             throw new FileNotFoundException(
-                "Squrl.App.exe was not found.",
+                "Squrl-server.exe was not found.",
                 squrlAppExe);
         }
 
@@ -166,7 +174,7 @@ try
 
     if (process is null)
     {
-        throw new InvalidOperationException("Unable to start Squrl.App.");
+        throw new InvalidOperationException("Unable to start Squrl Server.");
     }
     
     // Start tray application
