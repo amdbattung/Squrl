@@ -143,7 +143,7 @@ try
         // Run the production Squrl.App.exe.
         string squrlAppExe = Path.Combine(
             AppContext.BaseDirectory,
-            "Server",
+            "server",
             "Squrl.App.exe");
 
         if (!File.Exists(squrlAppExe))
