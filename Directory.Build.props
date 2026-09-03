@@ -1,0 +1,11 @@
+﻿<Project>
+    <PropertyGroup>
+        <AppVersion>0.2.2-alpha</AppVersion>
+        
+        <Version>$(AppVersion)</Version>
+        <AppVersionCore>$([System.Text.RegularExpressions.Regex]::Match('$(AppVersion)', '^\d+\.\d+\.\d+').Value)</AppVersionCore>
+        <AssemblyVersion>$(AppVersionCore).0</AssemblyVersion>
+        <FileVersion>$(AppVersionCore).0</FileVersion>
+        <IncludeSourceRevisionInInformationalVersion>true</IncludeSourceRevisionInInformationalVersion>
+    </PropertyGroup>
+</Project>

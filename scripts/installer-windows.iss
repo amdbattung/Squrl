@@ -3,7 +3,9 @@
 ; Non-commercial use only
 
 #define MyAppName "Squrl"
-#define MyAppVersion "0.2.1-alpha"
+#ifndef MyAppVersion
+  #define MyAppVersion "0.0.0-dev"
+#endif
 #define MyAppExeName "Squrl.WindowsHost.exe"
 #define OutputFileName "squrl"
 
@@ -38,9 +40,9 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Users\Work\Desktop\Projects\Squrl\publish\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\Work\Desktop\Projects\Squrl\publish\windows\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 
-Source: "C:\Users\Work\Desktop\Projects\Squrl\publish\*"; \
+Source: "C:\Users\Work\Desktop\Projects\Squrl\publish\windows\*"; \
   DestDir: "{app}"; \
   Excludes: "*.pdb,*.xml,appsettings.json,appsettings.*.json,*.db"; \
   Flags: ignoreversion recursesubdirs createallsubdirs
