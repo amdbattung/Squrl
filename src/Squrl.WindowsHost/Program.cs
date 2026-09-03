@@ -157,7 +157,7 @@ try
         if (!File.Exists(squrlAppExe))
         {
             throw new FileNotFoundException(
-                "Squrl-server.exe was not found.",
+                "squrl-server.exe was not found.",
                 squrlAppExe);
         }
 
