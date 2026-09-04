@@ -17,7 +17,8 @@ public class InventoryService : IInventoryService
     private readonly IValidator<CreateItemDto> _createItemValidator;
     private readonly IValidator<UpdateItemDto> _updateItemValidator;
 
-    public InventoryService(IMediator mediator,
+    public InventoryService(
+        IMediator mediator,
         IValidator<CreateItemDto> createItemValidator,
         IValidator<UpdateItemDto> updateItemValidator)
     {
@@ -26,7 +27,11 @@ public class InventoryService : IInventoryService
         _updateItemValidator = updateItemValidator;
     }
     
-    public async Task<Result<GetManyItemsDto>> GetManyItemsAsync(string? query = null, int? pageNumber = null, int? pageSize = null,
+    public async Task<Result<GetManyItemsDto>> GetManyItemsAsync(
+        string? query = null,
+        int? pageNumber = null,
+        int? pageSize = null,
+        SortDirection orderDirection = SortDirection.Ascending,
         CancellationToken cancellationToken = default)
     {
         try
@@ -34,7 +39,11 @@ public class InventoryService : IInventoryService
             pageNumber = pageNumber >= 1 ? pageNumber : null;
             pageSize = pageSize is >= 1 and <= 50 ? pageSize : null;
         
-            var result = await _mediator.Send(new GetManyItemsQuery(query, pageNumber, pageSize), cancellationToken);
+            var result = await _mediator.Send(new GetManyItemsQuery(
+                query,
+                pageNumber,
+                pageSize,
+                orderDirection), cancellationToken);
 
             GetManyItemsDto payload = new GetManyItemsDto(
                 result.PageSize,

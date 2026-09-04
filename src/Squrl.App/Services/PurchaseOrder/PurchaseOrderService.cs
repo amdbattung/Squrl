@@ -47,16 +47,17 @@ public partial class PurchaseOrderService : IPurchaseOrderService
         _clock = clock;
     }
 
-    public async Task<Result<GetManyPurchaseOrdersDto>> GetManyPurchaseOrdersAsync(string? query = null,
+    public async Task<Result<GetManyPurchaseOrdersDto>> GetManyPurchaseOrdersAsync(
+        string? query = null,
         Guid? supplierId = null,
         bool isPending = false,
         bool isReceived = false,
         bool isCancelled = false,
         bool hasFailed = false,
         bool isReturned = false,
-        SortDirection orderDirection = SortDirection.Ascending,
         int? pageNumber = null,
         int? pageSize = null,
+        SortDirection orderDirection = SortDirection.Ascending,
         CancellationToken cancellationToken = default)
     {
         try
@@ -64,16 +65,17 @@ public partial class PurchaseOrderService : IPurchaseOrderService
             pageNumber = pageNumber >= 1 ? pageNumber : null;
             pageSize = pageSize is >= 1 and <= 50 ? pageSize : null;
             
-            var result = await _mediator.Send(new GetManyPurchaseOrdersQuery(query,
+            var result = await _mediator.Send(new GetManyPurchaseOrdersQuery(
+                query,
                 supplierId,
                 isPending,
                 isReceived,
                 isCancelled,
                 hasFailed,
                 isReturned,
-                orderDirection,
                 pageNumber,
-                pageSize), cancellationToken);
+                pageSize,
+                orderDirection), cancellationToken);
             
             GetManyPurchaseOrdersDto payload = new GetManyPurchaseOrdersDto(
                 result.PageSize,

@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using Squrl.App.Data;
+using Squrl.App.Enums;
 using Squrl.App.Features.Items.Queries;
 using Squrl.App.Models;
 
@@ -29,6 +30,19 @@ public class GetManyItemsHandler : IRequestHandler<GetManyItemsQuery, (IReadOnly
         {
             query = query.Where(i =>
                 EF.Functions.Like(i.Name, $"%{request.Query.Trim()}%"));
+        }
+        
+        if (request.OrderDirection == SortDirection.Descending)
+        {
+            query = query
+                .OrderByDescending(p => EF.Property<Instant>(p, "DateCreated"))
+                .ThenBy(p => p.Id);
+        }
+        else
+        {
+            query = query
+                .OrderBy(p => EF.Property<Instant>(p, "DateCreated"))
+                .ThenBy(p => p.Id);
         }
 
         int totalCount = await query.CountAsync(cancellationToken);

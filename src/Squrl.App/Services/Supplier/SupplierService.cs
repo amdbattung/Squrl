@@ -25,7 +25,11 @@ public class SupplierService : ISupplierService
         _updateSupplierValidator = updateSupplierValidator;
     }
 
-    public async Task<Result<GetManySuppliersDto>> GetManySuppliersAsync(string? query = null, int? pageNumber = null, int? pageSize = null,
+    public async Task<Result<GetManySuppliersDto>> GetManySuppliersAsync(
+        string? query = null,
+        int? pageNumber = null,
+        int? pageSize = null,
+        SortDirection orderDirection = SortDirection.Ascending,
         CancellationToken cancellationToken = default)
     {
         try
@@ -33,7 +37,11 @@ public class SupplierService : ISupplierService
             pageNumber = pageNumber >= 1 ? pageNumber : null;
             pageSize = pageSize is >= 1 and <= 50 ? pageSize : null;
             
-            var result = await _mediator.Send(new GetManySuppliersQuery(query, pageNumber, pageSize), cancellationToken);
+            var result = await _mediator.Send(new GetManySuppliersQuery(
+                query,
+                pageNumber,
+                pageSize,
+                orderDirection), cancellationToken);
             
             GetManySuppliersDto payload = new GetManySuppliersDto(
                 result.PageSize,

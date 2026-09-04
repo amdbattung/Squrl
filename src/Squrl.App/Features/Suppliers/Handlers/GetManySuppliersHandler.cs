@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using Squrl.App.Data;
+using Squrl.App.Enums;
 using Squrl.App.Features.Suppliers.Queries;
 using Squrl.App.Models;
 
@@ -28,6 +29,19 @@ public class GetManySuppliersHandler : IRequestHandler<GetManySuppliersQuery, (I
         {
             query = query.Where(s =>
                 EF.Functions.Like(s.Name, $"%{request.Query.Trim()}%"));
+        }
+        
+        if (request.OrderDirection == SortDirection.Descending)
+        {
+            query = query
+                .OrderByDescending(p => EF.Property<Instant>(p, "DateCreated"))
+                .ThenBy(p => p.Id);
+        }
+        else
+        {
+            query = query
+                .OrderBy(p => EF.Property<Instant>(p, "DateCreated"))
+                .ThenBy(p => p.Id);
         }
         
         int totalCount = await query.CountAsync(cancellationToken);

@@ -16,10 +16,19 @@ public class UomLoggingDecorator : IUomService
         _logger = logger;
     }
 
-    public async Task<Result<GetManyUomsDto>> GetManyUomsAsync(string? query = null, int? pageNumber = null, int? pageSize = null,
+    public async Task<Result<GetManyUomsDto>> GetManyUomsAsync(
+        string? query = null,
+        int? pageNumber = null,
+        int? pageSize = null,
+        SortDirection orderDirection = SortDirection.Ascending,
         CancellationToken cancellationToken = default)
     {
-        Result<GetManyUomsDto> result = await _uomService.GetManyUomsAsync(query, pageNumber, pageSize, cancellationToken);
+        Result<GetManyUomsDto> result = await _uomService.GetManyUomsAsync(
+            query,
+            pageNumber,
+            pageSize,
+            orderDirection,
+            cancellationToken);
 
         if (result.IsSuccess)
         {

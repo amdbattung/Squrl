@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using Squrl.App.Data;
+using Squrl.App.Enums;
 using Squrl.App.Features.UnitOfMeasures.Queries;
 using Squrl.App.Models;
 
@@ -31,6 +32,19 @@ public class GetManyUomsHandler : IRequestHandler<GetManyUomsQuery, (IReadOnlyLi
             query = query.Where(u =>
                 EF.Functions.Like(u.Name, pattern) ||
                 EF.Functions.Like(u.Code, pattern));
+        }
+        
+        if (request.OrderDirection == SortDirection.Descending)
+        {
+            query = query
+                .OrderByDescending(p => EF.Property<Instant>(p, "DateCreated"))
+                .ThenBy(p => p.Id);
+        }
+        else
+        {
+            query = query
+                .OrderBy(p => EF.Property<Instant>(p, "DateCreated"))
+                .ThenBy(p => p.Id);
         }
         
         int totalCount = await query.CountAsync(cancellationToken);

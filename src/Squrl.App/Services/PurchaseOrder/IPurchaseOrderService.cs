@@ -7,23 +7,24 @@ namespace Squrl.App.Services.PurchaseOrder;
 
 public interface IPurchaseOrderService
 {
-    Task<Result<GetManyPurchaseOrdersDto>> GetManyPurchaseOrdersAsync(string? query = null,
+    Task<Result<GetManyPurchaseOrdersDto>> GetManyPurchaseOrdersAsync(
+        string? query = null,
         Guid? supplierId = null,
         bool isPending = false,
         bool isReceived = false,
         bool isCancelled = false,
         bool hasFailed = false,
         bool isReturned = false,
-        SortDirection orderDirection = SortDirection.Ascending,
         int? pageNumber = null,
         int? pageSize = null,
+        SortDirection orderDirection = SortDirection.Ascending,
         CancellationToken cancellationToken = default);
     Task<Result<GetPurchaseOrderDto>> CreatePurchaseOrderAsync(CreatePurchaseOrderDto purchaseOrder, CancellationToken cancellationToken = default);
     Task<Result<GetPurchaseOrderDto>> GetPurchaseOrderByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Result<GetPurchaseOrderDto>> UpdatePurchaseOrderAsync(Guid id, UpdatePurchaseOrderDto purchaseOrder, CancellationToken cancellationToken = default);
     Task<Result<GetPurchaseOrderDto>> DeletePurchaseOrderAsync(Guid id, CancellationToken cancellationToken = default);
     
-    Task<Result<GetManyPoDetailsDto>> GetPoDetailsAsync(Guid purchaseOrderId, CancellationToken cancellationToken = default);
+    Task<Result<GetManyPoDetailsDto>> GetPoDetailsAsync(Guid purchaseOrderId, SortDirection orderDirection = SortDirection.Ascending, CancellationToken cancellationToken = default);
     Task<Result<GetPoDetailDto>> AddPoDetailAsync(Guid purchaseOrderId, CreatePoDetailDto poDetail, CancellationToken cancellationToken = default);
     Task<Result<GetPoDetailDto>> GetPoDetailByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Result<GetPoDetailDto>> UpdatePoDetailAsync(Guid id, UpdatePoDetailDto poDetail, CancellationToken cancellationToken = default);

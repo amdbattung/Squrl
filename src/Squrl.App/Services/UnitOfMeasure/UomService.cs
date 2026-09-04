@@ -25,7 +25,11 @@ public class UomService : IUomService
         _updateUomValidator = updateUomValidator;
     }
 
-    public async Task<Result<GetManyUomsDto>> GetManyUomsAsync(string? query = null, int? pageNumber = null, int? pageSize = null,
+    public async Task<Result<GetManyUomsDto>> GetManyUomsAsync(
+        string? query = null,
+        int? pageNumber = null,
+        int? pageSize = null,
+        SortDirection orderDirection = SortDirection.Ascending,
         CancellationToken cancellationToken = default)
     {
         try
@@ -33,7 +37,11 @@ public class UomService : IUomService
             pageNumber = pageNumber >= 1 ? pageNumber : null;
             pageSize = pageSize is >= 1 and <= 50 ? pageSize : null;
             
-            var result = await _mediator.Send(new GetManyUomsQuery(query, pageNumber, pageSize), cancellationToken);
+            var result = await _mediator.Send(new GetManyUomsQuery(
+                query,
+                pageNumber,
+                pageSize,
+                orderDirection), cancellationToken);
             
             GetManyUomsDto payload = new GetManyUomsDto(
                 result.PageSize,

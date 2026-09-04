@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using Squrl.App.Data;
+using Squrl.App.Enums;
 using Squrl.App.Features.PurchaseOrderDetails.Queries;
 using Squrl.App.Models;
 
@@ -25,15 +26,27 @@ public class GetManyPoDetailsHandler : IRequestHandler<GetManyPoDetailsQuery, (I
         
         if (request.PurchaseOrderId.HasValue)
         {
-            query = query.Where(p => p.PurchaseOrder.Id == request.PurchaseOrderId)
-                .OrderBy(p => p.LineSequence)
-                .ThenBy(p => EF.Property<Instant>(p, "DateCreated"))
-                .ThenBy(p => p.Id);
+            query = query.Where(p => p.PurchaseOrder.Id == request.PurchaseOrderId);
+
+            query = request.OrderDirection == SortDirection.Descending
+                ? query
+                    .OrderByDescending(p => p.LineSequence)
+                    .ThenByDescending(p => EF.Property<Instant>(p, "DateCreated"))
+                    .ThenBy(p => p.Id)
+                : query
+                    .OrderBy(p => p.LineSequence)
+                    .ThenBy(p => EF.Property<Instant>(p, "DateCreated"))
+                    .ThenBy(p => p.Id);
         }
         else
         {
-            query = query.OrderBy(p => EF.Property<Instant>(p, "DateCreated"))
-                .ThenBy(p => p.Id);
+            query = request.OrderDirection == SortDirection.Descending
+                ? query
+                    .OrderByDescending(p => EF.Property<Instant>(p, "DateCreated"))
+                    .ThenBy(p => p.Id)
+                : query
+                    .OrderBy(p => EF.Property<Instant>(p, "DateCreated"))
+                    .ThenBy(p => p.Id);
         }
 
         int totalCount = await query.CountAsync(cancellationToken);

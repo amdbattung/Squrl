@@ -9,17 +9,27 @@ public class InventoryLoggingDecorator : IInventoryService
     private readonly IInventoryService _inventoryService;
     private readonly ILogger<InventoryLoggingDecorator> _logger;
 
-    public InventoryLoggingDecorator(IInventoryService inventoryService,
+    public InventoryLoggingDecorator(
+        IInventoryService inventoryService,
         ILogger<InventoryLoggingDecorator> logger)
     {
         _inventoryService = inventoryService;
         _logger = logger;
     }
 
-    public async Task<Result<GetManyItemsDto>> GetManyItemsAsync(string? query = null, int? pageNumber = null, int? pageSize = null,
+    public async Task<Result<GetManyItemsDto>> GetManyItemsAsync(
+        string? query = null,
+        int? pageNumber = null,
+        int? pageSize = null,
+        SortDirection orderDirection = SortDirection.Ascending,
         CancellationToken cancellationToken = default)
     {
-        Result<GetManyItemsDto> result = await _inventoryService.GetManyItemsAsync(query, pageNumber, pageSize, cancellationToken);
+        Result<GetManyItemsDto> result = await _inventoryService.GetManyItemsAsync(
+            query,
+            pageNumber,
+            pageSize,
+            orderDirection,
+            cancellationToken);
 
         if (result.IsSuccess)
         {
