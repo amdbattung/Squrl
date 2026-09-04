@@ -24,6 +24,12 @@ public class GetManyItemsHandler : IRequestHandler<GetManyItemsQuery, (IReadOnly
         IQueryable<Item> query = _dataContext.Items
             .AsNoTracking()
             .Include(i => i.Uom);
+        
+        if (!string.IsNullOrWhiteSpace(request.Query))
+        {
+            query = query.Where(i =>
+                EF.Functions.Like(i.Name, $"%{request.Query.Trim()}%"));
+        }
 
         int totalCount = await query.CountAsync(cancellationToken);
 
