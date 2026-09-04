@@ -44,8 +44,8 @@ public class UomService : IUomService
                 orderDirection), cancellationToken);
             
             GetManyUomsDto payload = new GetManyUomsDto(
-                result.PageSize,
                 result.PageNumber,
+                result.PageSize,
                 result.TotalCount,
                 result.Value.Select(UomMapper.ToDto).ToList());
             

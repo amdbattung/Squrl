@@ -4,10 +4,10 @@ public class GetManySuppliersDto
 {
     public int? PageNumber { get; }
     public int? PageSize { get; }
-    public int? TotalCount { get; }
+    public int TotalCount { get; }
     public IReadOnlyList<GetSupplierDto>? Suppliers { get; }
 
-    public GetManySuppliersDto(int pageNumber, int pageSize, int totalCount, IReadOnlyList<GetSupplierDto> suppliers)
+    public GetManySuppliersDto(int? pageNumber, int? pageSize, int totalCount, IReadOnlyList<GetSupplierDto> suppliers)
     {
         PageNumber = pageNumber;
         PageSize = pageSize;

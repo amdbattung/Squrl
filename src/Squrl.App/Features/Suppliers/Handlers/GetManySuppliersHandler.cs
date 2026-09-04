@@ -19,9 +19,6 @@ public class GetManySuppliersHandler : IRequestHandler<GetManySuppliersQuery, (I
 
     public async Task<(IReadOnlyList<Supplier> Value, int PageNumber, int PageSize, int TotalCount)> Handle(GetManySuppliersQuery request, CancellationToken cancellationToken)
     {
-        int pageNumber = request.PageNumber ?? 1;
-        int pageSize = request.PageSize ?? 10;
-        
         IQueryable<Supplier> query = _dataContext.Suppliers
             .AsNoTracking();
         
@@ -44,13 +41,35 @@ public class GetManySuppliersHandler : IRequestHandler<GetManySuppliersQuery, (I
                 .ThenBy(p => p.Id);
         }
         
-        int totalCount = await query.CountAsync(cancellationToken);
+        IReadOnlyList<Supplier> existingSuppliers;
+        int pageNumber;
+        int pageSize;
+        int totalCount;
         
-        IReadOnlyList<Supplier> existingSuppliers = await query
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
+        if (request.PageSize is null)
+        {
+            existingSuppliers = await query
+                .ToListAsync(cancellationToken);
+            
+            pageNumber = 1;
+            pageSize = existingSuppliers.Count;
+            totalCount = existingSuppliers.Count;
+        }
+        else
+        {
+            pageNumber = request.PageNumber ?? 1;
+            pageSize = request.PageSize ?? 10;
+            totalCount = await query.CountAsync(cancellationToken);
 
-        return (existingSuppliers, pageNumber, pageSize, totalCount);
+            existingSuppliers = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+        }
+
+        return (existingSuppliers,
+            pageNumber,
+            pageSize,
+            totalCount);
     }
 }

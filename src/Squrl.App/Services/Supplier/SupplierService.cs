@@ -44,7 +44,7 @@ public class SupplierService : ISupplierService
                 orderDirection), cancellationToken);
             
             GetManySuppliersDto payload = new GetManySuppliersDto(
-                result.PageSize,
+                result.PageNumber,
                 result.PageNumber,
                 result.TotalCount,
                 result.Value.Select(SupplierMapper.ToDto).ToList());

@@ -46,8 +46,8 @@ public class InventoryService : IInventoryService
                 orderDirection), cancellationToken);
 
             GetManyItemsDto payload = new GetManyItemsDto(
-                result.PageSize,
                 result.PageNumber,
+                result.PageSize,
                 result.TotalCount,
                 result.Value.Select(ItemMapper.ToDto).ToList());
             
