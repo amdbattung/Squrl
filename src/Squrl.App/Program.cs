@@ -5,13 +5,13 @@ using Serilog;
 using Serilog.Events;
 using Squrl.App.Data;
 using Squrl.App.Extensions;
+using Squrl.App.Infrastructure.BackgroundTaskQueue;
+using Squrl.App.Infrastructure.PlatformDialogService;
+using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Services.Alert;
-using Squrl.App.Services.BackgroundTaskQueue;
 using Squrl.App.Services.Inventory;
-using Squrl.App.Services.PlatformDialogService;
 using Squrl.App.Services.PurchaseOrder;
 using Squrl.App.Services.Supplier;
-using Squrl.App.Services.TransactionManager;
 using Squrl.App.Services.UnitOfMeasure;
 using Squrl.App.UI;
 
@@ -47,7 +47,7 @@ try
         .ReadFrom.Configuration(builder.Configuration)
         .ReadFrom.Services(services));
     
-    builder.Services.AddHostedService<BackgroundTaskService>();
+    builder.Services.AddHostedService<BackgroundTask>();
     builder.Services.AddSingleton<IBackgroundTaskQueue>(_ => 
     {
         if (!int.TryParse(builder.Configuration["QueueCapacity"], out int queueCapacity))
@@ -58,14 +58,14 @@ try
         return new BackgroundTaskQueue(queueCapacity);
     });
     
-    builder.Services.AddSingleton<IPlatformDialogService>(_ =>
+    builder.Services.AddSingleton<IPlatformDialog>(_ =>
     {
         if (OperatingSystem.IsWindows())
         {
-            return new WindowsDialogService();
+            return new WindowsDialog();
         }
 
-        return new NullPlatformDialogService();
+        return new NullPlatformDialog();
     });
 
     builder.Services.AddRazorComponents()
@@ -130,7 +130,7 @@ catch (Exception ex)
     
     if (OperatingSystem.IsWindows())
     {
-        new WindowsDialogService().ShowError(
+        new WindowsDialog().ShowError(
             "Squrl Startup Error",
             ex.Message);
     }

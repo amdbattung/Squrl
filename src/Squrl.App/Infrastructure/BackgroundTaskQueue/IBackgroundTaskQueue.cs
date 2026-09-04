@@ -1,4 +1,4 @@
-﻿namespace Squrl.App.Services.BackgroundTaskQueue;
+﻿namespace Squrl.App.Infrastructure.BackgroundTaskQueue;
 
 public interface IBackgroundTaskQueue
 {

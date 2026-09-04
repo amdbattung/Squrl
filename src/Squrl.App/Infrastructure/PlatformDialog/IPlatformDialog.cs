@@ -1,6 +1,6 @@
-﻿namespace Squrl.App.Services.PlatformDialogService;
+﻿namespace Squrl.App.Infrastructure.PlatformDialogService;
 
-public interface IPlatformDialogService
+public interface IPlatformDialog
 {
     void ShowInformation(string title, string message);
     void ShowWarning(string title, string message);

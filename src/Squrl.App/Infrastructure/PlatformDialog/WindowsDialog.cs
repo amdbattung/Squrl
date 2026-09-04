@@ -1,8 +1,8 @@
 ﻿using Squrl.App.Interop.Windows;
 
-namespace Squrl.App.Services.PlatformDialogService;
+namespace Squrl.App.Infrastructure.PlatformDialogService;
 
-public sealed class WindowsDialogService : IPlatformDialogService
+public sealed class WindowsDialog : IPlatformDialog
 {
     public void ShowInformation(string title, string message)
     {

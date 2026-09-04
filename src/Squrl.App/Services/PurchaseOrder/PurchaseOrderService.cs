@@ -11,9 +11,9 @@ using Squrl.App.Features.PurchaseOrders.Commands;
 using Squrl.App.Features.PurchaseOrders.DTOs;
 using Squrl.App.Features.PurchaseOrders.Mapping;
 using Squrl.App.Features.PurchaseOrders.Queries;
+using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Models;
 using Squrl.App.Services.Inventory;
-using Squrl.App.Services.TransactionManager;
 
 namespace Squrl.App.Services.PurchaseOrder;
 

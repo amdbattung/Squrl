@@ -1,4 +1,4 @@
-﻿namespace Squrl.App.Services.TransactionManager;
+﻿namespace Squrl.App.Infrastructure.TransactionManager;
 
 public interface ITransactionManager
 {
