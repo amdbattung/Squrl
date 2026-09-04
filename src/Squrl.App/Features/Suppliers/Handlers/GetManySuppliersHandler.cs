@@ -24,6 +24,12 @@ public class GetManySuppliersHandler : IRequestHandler<GetManySuppliersQuery, (I
         IQueryable<Supplier> query = _dataContext.Suppliers
             .AsNoTracking();
         
+        if (!string.IsNullOrWhiteSpace(request.Query))
+        {
+            query = query.Where(s =>
+                EF.Functions.Like(s.Name, $"%{request.Query.Trim()}%"));
+        }
+        
         int totalCount = await query.CountAsync(cancellationToken);
         
         IReadOnlyList<Supplier> existingSuppliers = await query
