@@ -54,6 +54,9 @@ public class DataContext : DbContext
             .HasIndex(e => new { e.Name });
         
         modelBuilder.Entity<UnitOfMeasure>()
+            .HasIndex(e => new { e.Code });
+        
+        modelBuilder.Entity<UnitOfMeasure>()
             .HasIndex("DateCreated");
         
         modelBuilder.Entity<PurchaseOrder>()
