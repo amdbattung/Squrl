@@ -324,7 +324,7 @@ public class InventoryService : IInventoryService
             StockOperation operation;
             decimal value;
         
-            // Determine OPERATION and Extract QUANTITY
+            // Determine OPERATION and Extract QUANTITY.
             // SHORTCUT: Check whether first character is a digit/numerical (which means no explicit operator).
             if (char.IsDigit(quantity[0]))
             {
