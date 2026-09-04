@@ -47,8 +47,6 @@ public class GetManySuppliersHandler : IRequestHandler<GetManySuppliersQuery, (I
         int totalCount = await query.CountAsync(cancellationToken);
         
         IReadOnlyList<Supplier> existingSuppliers = await query
-            .OrderBy(s => EF.Property<Instant>(s, "DateCreated"))
-            .ThenBy(s => s.Name)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);

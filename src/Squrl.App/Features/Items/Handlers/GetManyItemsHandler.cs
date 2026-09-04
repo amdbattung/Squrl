@@ -48,8 +48,6 @@ public class GetManyItemsHandler : IRequestHandler<GetManyItemsQuery, (IReadOnly
         int totalCount = await query.CountAsync(cancellationToken);
 
         IReadOnlyList<Item> existingItems = await query
-            .OrderBy(i => EF.Property<Instant>(i, "DateCreated"))
-            .ThenBy(i => i.Name)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);

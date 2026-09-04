@@ -50,8 +50,6 @@ public class GetManyUomsHandler : IRequestHandler<GetManyUomsQuery, (IReadOnlyLi
         int totalCount = await query.CountAsync(cancellationToken);
         
         IReadOnlyList<UnitOfMeasure> existingUoms = await query
-            .OrderBy(u => EF.Property<Instant>(u, "DateCreated"))
-            .ThenBy(u => u.Name)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
             .ToListAsync(cancellationToken);
