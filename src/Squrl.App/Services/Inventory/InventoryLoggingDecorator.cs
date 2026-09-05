@@ -65,17 +65,19 @@ public class InventoryLoggingDecorator : IInventoryService
                 _logger.LogInformation($"Create Item Request: failed to create item {result.Value?.Name}, invalid item.");
                 break;
             
-            case FailureType.Exception:
-                _logger.LogError(result.Exception, "Create Item Request: unhandled exception.");
-                return Result<GetItemDto>.Fail(result.Message ?? "Failed to create item.");
-            
             case FailureType.BusinessLogic:
                 _logger.LogError(result.Exception, "Create Item Request: failed to create item.");
                 break;
             
+            case FailureType.Exception:
+                _logger.LogError(result.Exception, "Create Item Request: unhandled exception.");
+                return Result<GetItemDto>.Fail(result.Message ?? "Failed to create item.")
+                    .WithFailureType(FailureType.Unexpected);
+            
             default:
                 _logger.LogError(result.Exception, "Create Item Request: failed to create item.");
-                return Result<GetItemDto>.Fail(result.Message ?? "Failed to create item.");
+                return Result<GetItemDto>.Fail(result.Message ?? "Failed to create item.")
+                    .WithFailureType(FailureType.Unexpected);
         }
     
         return result;
@@ -101,11 +103,13 @@ public class InventoryLoggingDecorator : IInventoryService
             
             case FailureType.Exception:
                 _logger.LogError(result.Exception, "Get Item By ID Request: unhandled exception.");
-                return Result<GetItemDto>.Fail(result.Message ?? "Failed to retrieve item.");
+                return Result<GetItemDto>.Fail(result.Message ?? "Failed to retrieve item.")
+                    .WithFailureType(FailureType.Unexpected);
             
             default:
                 _logger.LogError(result.Exception, "Get Item By ID Request: failed to fetch item.");
-                return Result<GetItemDto>.Fail(result.Message ?? "Failed to retrieve item.");
+                return Result<GetItemDto>.Fail(result.Message ?? "Failed to retrieve item.")
+                    .WithFailureType(FailureType.Unexpected);
         }
         
         return result;
@@ -131,11 +135,13 @@ public class InventoryLoggingDecorator : IInventoryService
             
             case FailureType.Exception:
                 _logger.LogError(result.Exception, "Update Item Request: unhandled exception.");
-                return Result<GetItemDto>.Fail(result.Message ?? "Failed to update item.");
+                return Result<GetItemDto>.Fail(result.Message ?? "Failed to update item.")
+                    .WithFailureType(FailureType.Unexpected);
             
             default:
                 _logger.LogError(result.Exception, "Update Item Request: failed to update item.");
-                return Result<GetItemDto>.Fail(result.Message ?? "Failed to update item.");
+                return Result<GetItemDto>.Fail(result.Message ?? "Failed to update item.")
+                    .WithFailureType(FailureType.Unexpected);
         }
         
         return result;
@@ -161,11 +167,13 @@ public class InventoryLoggingDecorator : IInventoryService
             
             case FailureType.Exception:
                 _logger.LogError(result.Exception, "Delete Item Request: unhandled exception.");
-                return Result<GetItemDto>.Fail(result.Message ?? "Failed to delete item.");
+                return Result<GetItemDto>.Fail(result.Message ?? "Failed to delete item.")
+                    .WithFailureType(FailureType.Unexpected);
             
             default:
                 _logger.LogError(result.Exception, "Delete Item Request: failed to update item.");
-                return Result<GetItemDto>.Fail(result.Message ?? "Failed to delete item.");
+                return Result<GetItemDto>.Fail(result.Message ?? "Failed to delete item.")
+                    .WithFailureType(FailureType.Unexpected);
         }
         
         return result;
@@ -192,11 +200,13 @@ public class InventoryLoggingDecorator : IInventoryService
             
             case FailureType.Exception:
                 _logger.LogError(result.Exception, "Update Item Request: unhandled exception.");
-                return Result<GetItemDto>.Fail(result.Message ?? "Failed to add stocks.");
+                return Result<GetItemDto>.Fail(result.Message ?? "Failed to add stocks.")
+                    .WithFailureType(FailureType.Unexpected);
             
             default:
                 _logger.LogError(result.Exception, "Add Stocks Request: failed to add stocks to item.");
-                return Result<GetItemDto>.Fail(result.Message ?? "Failed to add stocks.");
+                return Result<GetItemDto>.Fail(result.Message ?? "Failed to add stocks.")
+                    .WithFailureType(FailureType.Unexpected);
         }
         
         return result;
@@ -223,11 +233,13 @@ public class InventoryLoggingDecorator : IInventoryService
             
             case FailureType.Exception:
                 _logger.LogError(result.Exception, "Remove Stocks Request: unhandled exception.");
-                return Result<GetItemDto>.Fail(result.Message ?? "Failed to remove stocks.");
+                return Result<GetItemDto>.Fail(result.Message ?? "Failed to remove stocks.")
+                    .WithFailureType(FailureType.Unexpected);
             
             default:
                 _logger.LogError(result.Exception, "Remove Stocks Request: failed to remove stocks from item.");
-                return Result<GetItemDto>.Fail(result.Message ?? "Failed to remove stocks.");
+                return Result<GetItemDto>.Fail(result.Message ?? "Failed to remove stocks.")
+                    .WithFailureType(FailureType.Unexpected);
         }
         
         return result;
@@ -253,11 +265,13 @@ public class InventoryLoggingDecorator : IInventoryService
             
             case FailureType.Exception:
                 _logger.LogError(result.Exception, "Update Stocks Request: unhandled exception.");
-                return Result<GetItemDto>.Fail(result.Message ?? "Failed to update stocks.");
+                return Result<GetItemDto>.Fail(result.Message ?? "Failed to update stocks.")
+                    .WithFailureType(FailureType.Unexpected);
             
             default:
                 _logger.LogError(result.Exception, "Update Stocks Request: failed to update stocks from item.");
-                return Result<GetItemDto>.Fail(result.Message ?? "Failed to update stocks.");
+                return Result<GetItemDto>.Fail(result.Message ?? "Failed to update stocks.")
+                    .WithFailureType(FailureType.Unexpected);
         }
         
         return result;

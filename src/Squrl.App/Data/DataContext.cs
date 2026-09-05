@@ -6,16 +6,16 @@ namespace Squrl.App.Data;
 
 public class DataContext : DbContext
 {
-    public DataContext(DbContextOptions<DataContext> options) : base(options)
-    {
-        
-    }
-    
     public DbSet<Item> Items { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
     public DbSet<UnitOfMeasure> UnitOfMeasures { get; set; }
     public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
     public DbSet<PurchaseOrderDetail> PurchaseOrderDetails { get; set; }
+    
+    public DataContext(DbContextOptions<DataContext> options) : base(options)
+    {
+        
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

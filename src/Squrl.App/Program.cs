@@ -82,12 +82,14 @@ try
 
     builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
-    // Custom services
+    // Custom services.
     builder.Services.AddScoped<IInventoryService, InventoryService>();
     builder.Services.Decorate<IInventoryService, InventoryAlertDecorator>();
     builder.Services.Decorate<IInventoryService, InventoryLoggingDecorator>();
     builder.Services.AddScoped<ISupplierService, SupplierService>();
+    builder.Services.Decorate<ISupplierService, SupplierLoggingDecorator>();
     builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
+    builder.Services.Decorate<IPurchaseOrderService, PurchaseOrderLoggingDecorator>();
     builder.Services.AddScoped<IUomService, UomService>();
     builder.Services.Decorate<IUomService, UomLoggingDecorator>();
     builder.Services.AddSingleton<IAlertService, AlertService>();
@@ -110,14 +112,14 @@ try
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
     
-    // Run Migrations
+    // Run Migrations.
     using (IServiceScope scope = app.Services.CreateScope())
     {
-        var db = scope.ServiceProvider.GetRequiredService<DataContext>();
+        DataContext db = scope.ServiceProvider.GetRequiredService<DataContext>();
         await db.Database.MigrateAsync();
     }
     
-    // Initialize IAlertService
+    // Initialize Alert Service.
     await app.Services
         .GetRequiredService<IAlertService>()
         .InitializeAsync();
