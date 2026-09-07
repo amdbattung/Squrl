@@ -1,6 +1,6 @@
 ﻿using System.Threading.Channels;
 
-namespace Squrl.App.Services.BackgroundTaskQueue;
+namespace Squrl.App.Infrastructure.BackgroundTaskQueue;
 
 public class BackgroundTaskQueue: IBackgroundTaskQueue
 {

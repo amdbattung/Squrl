@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using Squrl.App.Data;
+using Squrl.App.Enums;
 using Squrl.App.Features.Suppliers.Queries;
 using Squrl.App.Models;
 
@@ -18,21 +19,57 @@ public class GetManySuppliersHandler : IRequestHandler<GetManySuppliersQuery, (I
 
     public async Task<(IReadOnlyList<Supplier> Value, int PageNumber, int PageSize, int TotalCount)> Handle(GetManySuppliersQuery request, CancellationToken cancellationToken)
     {
-        int pageNumber = request.PageNumber ?? 1;
-        int pageSize = request.PageSize ?? 10;
-        
         IQueryable<Supplier> query = _dataContext.Suppliers
             .AsNoTracking();
         
-        int totalCount = await query.CountAsync(cancellationToken);
+        if (!string.IsNullOrWhiteSpace(request.Query))
+        {
+            query = query.Where(s =>
+                EF.Functions.Like(s.Name, $"%{request.Query.Trim()}%"));
+        }
         
-        IReadOnlyList<Supplier> existingSuppliers = await query
-            .OrderBy(s => EF.Property<Instant>(s, "DateCreated"))
-            .ThenBy(s => s.Name)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
+        if (request.OrderDirection == SortDirection.Descending)
+        {
+            query = query
+                .OrderByDescending(p => EF.Property<Instant>(p, "DateCreated"))
+                .ThenBy(p => p.Id);
+        }
+        else
+        {
+            query = query
+                .OrderBy(p => EF.Property<Instant>(p, "DateCreated"))
+                .ThenBy(p => p.Id);
+        }
+        
+        IReadOnlyList<Supplier> existingSuppliers;
+        int pageNumber;
+        int pageSize;
+        int totalCount;
+        
+        if (request.PageSize is null)
+        {
+            existingSuppliers = await query
+                .ToListAsync(cancellationToken);
+            
+            pageNumber = 1;
+            pageSize = existingSuppliers.Count;
+            totalCount = existingSuppliers.Count;
+        }
+        else
+        {
+            pageNumber = request.PageNumber ?? 1;
+            pageSize = request.PageSize ?? 10;
+            totalCount = await query.CountAsync(cancellationToken);
 
-        return (existingSuppliers, pageNumber, pageSize, totalCount);
+            existingSuppliers = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+        }
+
+        return (existingSuppliers,
+            pageNumber,
+            pageSize,
+            totalCount);
     }
 }

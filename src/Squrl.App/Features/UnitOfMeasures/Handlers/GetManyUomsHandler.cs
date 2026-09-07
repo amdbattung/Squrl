@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using Squrl.App.Data;
+using Squrl.App.Enums;
 using Squrl.App.Features.UnitOfMeasures.Queries;
 using Squrl.App.Models;
 
@@ -18,9 +19,6 @@ public class GetManyUomsHandler : IRequestHandler<GetManyUomsQuery, (IReadOnlyLi
     
     public async Task<(IReadOnlyList<UnitOfMeasure> Value, int PageNumber, int PageSize, int TotalCount)> Handle(GetManyUomsQuery request, CancellationToken cancellationToken)
     {
-        int pageNumber = request.PageNumber ?? 1;
-        int pageSize = request.PageSize ?? 10;
-        
         IQueryable<UnitOfMeasure> query = _dataContext.UnitOfMeasures
             .AsNoTracking();
         
@@ -33,15 +31,48 @@ public class GetManyUomsHandler : IRequestHandler<GetManyUomsQuery, (IReadOnlyLi
                 EF.Functions.Like(u.Code, pattern));
         }
         
-        int totalCount = await query.CountAsync(cancellationToken);
+        if (request.OrderDirection == SortDirection.Descending)
+        {
+            query = query
+                .OrderByDescending(p => EF.Property<Instant>(p, "DateCreated"))
+                .ThenBy(p => p.Id);
+        }
+        else
+        {
+            query = query
+                .OrderBy(p => EF.Property<Instant>(p, "DateCreated"))
+                .ThenBy(p => p.Id);
+        }
         
-        IReadOnlyList<UnitOfMeasure> existingUoms = await query
-            .OrderBy(u => EF.Property<Instant>(u, "DateCreated"))
-            .ThenBy(u => u.Name)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
-            .ToListAsync(cancellationToken);
+        IReadOnlyList<UnitOfMeasure> existingUoms;
+        int pageNumber;
+        int pageSize;
+        int totalCount;
+        
+        if (request.PageSize is null)
+        {
+            existingUoms = await query
+                .ToListAsync(cancellationToken);
+            
+            pageNumber = 1;
+            pageSize = existingUoms.Count;
+            totalCount = existingUoms.Count;
+        }
+        else
+        {
+            pageNumber = request.PageNumber ?? 1;
+            pageSize = request.PageSize ?? 10;
+            totalCount = await query.CountAsync(cancellationToken);
 
-        return (existingUoms, pageNumber, pageSize, totalCount);
+            existingUoms = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+        }
+
+        return (existingUoms,
+            pageNumber,
+            pageSize,
+            totalCount);
     }
 }

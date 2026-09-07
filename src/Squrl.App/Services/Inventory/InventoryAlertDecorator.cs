@@ -1,4 +1,5 @@
 ﻿using Squrl.App.Common;
+using Squrl.App.Enums;
 using Squrl.App.Features.Items.DTOs;
 using Squrl.App.Services.Alert;
 
@@ -9,17 +10,27 @@ public class InventoryAlertDecorator : IInventoryService
     private readonly IInventoryService _inventoryService;
     private readonly IAlertService _alertService;
     
-    public InventoryAlertDecorator(IInventoryService inventoryService,
+    public InventoryAlertDecorator(
+        IInventoryService inventoryService,
         IAlertService alertService)
     {
         _inventoryService = inventoryService;
         _alertService = alertService;
     }
     
-    public Task<Result<GetManyItemsDto>> GetManyItemsAsync(string? query = null, int? pageNumber = null, int? pageSize = null,
+    public Task<Result<GetManyItemsDto>> GetManyItemsAsync(
+        string? query = null,
+        int? pageNumber = null,
+        int? pageSize = null,
+        SortDirection orderDirection = SortDirection.Ascending,
         CancellationToken cancellationToken = default)
     {
-        return _inventoryService.GetManyItemsAsync(query, pageNumber, pageSize, cancellationToken);
+        return _inventoryService.GetManyItemsAsync(
+            query,
+            pageNumber,
+            pageSize,
+            orderDirection,
+            cancellationToken);
     }
 
     public async Task<Result<GetItemDto>> CreateItemAsync(CreateItemDto item, CancellationToken cancellationToken = default)

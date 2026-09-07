@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore.Storage;
 using Squrl.App.Data;
 
-namespace Squrl.App.Services.TransactionManager;
+namespace Squrl.App.Infrastructure.TransactionManager;
 
 public class EfTransactionManager : ITransactionManager
 {

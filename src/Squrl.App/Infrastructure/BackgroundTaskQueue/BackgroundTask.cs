@@ -1,12 +1,12 @@
-﻿namespace Squrl.App.Services.BackgroundTaskQueue;
+﻿namespace Squrl.App.Infrastructure.BackgroundTaskQueue;
 
-public sealed  class BackgroundTaskService : BackgroundService
+public sealed  class BackgroundTask : BackgroundService
 {
     private readonly IBackgroundTaskQueue _queue;
-    private readonly ILogger<BackgroundTaskService> _logger;
+    private readonly ILogger<BackgroundTask> _logger;
 
-    public BackgroundTaskService(IBackgroundTaskQueue queue,
-        ILogger<BackgroundTaskService> logger)
+    public BackgroundTask(IBackgroundTaskQueue queue,
+        ILogger<BackgroundTask> logger)
     {
         _queue = queue;
         _logger = logger;
@@ -35,7 +35,7 @@ public sealed  class BackgroundTaskService : BackgroundService
     
     public override async Task StopAsync(CancellationToken stoppingToken)
     {
-        _logger.LogInformation($"{nameof(BackgroundTaskService)} is stopping.");
+        _logger.LogInformation($"{nameof(BackgroundTask)} is stopping.");
         await base.StopAsync(stoppingToken);
     }
 }

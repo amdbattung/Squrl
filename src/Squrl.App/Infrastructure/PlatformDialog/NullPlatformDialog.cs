@@ -1,6 +1,6 @@
-﻿namespace Squrl.App.Services.PlatformDialogService;
+﻿namespace Squrl.App.Infrastructure.PlatformDialog;
 
-public sealed class NullPlatformDialogService : IPlatformDialogService
+public sealed class NullPlatformDialog : IPlatformDialog
 {
     public void ShowInformation(string title, string message) { }
 
