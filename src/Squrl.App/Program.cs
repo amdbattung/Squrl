@@ -6,7 +6,7 @@ using Serilog.Events;
 using Squrl.App.Data;
 using Squrl.App.Extensions;
 using Squrl.App.Infrastructure.BackgroundTaskQueue;
-using Squrl.App.Infrastructure.PlatformDialogService;
+using Squrl.App.Infrastructure.PlatformDialog;
 using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Services.Alert;
 using Squrl.App.Services.Inventory;
@@ -68,8 +68,7 @@ try
         return new NullPlatformDialog();
     });
 
-    builder.Services.AddRazorComponents()
-        .AddInteractiveServerComponents();
+    builder.Services.AddRazorComponents().AddInteractiveServerComponents();
 
     builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 

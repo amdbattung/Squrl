@@ -1,4 +1,4 @@
-﻿namespace Squrl.App.Infrastructure.PlatformDialogService;
+﻿namespace Squrl.App.Infrastructure.PlatformDialog;
 
 public sealed class NullPlatformDialog : IPlatformDialog
 {
