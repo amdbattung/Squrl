@@ -7,6 +7,10 @@ using Squrl.App.Features.Items.Commands;
 using Squrl.App.Features.Items.DTOs;
 using Squrl.App.Features.Items.Mapping;
 using Squrl.App.Features.Items.Queries;
+using Squrl.App.Infrastructure.BackgroundTaskQueue;
+using Squrl.App.Infrastructure.ImageProcessor;
+using Squrl.App.Infrastructure.ImageStorage;
+using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Models;
 
 namespace Squrl.App.Services.Inventory;
@@ -14,17 +18,29 @@ namespace Squrl.App.Services.Inventory;
 public class InventoryService : IInventoryService
 {
     private readonly IMediator _mediator;
+    private readonly ITransactionManager _transactionManager;
+    private readonly IBackgroundTaskQueue _queue;
     private readonly IValidator<CreateItemDto> _createItemValidator;
     private readonly IValidator<UpdateItemDto> _updateItemValidator;
+    private readonly IImageProcessor _imageProcessor;
+    private readonly IImageStorage _imageStorage;
 
     public InventoryService(
         IMediator mediator,
+        ITransactionManager transactionManager,
+        IBackgroundTaskQueue queue,
         IValidator<CreateItemDto> createItemValidator,
-        IValidator<UpdateItemDto> updateItemValidator)
+        IValidator<UpdateItemDto> updateItemValidator,
+        IImageProcessor imageProcessor,
+        IImageStorage imageStorage)
     {
         _mediator = mediator;
+        _transactionManager = transactionManager;
+        _queue = queue;
         _createItemValidator = createItemValidator;
         _updateItemValidator = updateItemValidator;
+        _imageProcessor = imageProcessor;
+        _imageStorage = imageStorage;
     }
     
     public async Task<Result<GetManyItemsDto>> GetManyItemsAsync(
@@ -65,12 +81,13 @@ public class InventoryService : IInventoryService
         }
     }
     
-    public async Task<Result<GetItemDto>> CreateItemAsync(CreateItemDto item, CancellationToken cancellationToken = default)
+    public async Task<Result<GetItemDto>> CreateItemAsync(CreateItemDto item, Stream? photo = null, CancellationToken cancellationToken = default)
     {
         try
         {
             item.Name = item.Name?.Trim();
             item.Description = string.IsNullOrWhiteSpace(item.Description) ? null : item.Description.Trim();
+            item.Image = null;
             item.Locations = item.Locations?
                 .Select(i => i.Trim())
                 .Where(i => !string.IsNullOrWhiteSpace(i))
@@ -85,8 +102,35 @@ public class InventoryService : IInventoryService
                     .ToArray())
                     .WithFailureType(FailureType.Validation);
             }
-        
-            Item? result = await _mediator.Send(new CreateItemCommand(item), cancellationToken);
+            
+            //
+            Item? result = await _transactionManager.ExecuteAsync(async ct =>
+            {
+                string? imageFileName = null;
+                if (photo is not null)
+                {
+                    imageFileName = await _imageProcessor.SaveAsync(photo, ct);
+                    item.Image = imageFileName;
+                }
+                
+                Item? result = await _mediator.Send(new CreateItemCommand(item), ct);
+                
+                if (result is null)
+                {
+                    if (imageFileName is not null)
+                    {
+                        await _queue.QueueAsync(async c =>
+                        {
+                            await _imageStorage.DeleteAsync(imageFileName, c);
+                        });
+                    }
+                    return null;
+                }
+
+                return result;
+            }, cancellationToken);
+            //
+            // Item? result = await _mediator.Send(new CreateItemCommand(item), cancellationToken);
         
             if (result == null)
             {
@@ -140,7 +184,7 @@ public class InventoryService : IInventoryService
         }
     }
     
-    public async Task<Result<GetItemDto>> UpdateItemAsync(Guid id, UpdateItemDto item, CancellationToken cancellationToken = default)
+    public async Task<Result<GetItemDto>> UpdateItemAsync(Guid id, UpdateItemDto item, Stream? photo = null, CancellationToken cancellationToken = default)
     {
         try
         {

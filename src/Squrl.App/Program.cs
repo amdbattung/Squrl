@@ -6,6 +6,8 @@ using Serilog.Events;
 using Squrl.App.Data;
 using Squrl.App.Extensions;
 using Squrl.App.Infrastructure.BackgroundTaskQueue;
+using Squrl.App.Infrastructure.ImageProcessor;
+using Squrl.App.Infrastructure.ImageStorage;
 using Squrl.App.Infrastructure.PlatformDialog;
 using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Services.Alert;
@@ -80,6 +82,8 @@ try
     builder.Services.AddSingleton<DataSaveChangesInterceptor>();
 
     builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+    
+    builder.Services.AddSingleton<IImageStorage, FileSystemImageStorage>();
 
     // Custom services.
     builder.Services.AddScoped<IInventoryService, InventoryService>();
@@ -92,6 +96,7 @@ try
     builder.Services.AddScoped<IUomService, UomService>();
     builder.Services.Decorate<IUomService, UomLoggingDecorator>();
     builder.Services.AddSingleton<IAlertService, AlertService>();
+    builder.Services.AddScoped<IImageProcessor, ImageProcessor>();
 
     WebApplication app = builder.Build();
 

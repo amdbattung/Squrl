@@ -12,9 +12,9 @@ public interface IInventoryService
         int? pageSize = null,
         SortDirection orderDirection = SortDirection.Ascending,
         CancellationToken cancellationToken = default);
-    Task<Result<GetItemDto>> CreateItemAsync(CreateItemDto item, CancellationToken cancellationToken = default);
+    Task<Result<GetItemDto>> CreateItemAsync(CreateItemDto item, Stream? photo = null, CancellationToken cancellationToken = default);
     Task<Result<GetItemDto>> GetItemByIdAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<Result<GetItemDto>> UpdateItemAsync(Guid id, UpdateItemDto item, CancellationToken cancellationToken = default);
+    Task<Result<GetItemDto>> UpdateItemAsync(Guid id, UpdateItemDto item, Stream? photo = null, CancellationToken cancellationToken = default);
     Task<Result<GetItemDto>> DeleteItemAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Result<GetItemDto>> AddStocksAsync(Guid itemId, decimal quantity, CancellationToken cancellationToken = default);
     Task<Result<GetItemDto>> RemoveStocksAsync(Guid itemId, decimal quantity, CancellationToken cancellationToken = default);

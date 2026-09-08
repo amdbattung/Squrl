@@ -13,6 +13,7 @@ public class ItemMapper
             item.Name,
             item.Uom.Id,
             item.Description,
+            item.Image,
             item.Quantity,
             item.LowQuantityAlertThreshold,
             item.Locations.ToList()
@@ -28,6 +29,7 @@ public class ItemMapper
                 item.Name,
                 item.Uom.Id,
                 item.Description,
+                item.Image,
                 item.Quantity,
                 item.LowQuantityAlertThreshold,
                 item.Locations.ToList()

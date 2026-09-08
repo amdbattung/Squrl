@@ -3,7 +3,7 @@ using Squrl.App.Data;
 
 namespace Squrl.App.Infrastructure.TransactionManager;
 
-public class EfTransactionManager : ITransactionManager
+public sealed class EfTransactionManager : ITransactionManager
 {
     private readonly DataContext _dataContext;
 
