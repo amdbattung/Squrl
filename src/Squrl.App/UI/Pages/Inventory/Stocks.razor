@@ -1,22 +1,32 @@
 ﻿@page "/"
+@using Squrl.App.Infrastructure.ImageStorage
 @rendermode InteractiveServer
 @attribute [StreamRendering]
 @inject IInventoryService InventoryService
 @inject IUomService UomService
+@inject IImageStorage ImageStorage
 
 <h1>Stocks</h1>
 
 <QuickGrid TGridItem="GetItemDto"
            ItemsProvider="LoadItems"
            Pagination="@_pagination">
-    <PropertyColumn Property="i => i.Name" />
+    <TemplateColumn>
+        @if (context.Image is not null)
+        {
+            <img src="@($"/api/images/{context.Image}")"
+                 alt="Photo"
+                 style="width: 100px; height: 100px; object-fit: cover;" />
+        }
+    </TemplateColumn>
+    <PropertyColumn Property="i => i.Name"/>
     @* <PropertyColumn Property="i => i.Quantity" Title="Onhand" Format="#,##0.##" /> *@
     <TemplateColumn Title="Onhand">
         @(context.Quantity.HasValue
             ? $"{ToStringFormatters.FormatDecimal(context.Quantity.Value)} " +
               $"{(_uomCache.TryGetValue(context.UomId ?? Guid.Empty, out string? uom)
-                  ? uom
-                  : "")}"
+                      ? uom
+                      : "")}"
             : "")
     </TemplateColumn>
     <TemplateColumn Title="Location(s)">

@@ -6,12 +6,14 @@ namespace Squrl.App.Infrastructure.ImageProcessor;
 public class ImageProcessor : IImageProcessor
 {
     private readonly IImageStorage _storage;
+    private readonly int _maxSourceDimension;
     private readonly int _maxDimension;
     private readonly int _quality;
 
     public ImageProcessor(IImageStorage storage)
     {
         _storage = storage;
+        _maxSourceDimension = 16000;
         _maxDimension = 800;
         _quality = 80;
     }
@@ -35,13 +37,12 @@ public class ImageProcessor : IImageProcessor
         {
             throw new InvalidDataException("Image has invalid dimensions.");
         }
-            
-        // TODO:
-        // if (original.Width > maxSourceDimension ||
-        //     original.Height > maxSourceDimension)
-        // {
-        //     throw new InvalidDataException("Image dimensions are too large.");
-        // }
+        
+        if (original.Width > _maxSourceDimension ||
+            original.Height > _maxSourceDimension)
+        {
+            throw new InvalidDataException("Image dimensions are too large.");
+        }
 
         // The image is stretched/squished into a square.
         using SKBitmap resizedOriginal = ResizeToSquare(original, _maxDimension);

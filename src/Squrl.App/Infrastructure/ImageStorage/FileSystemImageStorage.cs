@@ -4,9 +4,9 @@ public sealed class FileSystemImageStorage : IImageStorage
 {
     private readonly string _imageDirectory;
 
-    public FileSystemImageStorage(IWebHostEnvironment environment)
+    public FileSystemImageStorage(IWebHostEnvironment environment, IConfiguration configuration)
     {
-        const string configuredPath = @"C:\Users\Work\Downloads\test";
+        string? configuredPath = configuration["ImageDirectory"];
         
         if (string.IsNullOrWhiteSpace(configuredPath))
         {

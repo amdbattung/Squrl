@@ -102,8 +102,29 @@ public class InventoryService : IInventoryService
                     .ToArray())
                     .WithFailureType(FailureType.Validation);
             }
-            
-            //
+
+            if (photo is not null)
+            {
+                const long maxPhotoSize = 1 * 1024 * 1024; // 1 MB
+
+                if (!photo.CanRead)
+                {
+                    return Result<GetItemDto>.Fail("Photo is not readable.")
+                        .WithFailureType(FailureType.Validation);
+                }
+
+                if (photo.CanSeek)
+                {
+                    if (photo.Length > maxPhotoSize)
+                    {
+                        return Result<GetItemDto>.Fail("Photo is too large.")
+                            .WithFailureType(FailureType.Validation);
+                    }
+
+                    photo.Position = 0;
+                }
+            }
+
             Item? result = await _transactionManager.ExecuteAsync(async ct =>
             {
                 string? imageFileName = null;
@@ -129,8 +150,6 @@ public class InventoryService : IInventoryService
 
                 return result;
             }, cancellationToken);
-            //
-            // Item? result = await _mediator.Send(new CreateItemCommand(item), cancellationToken);
         
             if (result == null)
             {
