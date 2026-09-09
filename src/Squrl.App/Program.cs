@@ -32,22 +32,40 @@ try
     
     if (builder.Environment.IsProduction())
     {
+        string commonData;
+
         if (OperatingSystem.IsWindows())
         {
-            string commonData = Path.Combine(
+            commonData = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 "Squrl");
-
-            builder.Configuration.AddJsonFile(
-                Path.Combine(commonData, "appsettings.json"),
-                optional: false,
-                reloadOnChange: true);
-            
-            builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["ImageDirectory"] = Path.Combine(commonData, "images")
-            });
         }
+        else if (OperatingSystem.IsMacOS())
+        {
+            commonData = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Squrl");
+        }
+        else if (OperatingSystem.IsLinux())
+        {
+            commonData = Environment.GetEnvironmentVariable("SQURL_DATA_DIR") ?? "/var/lib/squrl";
+        }
+        else
+        {
+            throw new PlatformNotSupportedException("The current operating system is not supported.");
+        }
+
+        Directory.CreateDirectory(commonData);
+
+        builder.Configuration.AddJsonFile(
+            Path.Combine(commonData, "appsettings.json"),
+            optional: false,
+            reloadOnChange: true);
+
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["ImageDirectory"] = Path.Combine(commonData, "images")
+        });
     }
     else
     {
