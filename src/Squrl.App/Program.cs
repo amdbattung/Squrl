@@ -48,7 +48,8 @@ try
         }
         else if (OperatingSystem.IsLinux())
         {
-            commonData = Environment.GetEnvironmentVariable("SQURL_DATA_DIR") ?? "/var/lib/squrl";
+            commonData = Environment.GetEnvironmentVariable("SQURL_DATA_DIR")
+                         ?? Path.Combine("/var", "lib", "squrl");
         }
         else
         {
