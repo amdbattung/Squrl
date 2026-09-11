@@ -92,6 +92,7 @@ if ($LASTEXITCODE -ne 0) {
 # ----------------------------------------
 # Build installer
 # ----------------------------------------
+$installerOutputDir = Join-Path $root "artifacts"
 
 Write-Host ""
 Write-Host "Building installer..." -ForegroundColor Yellow
@@ -106,6 +107,8 @@ if (-not (Test-Path $installerScript)) {
 
 & $iscc `
     "/DMyAppVersion=$appVersion" `
+    "/DOutputDir=$installerOutputDir" `
+    "/DSourceDir=$publishRoot" `
     $installerScript
 
 if ($LASTEXITCODE -ne 0) {
