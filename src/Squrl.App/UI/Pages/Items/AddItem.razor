@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @inject IInventoryService InventoryService
 @inject IUomService UomService
+@inject IJSRuntime Js
 
 <h1>Add Item</h1>
 
@@ -17,6 +18,26 @@
         <InputText @bind-Value="_item.Description" />
         <ValidationMessage For="@(() => _item.Description)" />
     </div>
+    <div>
+        <label>Item Photo</label>
+        <InputFile
+            id="itemPhoto"
+            OnChange="@OnPhotoSelected"
+            accept="image/jpeg,image/png,image/webp"
+            class="form-control" />
+    </div>
+    @if (!string.IsNullOrWhiteSpace(_photoError))
+    {
+        <div class="alert alert-danger"> @_photoError </div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_photoPreviewUrl))
+    {
+        <div class="mb-3">
+            <div class="product-photo-preview">
+                <img src="@_photoPreviewUrl" alt="Product photo preview" />
+            </div>
+        </div>
+    }
     <div>
         <label>UOM</label>
         <InputSelect @bind-Value="_item.UomId">
@@ -57,8 +78,10 @@
         Quantity = 0m,
         Locations = new List<string>()
     };
-    // private IReadOnlyCollection<GetUomDto>? _uomSelect;
+    private byte[]? _processedPhoto;
+    private string? _photoPreviewUrl;
     private string? _successMessage;
+    private string? _photoError;
     
     [PersistentState]
     public IReadOnlyCollection<GetUomDto>? UomSelect { get; set; }
@@ -71,10 +94,52 @@
             UomSelect = result.Value?.Uoms ?? Array.Empty<GetUomDto>();
         }
     }
+    
+    private async Task OnPhotoSelected(InputFileChangeEventArgs e)
+    {
+        _photoError = null;
+        _photoPreviewUrl = null;
+        _processedPhoto = null;
+
+        try
+        {
+            BrowserImageResult? result = await Js.InvokeAsync<BrowserImageResult?>(
+                "productImage.process",
+                "itemPhoto",
+                800,
+                0.85);
+
+            if (result is null || result.Bytes.Length == 0)
+            {
+                _photoError = "Unable to process the image.";
+                return;
+            }
+
+            _processedPhoto = result.Bytes;
+
+            _photoPreviewUrl = $"data:{result.MimeType};base64,{Convert.ToBase64String(result.Bytes)}";
+        }
+        catch (JSException ex)
+        {
+            _photoError = "Something went wrong while processing the image.";
+            _processedPhoto = null;
+            _photoPreviewUrl = null;
+        }
+        catch (Exception)
+        {
+            _photoError = "Something went wrong while processing the image.";
+            _processedPhoto = null;
+            _photoPreviewUrl = null;
+        }
+    }
 
     private async Task HandleSubmit()
     {
-        Result<GetItemDto> result = await InventoryService.CreateItemAsync(_item);
+        await using MemoryStream? photoStream = _processedPhoto is not null
+            ? new MemoryStream(_processedPhoto, writable: false)
+            : null;
+        
+        Result<GetItemDto> result = await InventoryService.CreateItemAsync(_item, photoStream);
 
         if (result.IsSuccess)
         {
@@ -83,11 +148,22 @@
                 Quantity = 0m,
                 Locations = new List<string>()
             };
+            
+            _processedPhoto = null;
+            _photoPreviewUrl = null;
+            _photoError = null;
+
             _successMessage = $"Item {result.Value?.Name} successfully added";
         }
         else
         {
             _successMessage = null;
         }
+    }
+
+    private sealed class BrowserImageResult
+    {
+        public byte[] Bytes { get; set; } = [];
+        public string MimeType { get; set; } = "";
     }
 }

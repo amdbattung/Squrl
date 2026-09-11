@@ -16,27 +16,28 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Blazilla" Version="2.4.0" />
+      <PackageReference Include="Blazilla" Version="2.4.1" />
       <PackageReference Include="EFCore.NamingConventions" Version="10.0.1" />
       <PackageReference Include="EntityFrameworkCore.Sqlite.NodaTime" Version="10.0.0" />
       <PackageReference Include="FluentValidation" Version="12.1.1" />
       <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="12.1.1" />
       <PackageReference Include="MediatR" Version="14.1.0" />
-      <PackageReference Include="Microsoft.AspNetCore.App.Internal.Assets" Version="10.0.9" />
-      <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" Version="10.0.9" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.9">
+      <PackageReference Include="Microsoft.AspNetCore.App.Internal.Assets" Version="10.0.11" />
+      <PackageReference Include="Microsoft.AspNetCore.Components.QuickGrid" Version="10.0.11" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.11">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.9" />
-      <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.9">
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.11" />
+      <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="10.0.11">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
       <PackageReference Include="NodaTime" Version="3.3.2" />
       <PackageReference Include="Scrutor" Version="7.0.0" />
-      <PackageReference Include="Serilog" Version="4.3.1" />
+      <PackageReference Include="Serilog" Version="4.4.0" />
       <PackageReference Include="Serilog.AspNetCore" Version="10.0.0" />
+      <PackageReference Include="SkiaSharp" Version="4.151.2" />
     </ItemGroup>
 
 </Project>

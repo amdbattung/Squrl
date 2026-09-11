@@ -1,6 +1,4 @@
-﻿using NodaTime;
-
-namespace Squrl.App.Features.Items.DTOs;
+﻿namespace Squrl.App.Features.Items.DTOs;
 
 public class GetItemDto
 {
@@ -8,6 +6,7 @@ public class GetItemDto
     public string? Name { get; }
     public Guid? UomId { get; }
     public string? Description { get; }
+    public string? Image { get; }
     public decimal? Quantity { get; }
     public decimal? LowQuantityAlertThreshold  { get; }
     public IReadOnlyList<string>? Locations { get; }
@@ -16,6 +15,7 @@ public class GetItemDto
         string? name,
         Guid? uomId,
         string? description,
+        string? image,
         decimal? quantity,
         decimal? lowQuantityAlertThreshold,
         IReadOnlyList<string>? locations)
@@ -24,6 +24,7 @@ public class GetItemDto
         Name = name;
         UomId = uomId;
         Description = description;
+        Image = image;
         Quantity = quantity;
         LowQuantityAlertThreshold = lowQuantityAlertThreshold;
         Locations = locations;

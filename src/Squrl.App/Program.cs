@@ -6,6 +6,8 @@ using Serilog.Events;
 using Squrl.App.Data;
 using Squrl.App.Extensions;
 using Squrl.App.Infrastructure.BackgroundTaskQueue;
+using Squrl.App.Infrastructure.ImageProcessor;
+using Squrl.App.Infrastructure.ImageStorage;
 using Squrl.App.Infrastructure.PlatformDialog;
 using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Services.Alert;
@@ -28,18 +30,53 @@ try
 
     WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
     
-    if (OperatingSystem.IsWindows() && builder.Environment.IsProduction())
+    // Set up operating system specific files and configuration
+    if (builder.Environment.IsProduction())
     {
+        string commonData;
+
+        if (OperatingSystem.IsWindows())
         {
-            string commonData = Path.Combine(
+            commonData = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 "Squrl");
-
-            builder.Configuration.AddJsonFile(
-                Path.Combine(commonData, "appsettings.json"),
-                optional: false,
-                reloadOnChange: true);
         }
+        else if (OperatingSystem.IsMacOS())
+        {
+            commonData = Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "Squrl");
+        }
+        else if (OperatingSystem.IsLinux())
+        {
+            commonData = Environment.GetEnvironmentVariable("SQURL_DATA_DIR")
+                         ?? Path.Combine("/var", "lib", "squrl");
+        }
+        else
+        {
+            throw new PlatformNotSupportedException("The current operating system is not supported.");
+        }
+
+        Directory.CreateDirectory(commonData);
+
+        builder.Configuration.AddJsonFile(
+            Path.Combine(commonData, "appsettings.json"),
+            optional: false,
+            reloadOnChange: true);
+
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["ImageDirectory"] = Path.Combine(commonData, "images")
+        });
+    }
+    else
+    {
+        builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
+        {
+            ["ImageDirectory"] = Path.Combine(
+                builder.Environment.ContentRootPath,
+                "uploads")
+        });
     }
 
     // Add services to the container.
@@ -68,7 +105,12 @@ try
         return new NullPlatformDialog();
     });
 
-    builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+    builder.Services.AddRazorComponents()
+        .AddInteractiveServerComponents()
+        .AddHubOptions(options =>
+        {
+            options.MaximumReceiveMessageSize = 1 * 1024L * 1024L; // 1 MB
+        });
 
     builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
 
@@ -78,6 +120,9 @@ try
 
     builder.Services.AddSingleton<IClock>(SystemClock.Instance);
     builder.Services.AddSingleton<DataSaveChangesInterceptor>();
+    
+    builder.Services.AddSingleton<IImageStorage, FileSystemImageStorage>();
+    builder.Services.AddScoped<IImageProcessor, ImageProcessor>();
 
     builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
@@ -110,6 +155,33 @@ try
     app.MapStaticAssets();
     app.MapRazorComponents<App>()
         .AddInteractiveServerRenderMode();
+    
+    // API for Images
+    app.MapGet("/api/images/{fileName}", (string fileName, IImageStorage imageService) =>
+    {
+        if (string.IsNullOrWhiteSpace(fileName))
+        {
+            return Results.NotFound();
+        }
+
+        string path = imageService.GetPhysicalPath(fileName);
+
+        if (!File.Exists(path))
+        {
+            return Results.NotFound();
+        }
+
+        string contentType = Path.GetExtension(path).ToLowerInvariant() switch
+        {
+            ".jpg" or ".jpeg" => "image/jpeg",
+            ".png" => "image/png",
+            ".gif" => "image/gif",
+            ".webp" => "image/webp",
+            _ => "application/octet-stream"
+        };
+
+        return Results.File(path, contentType);
+    });
     
     // Run Migrations.
     using (IServiceScope scope = app.Services.CreateScope())

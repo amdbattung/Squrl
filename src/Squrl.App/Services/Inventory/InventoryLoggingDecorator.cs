@@ -51,9 +51,9 @@ public class InventoryLoggingDecorator : IInventoryService
         return result;
     }
 
-    public async Task<Result<GetItemDto>> CreateItemAsync(CreateItemDto item, CancellationToken cancellationToken = default)
+    public async Task<Result<GetItemDto>> CreateItemAsync(CreateItemDto item, Stream? photo = null, CancellationToken cancellationToken = default)
     {
-        Result<GetItemDto> result = await _inventoryService.CreateItemAsync(item, cancellationToken);
+        Result<GetItemDto> result = await _inventoryService.CreateItemAsync(item, photo, cancellationToken);
 
         if (result.IsSuccess)
         {
@@ -115,9 +115,9 @@ public class InventoryLoggingDecorator : IInventoryService
         return result;
     }
 
-    public async Task<Result<GetItemDto>> UpdateItemAsync(Guid id, UpdateItemDto item, CancellationToken cancellationToken = default)
+    public async Task<Result<GetItemDto>> UpdateItemAsync(Guid id, UpdateItemDto item, Stream? photo = null, CancellationToken cancellationToken = default)
     {
-        Result<GetItemDto> result = await _inventoryService.UpdateItemAsync(id, item, cancellationToken);
+        Result<GetItemDto> result = await _inventoryService.UpdateItemAsync(id, item, photo, cancellationToken);
 
         if (result.IsSuccess)
         {

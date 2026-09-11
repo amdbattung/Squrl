@@ -7,6 +7,10 @@ using Squrl.App.Features.Items.Commands;
 using Squrl.App.Features.Items.DTOs;
 using Squrl.App.Features.Items.Mapping;
 using Squrl.App.Features.Items.Queries;
+using Squrl.App.Infrastructure.BackgroundTaskQueue;
+using Squrl.App.Infrastructure.ImageProcessor;
+using Squrl.App.Infrastructure.ImageStorage;
+using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Models;
 
 namespace Squrl.App.Services.Inventory;
@@ -14,17 +18,29 @@ namespace Squrl.App.Services.Inventory;
 public class InventoryService : IInventoryService
 {
     private readonly IMediator _mediator;
+    private readonly ITransactionManager _transactionManager;
+    private readonly IBackgroundTaskQueue _queue;
     private readonly IValidator<CreateItemDto> _createItemValidator;
     private readonly IValidator<UpdateItemDto> _updateItemValidator;
+    private readonly IImageProcessor _imageProcessor;
+    private readonly IImageStorage _imageStorage;
 
     public InventoryService(
         IMediator mediator,
+        ITransactionManager transactionManager,
+        IBackgroundTaskQueue queue,
         IValidator<CreateItemDto> createItemValidator,
-        IValidator<UpdateItemDto> updateItemValidator)
+        IValidator<UpdateItemDto> updateItemValidator,
+        IImageProcessor imageProcessor,
+        IImageStorage imageStorage)
     {
         _mediator = mediator;
+        _transactionManager = transactionManager;
+        _queue = queue;
         _createItemValidator = createItemValidator;
         _updateItemValidator = updateItemValidator;
+        _imageProcessor = imageProcessor;
+        _imageStorage = imageStorage;
     }
     
     public async Task<Result<GetManyItemsDto>> GetManyItemsAsync(
@@ -65,12 +81,13 @@ public class InventoryService : IInventoryService
         }
     }
     
-    public async Task<Result<GetItemDto>> CreateItemAsync(CreateItemDto item, CancellationToken cancellationToken = default)
+    public async Task<Result<GetItemDto>> CreateItemAsync(CreateItemDto item, Stream? photo = null, CancellationToken cancellationToken = default)
     {
         try
         {
             item.Name = item.Name?.Trim();
             item.Description = string.IsNullOrWhiteSpace(item.Description) ? null : item.Description.Trim();
+            item.Image = null;
             item.Locations = item.Locations?
                 .Select(i => i.Trim())
                 .Where(i => !string.IsNullOrWhiteSpace(i))
@@ -85,8 +102,55 @@ public class InventoryService : IInventoryService
                     .ToArray())
                     .WithFailureType(FailureType.Validation);
             }
-        
-            Item? result = await _mediator.Send(new CreateItemCommand(item), cancellationToken);
+
+            if (photo is not null)
+            {
+                const long maxPhotoSize = 1 * 1024L * 1024L; // 1 MB
+
+                if (!photo.CanRead)
+                {
+                    return Result<GetItemDto>.Fail("Photo is not readable.")
+                        .WithFailureType(FailureType.Validation);
+                }
+
+                if (photo.CanSeek)
+                {
+                    if (photo.Length > maxPhotoSize)
+                    {
+                        return Result<GetItemDto>.Fail("Photo is too large.")
+                            .WithFailureType(FailureType.Validation);
+                    }
+
+                    photo.Position = 0;
+                }
+            }
+
+            Item? result = null;
+
+            try
+            {
+                if (photo is not null)
+                {
+                    item.Image = await _imageProcessor.SaveAsync(photo, cancellationToken);
+                }
+
+                result = await _mediator.Send(new CreateItemCommand(item), cancellationToken);
+
+                if (result is null)
+                {
+                    throw new Exception();
+                }
+            }
+            catch
+            {
+                if (!string.IsNullOrEmpty(item.Image))
+                {
+                    await _queue.QueueAsync(async ct =>
+                    {
+                        await _imageStorage.DeleteAsync(item.Image, ct);
+                    });
+                }
+            }
         
             if (result == null)
             {
@@ -140,7 +204,7 @@ public class InventoryService : IInventoryService
         }
     }
     
-    public async Task<Result<GetItemDto>> UpdateItemAsync(Guid id, UpdateItemDto item, CancellationToken cancellationToken = default)
+    public async Task<Result<GetItemDto>> UpdateItemAsync(Guid id, UpdateItemDto item, Stream? photo = null, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -152,6 +216,7 @@ public class InventoryService : IInventoryService
             
             item.Name = item.Name?.Trim();
             item.Description = string.IsNullOrWhiteSpace(item.Description) ? null : item.Description.Trim();
+            item.Image = null;
             item.Locations = item.Locations?
                 .Select(i => i.Trim())
                 .Where(i => !string.IsNullOrWhiteSpace(i))
@@ -166,13 +231,74 @@ public class InventoryService : IInventoryService
                     .ToArray())
                     .WithFailureType(FailureType.Validation);
             }
-        
-            Item? result = await _mediator.Send(new UpdateItemCommand(id, item), cancellationToken);
+            
+            if (photo is not null)
+            {
+                const long maxPhotoSize = 1 * 1024L * 1024L; // 1 MB
+
+                if (!photo.CanRead)
+                {
+                    return Result<GetItemDto>.Fail("Photo is not readable.")
+                        .WithFailureType(FailureType.Validation);
+                }
+
+                if (photo.CanSeek)
+                {
+                    if (photo.Length > maxPhotoSize)
+                    {
+                        return Result<GetItemDto>.Fail("Photo is too large.")
+                            .WithFailureType(FailureType.Validation);
+                    }
+
+                    photo.Position = 0;
+                }
+            }
+            
+            Item? result = null;
+            string? oldImage = null;
+
+            try
+            {
+                if (photo is not null)
+                {
+                    item.Image = await _imageProcessor.SaveAsync(photo, cancellationToken);
+                    if (!string.IsNullOrEmpty(item.Image))
+                    {
+                        oldImage = (await _mediator.Send(new GetItemByIdQuery(id), cancellationToken))?.Image;
+                    }
+                }
+
+                result = await _mediator.Send(new UpdateItemCommand(id, item), cancellationToken);
+
+                if (result is null)
+                {
+                    throw new Exception();
+                }
+            }
+            catch
+            {
+                oldImage = null;
+                if (!string.IsNullOrEmpty(item.Image))
+                {
+                    await _queue.QueueAsync(async ct =>
+                    {
+                        await _imageStorage.DeleteAsync(item.Image, ct);
+                    });
+                }
+            }
         
             if (result == null)
             {
                 return Result<GetItemDto>.Fail("Item not found.")
                     .WithFailureType(FailureType.NotFound);
+            }
+
+            if (!string.IsNullOrEmpty(oldImage))
+            {
+                await _queue.QueueAsync(async ct =>
+                {
+                    await _imageStorage.DeleteAsync(oldImage, ct);
+                });
             }
         
             return Result<GetItemDto>.Ok(ItemMapper.ToDto(result));
