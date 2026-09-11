@@ -13,9 +13,9 @@ public class ImageProcessor : IImageProcessor
     public ImageProcessor(IImageStorage storage)
     {
         _storage = storage;
-        _maxSourceDimension = 16000;
-        _maxDimension = 800;
-        _quality = 80;
+        _maxSourceDimension = 12000;
+        _maxDimension = 600;
+        _quality = 75;
     }
 
     public async Task<string> SaveAsync(

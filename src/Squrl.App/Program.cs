@@ -30,6 +30,7 @@ try
 
     WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
     
+    // Set up operating system specific files and configuration
     if (builder.Environment.IsProduction())
     {
         string commonData;
@@ -119,11 +120,11 @@ try
 
     builder.Services.AddSingleton<IClock>(SystemClock.Instance);
     builder.Services.AddSingleton<DataSaveChangesInterceptor>();
-
-    builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
     
     builder.Services.AddSingleton<IImageStorage, FileSystemImageStorage>();
     builder.Services.AddScoped<IImageProcessor, ImageProcessor>();
+
+    builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
     // Custom services.
     builder.Services.AddScoped<IInventoryService, InventoryService>();
