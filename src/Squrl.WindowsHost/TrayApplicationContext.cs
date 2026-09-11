@@ -6,11 +6,12 @@ public sealed class TrayApplicationContext : ApplicationContext
 {
     private readonly NotifyIcon _notifyIcon;
     private readonly Process _squrlProcess;
+    private readonly NativeWindow _window;
     private readonly string _url;
     private readonly CancellationTokenSource _shutdownCts = new();
-    private readonly ToolStripMenuItem _openMenuItem;
 
     private bool _isReady;
+    private bool _isExiting;
     
     private static readonly HttpClient HttpClient = new()
     {
@@ -22,6 +23,7 @@ public sealed class TrayApplicationContext : ApplicationContext
         string url)
     {
         _squrlProcess = squrlProcess;
+        _window = new TrayWindow();
         _url = url;
 
         _notifyIcon = new NotifyIcon
@@ -31,28 +33,35 @@ public sealed class TrayApplicationContext : ApplicationContext
             Visible = true
         };
 
-        ContextMenuStrip menu = new ContextMenuStrip();
-
-        _openMenuItem = new ToolStripMenuItem(
-            "Open Squrl")
-        {
-            Enabled = false
-        };
-
-        _openMenuItem.Click += (_, _) => OpenSqurl();
-
-        menu.Items.Add(_openMenuItem);
-
-        menu.Items.Add(
-            "Exit",
-            null,
-            (_, _) => _ = ExitAsync());
-
-        _notifyIcon.ContextMenuStrip = menu;
-
+        _notifyIcon.MouseUp += OnNotifyIconRightClick;
         _notifyIcon.DoubleClick += (_, _) => OpenSqurl();
 
         _ = WaitForSqurlAsync();
+    }
+
+    private void OnNotifyIconRightClick(object? sender, MouseEventArgs e)
+    {
+        if (e.Button != MouseButtons.Right)
+        {
+            return;
+        }
+        ShowMenu();
+    }
+    
+    private void ShowMenu()
+    {
+        NativeTrayMenu.Show(
+            _window.Handle,
+            new NativeTrayMenu.Item( 
+                "Open Squrl",
+                OpenSqurl,
+                Enabled: _isReady),
+            new NativeTrayMenu.Item( 
+                "",
+                IsSeparator: true),
+            new NativeTrayMenu.Item( 
+                "Exit",
+                () => _ = ExitAsync()));
     }
 
     private async Task WaitForSqurlAsync()
@@ -83,7 +92,6 @@ public sealed class TrayApplicationContext : ApplicationContext
                 if (response.IsSuccessStatusCode)
                 {
                     _isReady = true;
-                    _openMenuItem.Enabled = true;
 
                     _notifyIcon.Text = "Squrl - Running";
 
@@ -93,9 +101,7 @@ public sealed class TrayApplicationContext : ApplicationContext
                 }
 
                 // Server responded, but with an error.
-                _notifyIcon.Text =
-                    $"Squrl - HTTP {(int)response.StatusCode}";
-
+                _notifyIcon.Text = $"Squrl - HTTP {(int)response.StatusCode}";
             }
             catch (HttpRequestException)
             {
@@ -146,6 +152,13 @@ public sealed class TrayApplicationContext : ApplicationContext
 
     private async Task ExitAsync()
     {
+        if (_isExiting)
+        {
+            return;
+        }
+
+        _isExiting = true;
+        
         await _shutdownCts.CancelAsync();
 
         try
@@ -174,6 +187,7 @@ public sealed class TrayApplicationContext : ApplicationContext
         {
             _squrlProcess.Dispose();
             _notifyIcon.Dispose();
+            _window.DestroyHandle();
             _shutdownCts.Dispose();
 
             Application.ExitThread();
@@ -192,6 +206,14 @@ public sealed class TrayApplicationContext : ApplicationContext
         catch (OperationCanceledException)
         {
             return false;
+        }
+    }
+    
+    private sealed class TrayWindow : NativeWindow
+    {
+        public TrayWindow()
+        {
+            CreateHandle(new CreateParams());
         }
     }
 }
