@@ -44,7 +44,7 @@ try
         else if (OperatingSystem.IsMacOS())
         {
             commonData = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "Squrl");
         }
         else if (OperatingSystem.IsLinux())

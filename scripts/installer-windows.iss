@@ -9,6 +9,13 @@
 #define MyAppExeName "Squrl.WindowsHost.exe"
 #define OutputFileName "squrl"
 
+#ifndef OutputDir
+  #define OutputDir "..\artifacts"
+#endif
+#ifndef SourceDir
+  #define SourceDir "..\publish\windows"
+#endif
+
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
@@ -22,16 +29,16 @@ ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 DisableProgramGroupPage=yes
 PrivilegesRequired=admin
-OutputDir=..\artifacts
+OutputDir={#OutputDir}
 OutputBaseFilename={#OutputFileName}-{#MyAppVersion}-win-x64
 SolidCompression=yes
 WizardStyle=modern dynamic
 
 [Dirs]
 Name: "{commonappdata}\{#MyAppName}"
-Name: "{commonappdata}\{#MyAppName}\Uploads"
-Name: "{commonappdata}\{#MyAppName}\Logs"
-Name: "{commonappdata}\{#MyAppName}\Backups"
+Name: "{commonappdata}\{#MyAppName}\uploads"
+Name: "{commonappdata}\{#MyAppName}\logs"
+Name: "{commonappdata}\{#MyAppName}\backups"
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -40,9 +47,9 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Users\Work\Desktop\Projects\Squrl\publish\windows\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceDir}\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 
-Source: "C:\Users\Work\Desktop\Projects\Squrl\publish\windows\*"; \
+Source: "{#SourceDir}\*"; \
   DestDir: "{app}"; \
   Excludes: "*.pdb,*.xml,appsettings.json,appsettings.*.json,*.db"; \
   Flags: ignoreversion recursesubdirs createallsubdirs
@@ -76,9 +83,10 @@ procedure ModifyAppSettings;
     if LoadStringFromFile(FileName, AnsiJson) then
       begin
         UnicodeJson := string(AnsiJson);
+        Changed := False;
     
+        // Connection String
         ConnString := 'Data Source=' + ExpandConstant('{commonappdata}\{#MyAppName}\squrl.db');
-
         StringChangeEx(ConnString, '\', '\\', True);
 
         if StringChangeEx(
@@ -87,8 +95,26 @@ procedure ModifyAppSettings;
           ConnString,
           True) > 0 then
           begin
-            SaveStringToFile(FileName, AnsiString(UnicodeJson), False);
+            Changed := True;
           end;
+        
+        // Logs Path
+        LogsPath := ExpandConstant('{commonappdata}\{#MyAppName}\logs\log.txt');
+        StringChangeEx(LogsDir, '\', '\\', True);
+        
+        if StringChangeEx(
+          UnicodeJson,
+          '__LOGS_DIR__',
+          LogsPath,
+          True) > 0 then
+          begin
+            Changed := True;
+          end;
+        
+        if Changed then
+          begin
+            SaveStringToFile(FileName, AnsiString(UnicodeJson), False);
+          end
       end;
   end;
 
