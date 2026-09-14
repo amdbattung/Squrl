@@ -25,6 +25,14 @@ public class UpdatePoDetailValidator : AbstractValidator<UpdatePoDetailDto>
             .WithName("Item")
             .WithMessage("{PropertyName} is required.");
         
+        RuleFor(x => x.UnitPrice)
+            .NotNull()
+            .WithName("Unit Price")
+            .WithMessage("{PropertyName} is required.")
+            .GreaterThanOrEqualTo(0m)
+            .WithName("Unit Price")
+            .WithMessage("{PropertyName} must not be negative.");
+        
         RuleFor(x => x.Quantity)
             .NotNull()
             .WithMessage("{PropertyName} is required.")

@@ -31,6 +31,9 @@ public class CreateItemHandler : IRequestHandler<CreateItemCommand, Item?>
             Uom = uom,
             Description = request.Item.Description,
             Image = request.Item.Image,
+            ListPrice = request.Item.ListPrice,
+            RetailPrice = request.Item.RetailPrice,
+            CostPrice = request.Item.CostPrice,
             Quantity = request.Item.Quantity ?? 0m,
             LowQuantityAlertThreshold =  request.Item.LowQuantityAlertThreshold,
             Locations = request.Item.Locations ?? new List<string>()

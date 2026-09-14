@@ -36,7 +36,9 @@ public class UpdatePoDetailHandler : IRequestHandler<UpdatePoDetailCommand, Purc
         existingPoDetail.LineSequence = requestPoDetail.LineSequence ?? existingPoDetail.LineSequence;
         existingPoDetail.Item = requestPoDetail.ItemId == null
             ? existingPoDetail.Item
-            : await _dataContext.Items.FirstOrDefaultAsync(p => p.Id == requestPoDetail.ItemId, cancellationToken) ?? existingPoDetail.Item;
+            : await _dataContext.Items.FirstOrDefaultAsync(p =>
+                p.Id == requestPoDetail.ItemId, cancellationToken) ?? existingPoDetail.Item;
+        existingPoDetail.UnitPrice = requestPoDetail.UnitPrice ?? existingPoDetail.Quantity;
         existingPoDetail.Quantity = requestPoDetail.Quantity ?? existingPoDetail.Quantity;
 
         await _dataContext.SaveChangesAsync(cancellationToken);

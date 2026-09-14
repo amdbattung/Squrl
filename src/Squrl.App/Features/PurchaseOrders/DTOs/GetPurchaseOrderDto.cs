@@ -7,6 +7,7 @@ public class GetPurchaseOrderDto
 {
     public Guid? Id { get; }
     public Guid? SupplierId { get; }
+    public string? InvoiceNumber { get; }
     public PurchaseOrderStatus? Status { get; }
     public Instant? DateOrdered { get; }
     public Instant? DateRequired { get; }
@@ -14,6 +15,7 @@ public class GetPurchaseOrderDto
 
     public GetPurchaseOrderDto(Guid? id,
         Guid? supplierId,
+        string? invoiceNumber,
         PurchaseOrderStatus? status,
         Instant? dateOrdered,
         Instant? dateRequired,
@@ -21,6 +23,7 @@ public class GetPurchaseOrderDto
     {
         Id = id;
         SupplierId = supplierId;
+        InvoiceNumber = invoiceNumber;
         Status = status;
         DateOrdered = dateOrdered;
         DateRequired = dateRequired;

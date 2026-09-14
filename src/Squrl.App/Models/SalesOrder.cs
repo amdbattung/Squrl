@@ -1,17 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using NodaTime;
-using Squrl.App.Enums;
 
 namespace Squrl.App.Models;
 
-public class PurchaseOrder
+public class SalesOrder
 {
     public required Guid Id { get; set; }
-    public Supplier? Supplier { get; set; }
+    [MaxLength(255)]
+    public string? Customer { get; set; }
     [MaxLength(255)]
     public string? InvoiceNumber { get; set; }
-    public required PurchaseOrderStatus Status { get; set; }
     public Instant DateOrdered { get; set; }
-    public Instant? DateRequired { get; set; }
-    public Instant? DateShipped { get; set; }
 }

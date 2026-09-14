@@ -9,6 +9,14 @@ public class CreatePurchaseOrderValidator : AbstractValidator<CreatePurchaseOrde
 {
     public CreatePurchaseOrderValidator(IValidator<CreatePoDetailDto> poDetailValidator)
     {
+        RuleFor(x => x.InvoiceNumber)
+            .BeNullOrNonWhitespace()
+            .WithName("Invoice Number")
+            .WithMessage("{PropertyName} must not only be whitespace.")
+            .BeAlphanumeric()
+            .WithName("Invoice Number")
+            .WithMessage("Invalid {PropertyName}.");
+        
         RuleFor(x => x.Status)
             .NotNull()
             .WithMessage("{PropertyName} is required.")

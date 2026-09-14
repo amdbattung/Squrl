@@ -16,6 +16,14 @@ public static class CustomValidationRulesExtensions
         {
             return ruleBuilder.Must(x => x is null || x.All(c => c >= 32 && c <= 126));
         }
+        
+        public IRuleBuilderOptions<T, string?> BeAlphanumeric()
+        {
+            return ruleBuilder.Must(x => x is null || x.All(c =>
+                c is >= 'A' and <= 'Z'
+                    or >= 'a' and <= 'z'
+                    or >= '0' and <= '9'));
+        }
     }
     
     extension<T>(IRuleBuilder<T, List<CreatePoDetailDto>?> ruleBuilder)
