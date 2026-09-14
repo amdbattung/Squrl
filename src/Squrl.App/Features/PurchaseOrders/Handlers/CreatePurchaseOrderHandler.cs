@@ -13,7 +13,7 @@ public class CreatePurchaseOrderHandler : IRequestHandler<CreatePurchaseOrderCom
     private readonly IClock _clock;
 
     public CreatePurchaseOrderHandler(DataContext dataContext,
-    IClock clock)
+        IClock clock)
     {
         _dataContext = dataContext;
         _clock = clock;
