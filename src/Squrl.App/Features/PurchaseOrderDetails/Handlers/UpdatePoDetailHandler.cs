@@ -32,7 +32,8 @@ public class UpdatePoDetailHandler : IRequestHandler<UpdatePoDetailCommand, Purc
         
         existingPoDetail.PurchaseOrder = requestPoDetail.PurchaseOrderId == null
             ? existingPoDetail.PurchaseOrder
-            : await _dataContext.PurchaseOrders.FirstOrDefaultAsync(p => p.Id == requestPoDetail.PurchaseOrderId, cancellationToken) ?? existingPoDetail.PurchaseOrder;
+            : await _dataContext.PurchaseOrders.FirstOrDefaultAsync(p =>
+                p.Id == requestPoDetail.PurchaseOrderId, cancellationToken) ?? existingPoDetail.PurchaseOrder;
         existingPoDetail.LineSequence = requestPoDetail.LineSequence ?? existingPoDetail.LineSequence;
         existingPoDetail.Item = requestPoDetail.ItemId == null
             ? existingPoDetail.Item
