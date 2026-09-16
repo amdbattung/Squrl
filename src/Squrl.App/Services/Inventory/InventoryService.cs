@@ -332,6 +332,14 @@ public class InventoryService : IInventoryService
                 return Result<GetItemDto>.Fail("Item not found.")
                     .WithFailureType(FailureType.NotFound);
             }
+            
+            if (!string.IsNullOrEmpty(result.Image))
+            {
+                await _queue.QueueAsync(async ct =>
+                {
+                    await _imageStorage.DeleteAsync(result.Image, ct);
+                });
+            }
         
             return Result<GetItemDto>.Ok(ItemMapper.ToDto(result));
         }
