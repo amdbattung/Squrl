@@ -22,6 +22,12 @@ public class GetManySalesOrdersHandler : IRequestHandler<GetManySalesOrdersQuery
         IQueryable<SalesOrder> query = _dataContext.SalesOrders
             .AsNoTracking();
         
+        if (!string.IsNullOrWhiteSpace(request.Customer))
+        {
+            query = query.Where(s =>
+                EF.Functions.Like(s.Customer, $"%{request.Customer.Trim()}%"));
+        }
+        
         if (request.OrderDirection == SortDirection.Descending)
         {
             query = query
