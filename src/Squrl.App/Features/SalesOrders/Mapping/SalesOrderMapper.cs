@@ -9,6 +9,7 @@ public class SalesOrderMapper
     public static GetSalesOrderDto ToDto(SalesOrder salesOrder)
     {
         return new GetSalesOrderDto(
+            salesOrder.Id,
             salesOrder.Customer,
             salesOrder.InvoiceNumber,
             salesOrder.DateOrdered
@@ -20,6 +21,7 @@ public class SalesOrderMapper
         get
         {
             return salesOrder => new GetSalesOrderDto(
+                salesOrder.Id,
                 salesOrder.Customer,
                 salesOrder.InvoiceNumber,
                 salesOrder.DateOrdered
