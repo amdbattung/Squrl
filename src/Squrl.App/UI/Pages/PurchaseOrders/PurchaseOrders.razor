@@ -13,6 +13,7 @@
            ItemsProvider="LoadPurchaseOrders"
            Pagination="@_pagination">
     <PropertyColumn Title="Purchase Order" Property="p => p.Id" />
+    <PropertyColumn Title="Invoice" Property="p => p.InvoiceNumber" />
     <TemplateColumn Title="Supplier">
         @(_supplierCache.TryGetValue(context.SupplierId ?? Guid.Empty, out string? supplier)
             ? supplier

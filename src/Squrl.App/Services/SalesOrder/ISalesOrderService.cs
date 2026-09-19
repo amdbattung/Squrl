@@ -7,7 +7,7 @@ namespace Squrl.App.Services.SalesOrder;
 
 public interface ISalesOrderService
 {
-    Task<Result<GetManySalesOrdersDto>> GetManySalesOrderAsync(
+    Task<Result<GetManySalesOrdersDto>> GetManySalesOrdersAsync(
         string? query = null,
         string? customer = null,
         int? pageNumber = null,

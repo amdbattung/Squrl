@@ -49,7 +49,7 @@ public partial class SalesOrderService : ISalesOrderService
         _clock = clock;
     }
     
-    public async Task<Result<GetManySalesOrdersDto>> GetManySalesOrderAsync(string? query = null,
+    public async Task<Result<GetManySalesOrdersDto>> GetManySalesOrdersAsync(string? query = null,
         string? customer = null,
         int? pageNumber = null,
         int? pageSize = null,

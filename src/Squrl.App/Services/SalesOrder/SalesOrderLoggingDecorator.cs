@@ -17,14 +17,14 @@ public class SalesOrderLoggingDecorator : ISalesOrderService
         _logger = logger;
     }
     
-    public async Task<Result<GetManySalesOrdersDto>> GetManySalesOrderAsync(string? query = null,
+    public async Task<Result<GetManySalesOrdersDto>> GetManySalesOrdersAsync(string? query = null,
         string? customer = null,
         int? pageNumber = null,
         int? pageSize = null,
         SortDirection orderDirection = SortDirection.Ascending,
         CancellationToken cancellationToken = default)
     {
-        Result<GetManySalesOrdersDto> result = await _salesOrderService.GetManySalesOrderAsync(
+        Result<GetManySalesOrdersDto> result = await _salesOrderService.GetManySalesOrdersAsync(
             query,
             customer,
             pageNumber,

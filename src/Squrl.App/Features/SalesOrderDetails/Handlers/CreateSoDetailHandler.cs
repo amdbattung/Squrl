@@ -39,7 +39,7 @@ public class CreateSoDetailHandler : IRequestHandler<CreateSoDetailCommand, Sale
             LineSequence = request.SoDetail.LineSequence ?? 0,
             Item = item,
             UnitPrice = request.SoDetail.UnitPrice ?? 0m,
-            Quantity = request.SoDetail.UnitPrice ?? 0m
+            Quantity = request.SoDetail.Quantity ?? 0m
         };
             
         await _dataContext.SalesOrderDetails.AddAsync(newSoDetail, cancellationToken);
