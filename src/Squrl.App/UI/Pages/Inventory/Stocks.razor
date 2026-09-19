@@ -17,7 +17,7 @@
                  style="width: 100px; height: 100px; object-fit: cover;" />
         }
     </TemplateColumn>
-    <PropertyColumn Property="i => i.Name"/>
+    <PropertyColumn Property="i => i.Name" Title="Item"/>
     @* <PropertyColumn Property="i => i.Quantity" Title="Onhand" Format="#,##0.##" /> *@
     <TemplateColumn Title="Onhand">
         @(context.Quantity.HasValue

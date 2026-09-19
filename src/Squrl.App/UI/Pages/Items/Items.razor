@@ -24,6 +24,21 @@
             ? uom
             : "")
     </TemplateColumn>
+    <TemplateColumn Title="List Price">
+        @(context.ListPrice.HasValue
+            ? ToStringFormatters.FormatDecimal(context.ListPrice.Value)
+            : "")
+    </TemplateColumn>
+    <TemplateColumn Title="Retail Price">
+        @(context.RetailPrice.HasValue
+            ? ToStringFormatters.FormatDecimal(context.RetailPrice.Value)
+            : "")
+    </TemplateColumn>
+    <TemplateColumn Title="Cost Price">
+        @(context.CostPrice.HasValue
+            ? ToStringFormatters.FormatDecimal(context.CostPrice.Value)
+            : "")
+    </TemplateColumn>
     <TemplateColumn Title="Low Stock Threshold">
         @(context.LowQuantityAlertThreshold.HasValue
             ? ToStringFormatters.FormatDecimal(context.LowQuantityAlertThreshold.Value)

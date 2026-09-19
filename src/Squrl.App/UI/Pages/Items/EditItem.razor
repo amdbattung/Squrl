@@ -57,9 +57,24 @@
             <ValidationMessage For="@(() => Item.UomId)" />
         </div>
         <div>
-            <label>Starting Onhand Quantity</label>
+            <label>Quantity</label>
             <InputNumber @bind-Value="Item.Quantity" />
             <ValidationMessage For="@(() => Item.Quantity)" />
+        </div>
+        <div>
+            <label>List Price</label>
+            <InputNumber @bind-Value="Item.ListPrice" />
+            <ValidationMessage For="@(() => Item.ListPrice)" />
+        </div>
+        <div>
+            <label>Retail Price</label>
+            <InputNumber @bind-Value="Item.RetailPrice" />
+            <ValidationMessage For="@(() => Item.RetailPrice)" />
+        </div>
+        <div>
+            <label>Cost Price</label>
+            <InputNumber @bind-Value="Item.CostPrice" />
+            <ValidationMessage For="@(() => Item.CostPrice)" />
         </div>
         <div>
             <label>Low Stock Alert On Or Below</label>
@@ -121,6 +136,9 @@ else
             Name = itemResult.Name,
             UomId = itemResult.UomId,
             Description = itemResult.Description,
+            ListPrice = itemResult.ListPrice,
+            RetailPrice = itemResult.RetailPrice,
+            CostPrice = itemResult.CostPrice,
             Quantity = itemResult.Quantity,
             LowQuantityAlertThreshold = itemResult.LowQuantityAlertThreshold,
             Locations = itemResult.Locations?.ToList()
