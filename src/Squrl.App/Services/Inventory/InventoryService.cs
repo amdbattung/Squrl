@@ -18,7 +18,6 @@ namespace Squrl.App.Services.Inventory;
 public class InventoryService : IInventoryService
 {
     private readonly IMediator _mediator;
-    private readonly ITransactionManager _transactionManager;
     private readonly IBackgroundTaskQueue _queue;
     private readonly IValidator<CreateItemDto> _createItemValidator;
     private readonly IValidator<UpdateItemDto> _updateItemValidator;
@@ -27,7 +26,6 @@ public class InventoryService : IInventoryService
 
     public InventoryService(
         IMediator mediator,
-        ITransactionManager transactionManager,
         IBackgroundTaskQueue queue,
         IValidator<CreateItemDto> createItemValidator,
         IValidator<UpdateItemDto> updateItemValidator,
@@ -35,7 +33,6 @@ public class InventoryService : IInventoryService
         IImageStorage imageStorage)
     {
         _mediator = mediator;
-        _transactionManager = transactionManager;
         _queue = queue;
         _createItemValidator = createItemValidator;
         _updateItemValidator = updateItemValidator;
@@ -52,8 +49,8 @@ public class InventoryService : IInventoryService
     {
         try
         {
-            pageNumber = pageNumber >= 1 ? pageNumber : null;
-            pageSize = pageSize is >= 1 and <= 50 ? pageSize : null;
+            pageNumber = pageNumber >= 1 ? pageNumber : 1;
+            pageSize = pageSize is >= 1 and <= 50 ? pageSize : 10;
         
             var result = await _mediator.Send(new GetManyItemsQuery(
                 query,

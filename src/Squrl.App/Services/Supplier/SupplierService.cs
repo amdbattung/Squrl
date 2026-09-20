@@ -34,8 +34,8 @@ public class SupplierService : ISupplierService
     {
         try
         {
-            pageNumber = pageNumber >= 1 ? pageNumber : null;
-            pageSize = pageSize is >= 1 and <= 50 ? pageSize : null;
+            pageNumber = pageNumber >= 1 ? pageNumber : 1;
+            pageSize = pageSize is >= 1 and <= 50 ? pageSize : 10;
             
             var result = await _mediator.Send(new GetManySuppliersQuery(
                 query,

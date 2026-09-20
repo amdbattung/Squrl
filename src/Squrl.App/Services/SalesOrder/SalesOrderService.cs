@@ -58,8 +58,8 @@ public partial class SalesOrderService : ISalesOrderService
     {
         try
         {
-            pageNumber = pageNumber >= 1 ? pageNumber : null;
-            pageSize = pageSize is >= 1 and <= 50 ? pageSize : null;
+            pageNumber = pageNumber >= 1 ? pageNumber : 1;
+            pageSize = pageSize is >= 1 and <= 50 ? pageSize : 50;
             
             var result = await _mediator.Send(new GetManySalesOrdersQuery(
                 query,

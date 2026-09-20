@@ -1,6 +1,4 @@
-﻿using Squrl.App.Common;
-
-namespace Squrl.App.Infrastructure.ImageProcessor;
+﻿namespace Squrl.App.Infrastructure.ImageProcessor;
 
 public interface IImageProcessor
 {

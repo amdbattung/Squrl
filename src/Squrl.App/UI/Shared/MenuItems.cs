@@ -44,7 +44,7 @@ public class MenuItems
                 Url = "/sos",
                 Children =
                 [
-                    new() { Text = "Sales Orders", Url = "/sos" },
+                    new() { Text = "All Orders", Url = "/sos" },
                     new() { Text = "New Order", Url = "/sos/new" }
                 ]
             },
