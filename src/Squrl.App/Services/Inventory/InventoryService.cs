@@ -10,7 +10,6 @@ using Squrl.App.Features.Items.Queries;
 using Squrl.App.Infrastructure.BackgroundTaskQueue;
 using Squrl.App.Infrastructure.ImageProcessor;
 using Squrl.App.Infrastructure.ImageStorage;
-using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Models;
 
 namespace Squrl.App.Services.Inventory;
