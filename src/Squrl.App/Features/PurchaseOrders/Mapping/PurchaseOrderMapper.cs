@@ -11,6 +11,7 @@ public class PurchaseOrderMapper
         return new GetPurchaseOrderDto(
             purchaseOrder.Id,
             purchaseOrder.Supplier?.Id,
+            purchaseOrder.InvoiceNumber,
             purchaseOrder.Status,
             purchaseOrder.DateOrdered,
             purchaseOrder.DateRequired,
@@ -25,6 +26,7 @@ public class PurchaseOrderMapper
             return purchaseOrder => new GetPurchaseOrderDto(
                 purchaseOrder.Id,
                 purchaseOrder.Supplier != null ? purchaseOrder.Supplier.Id : null,
+                purchaseOrder.InvoiceNumber,
                 purchaseOrder.Status,
                 purchaseOrder.DateOrdered,
                 purchaseOrder.DateRequired,

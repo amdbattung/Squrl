@@ -62,8 +62,8 @@ public partial class PurchaseOrderService : IPurchaseOrderService
     {
         try
         {
-            pageNumber = pageNumber >= 1 ? pageNumber : null;
-            pageSize = pageSize is >= 1 and <= 50 ? pageSize : null;
+            pageNumber = pageNumber >= 1 ? pageNumber : 1;
+            pageSize = pageSize is >= 1 and <= 50 ? pageSize : 10;
             
             var result = await _mediator.Send(new GetManyPurchaseOrdersQuery(
                 query,
@@ -212,12 +212,12 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                     .WithFailureType(FailureType.Validation);
             }
             
-            IReadOnlyList<PurchaseOrderDetail> existingPoDetails = (await _mediator
-                    .Send(new GetManyPoDetailsQuery(PurchaseOrderId: id, PageSize: null), cancellationToken))
-                .Value;
-            
             Models.PurchaseOrder? result = await _transactionManager.ExecuteAsync(async ct =>
             {
+                IReadOnlyList<PurchaseOrderDetail> existingPoDetails = (await _mediator
+                        .Send(new GetManyPoDetailsQuery(PurchaseOrderId: id, PageSize: null), ct))
+                    .Value;
+                
                 Models.PurchaseOrder? purchaseOrderResult = await _mediator
                     .Send(new UpdatePurchaseOrderCommand(id, purchaseOrder), ct);
                 
@@ -248,6 +248,7 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                                 PurchaseOrderId = id,
                                 LineSequence = poDetail.LineSequence,
                                 ItemId = poDetail.ItemId,
+                                UnitPrice = poDetail.UnitPrice,
                                 Quantity = poDetail.Quantity
                             }), ct);
                     }

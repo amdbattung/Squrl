@@ -31,7 +31,9 @@ public class UpdatePurchaseOrderHandler : IRequestHandler<UpdatePurchaseOrderCom
         
         existingPurchaseOrder.Supplier = requestPurchaseOrder.SupplierId == null
             ? existingPurchaseOrder.Supplier
-            : await _dataContext.Suppliers.FirstOrDefaultAsync(s => s.Id == requestPurchaseOrder.SupplierId, cancellationToken) ?? existingPurchaseOrder.Supplier;
+            : await _dataContext.Suppliers.FirstOrDefaultAsync(s =>
+                s.Id == requestPurchaseOrder.SupplierId, cancellationToken) ?? existingPurchaseOrder.Supplier;
+        existingPurchaseOrder.InvoiceNumber = requestPurchaseOrder.InvoiceNumber ?? existingPurchaseOrder.InvoiceNumber;
         existingPurchaseOrder.Status = requestPurchaseOrder.Status ?? existingPurchaseOrder.Status;
         existingPurchaseOrder.DateOrdered = requestPurchaseOrder.DateOrdered ?? existingPurchaseOrder.DateOrdered;
         existingPurchaseOrder.DateRequired = requestPurchaseOrder.DateRequired ?? existingPurchaseOrder.DateRequired;

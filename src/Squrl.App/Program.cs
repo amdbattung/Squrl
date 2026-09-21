@@ -13,6 +13,7 @@ using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Services.Alert;
 using Squrl.App.Services.Inventory;
 using Squrl.App.Services.PurchaseOrder;
+using Squrl.App.Services.SalesOrder;
 using Squrl.App.Services.Supplier;
 using Squrl.App.Services.UnitOfMeasure;
 using Squrl.App.UI;
@@ -130,12 +131,14 @@ try
     builder.Services.AddScoped<IInventoryService, InventoryService>();
     builder.Services.Decorate<IInventoryService, InventoryAlertDecorator>();
     builder.Services.Decorate<IInventoryService, InventoryLoggingDecorator>();
-    builder.Services.AddScoped<ISupplierService, SupplierService>();
-    builder.Services.Decorate<ISupplierService, SupplierLoggingDecorator>();
+    builder.Services.AddScoped<ISalesOrderService, SalesOrderService>();
+    builder.Services.Decorate<ISalesOrderService, SalesOrderLoggingDecorator>();
     builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
     builder.Services.Decorate<IPurchaseOrderService, PurchaseOrderLoggingDecorator>();
     builder.Services.AddScoped<IUomService, UomService>();
     builder.Services.Decorate<IUomService, UomLoggingDecorator>();
+    builder.Services.AddScoped<ISupplierService, SupplierService>();
+    builder.Services.Decorate<ISupplierService, SupplierLoggingDecorator>();
     builder.Services.AddSingleton<IAlertService, AlertService>();
 
     WebApplication app = builder.Build();

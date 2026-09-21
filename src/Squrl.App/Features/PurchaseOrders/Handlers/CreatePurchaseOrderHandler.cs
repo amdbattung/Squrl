@@ -13,7 +13,7 @@ public class CreatePurchaseOrderHandler : IRequestHandler<CreatePurchaseOrderCom
     private readonly IClock _clock;
 
     public CreatePurchaseOrderHandler(DataContext dataContext,
-    IClock clock)
+        IClock clock)
     {
         _dataContext = dataContext;
         _clock = clock;
@@ -32,6 +32,7 @@ public class CreatePurchaseOrderHandler : IRequestHandler<CreatePurchaseOrderCom
         {
             Id = Guid.NewGuid(),
             Supplier = supplier,
+            InvoiceNumber = request.PurchaseOrder.InvoiceNumber,
             Status = request.PurchaseOrder.Status ?? default,
             DateOrdered = request.PurchaseOrder.DateOrdered ?? _clock.GetCurrentInstant(),
             DateRequired =  request.PurchaseOrder.DateRequired,

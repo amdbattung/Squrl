@@ -7,6 +7,7 @@ namespace Squrl.App.Features.PurchaseOrders.DTOs;
 public class CreatePurchaseOrderDto
 {
     public Guid? SupplierId { get; set; }
+    public string? InvoiceNumber { get; set; }
     public PurchaseOrderStatus? Status { get; set; }
     public List<CreatePoDetailDto>? Details { get; set; }
     public Instant? DateOrdered { get; set; }

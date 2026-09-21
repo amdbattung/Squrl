@@ -14,6 +14,9 @@ public class ItemMapper
             item.Uom.Id,
             item.Description,
             item.Image,
+            item.ListPrice,
+            item.RetailPrice,
+            item.CostPrice,
             item.Quantity,
             item.LowQuantityAlertThreshold,
             item.Locations.ToList()
@@ -30,6 +33,9 @@ public class ItemMapper
                 item.Uom.Id,
                 item.Description,
                 item.Image,
+                item.ListPrice,
+                item.RetailPrice,
+                item.CostPrice,
                 item.Quantity,
                 item.LowQuantityAlertThreshold,
                 item.Locations.ToList()

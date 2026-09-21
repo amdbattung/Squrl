@@ -20,7 +20,7 @@ public class GetPurchaseOrderByIdHandler : IRequestHandler<GetPurchaseOrderByIdQ
         PurchaseOrder? existingPurchaseOrder = await _dataContext.PurchaseOrders
             .AsNoTracking()
             .Include(p => p.Supplier)
-            .Where(i => i.Id == request.Id)
+            .Where(p => p.Id == request.Id)
             .FirstOrDefaultAsync(cancellationToken);
 
         return existingPurchaseOrder;

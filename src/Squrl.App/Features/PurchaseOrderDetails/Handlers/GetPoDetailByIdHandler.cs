@@ -21,7 +21,7 @@ public class GetPoDetailByIdHandler : IRequestHandler<GetPoDetailByIdQuery, Purc
             .AsNoTracking()
             .Include(p => p.PurchaseOrder)
             .Include(p => p.Item)
-            .Where(i => i.Id == request.Id)
+            .Where(p => p.Id == request.Id)
             .FirstOrDefaultAsync(cancellationToken);
 
         return existingPoDetail;

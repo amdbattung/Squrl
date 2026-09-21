@@ -58,6 +58,21 @@
         <ValidationMessage For="@(() => _item.Quantity)" />
     </div>
     <div>
+        <label>List Price</label>
+        <InputNumber @bind-Value="_item.ListPrice" />
+        <ValidationMessage For="@(() => _item.ListPrice)" />
+    </div>
+    <div>
+        <label>Retail Price</label>
+        <InputNumber @bind-Value="_item.RetailPrice" />
+        <ValidationMessage For="@(() => _item.RetailPrice)" />
+    </div>
+    <div>
+        <label>Cost Price</label>
+        <InputNumber @bind-Value="_item.CostPrice" />
+        <ValidationMessage For="@(() => _item.CostPrice)" />
+    </div>
+    <div>
         <label>Low Stock Alert On Or Below</label>
         <InputNumber @bind-Value="_item.LowQuantityAlertThreshold" />
         <ValidationMessage For="@(() => _item.LowQuantityAlertThreshold)" />

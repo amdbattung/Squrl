@@ -9,6 +9,8 @@ public class DataContext : DbContext
     public DbSet<Item> Items { get; set; }
     public DbSet<Supplier> Suppliers { get; set; }
     public DbSet<UnitOfMeasure> UnitOfMeasures { get; set; }
+    public DbSet<SalesOrder> SalesOrders { get; set; }
+    public DbSet<SalesOrderDetail> SalesOrderDetails { get; set; }
     public DbSet<PurchaseOrder> PurchaseOrders { get; set; }
     public DbSet<PurchaseOrderDetail> PurchaseOrderDetails { get; set; }
     
@@ -27,6 +29,12 @@ public class DataContext : DbContext
             .Property<Instant?>("DateCreated");
         
         modelBuilder.Entity<UnitOfMeasure>()
+            .Property<Instant?>("DateCreated");
+        
+        modelBuilder.Entity<SalesOrder>()
+            .Property<Instant?>("DateCreated");
+        
+        modelBuilder.Entity<SalesOrderDetail>()
             .Property<Instant?>("DateCreated");
         
         modelBuilder.Entity<PurchaseOrder>()
@@ -59,6 +67,16 @@ public class DataContext : DbContext
         modelBuilder.Entity<UnitOfMeasure>()
             .HasIndex("DateCreated");
         
+        modelBuilder.Entity<SalesOrder>()
+            .HasIndex("DateCreated");
+        
+        modelBuilder.Entity<SalesOrderDetail>()
+            .HasIndex("SalesOrderId", nameof(SalesOrderDetail.LineSequence))
+            .IsUnique();
+        
+        modelBuilder.Entity<SalesOrderDetail>()
+            .HasIndex("DateCreated");
+        
         modelBuilder.Entity<PurchaseOrder>()
             .HasIndex("DateCreated");
         
@@ -72,6 +90,16 @@ public class DataContext : DbContext
         // Relationships
         modelBuilder.Entity<Item>()
             .HasOne(e => e.Uom)
+            .WithMany()
+            .IsRequired();
+        
+        modelBuilder.Entity<SalesOrderDetail>()
+            .HasOne(e => e.SalesOrder)
+            .WithMany()
+            .IsRequired();
+
+        modelBuilder.Entity<SalesOrderDetail>()
+            .HasOne(e => e.Item)
             .WithMany()
             .IsRequired();
         
@@ -90,6 +118,14 @@ public class DataContext : DbContext
             .IsRequired();
         
         // Constraints
+        modelBuilder.Entity<SalesOrderDetail>()
+            .ToTable("sales_order_details", t =>
+            {
+                t.HasCheckConstraint(
+                    "CK_sales_order_details_line_sequence",
+                    "line_sequence >= 1");
+            });
+        
         modelBuilder.Entity<PurchaseOrderDetail>()
             .ToTable("purchase_order_details", t =>
             {

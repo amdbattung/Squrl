@@ -33,6 +33,9 @@ public class UpdateItemHandler : IRequestHandler<UpdateItemCommand, Item?>
             : await _dataContext.UnitOfMeasures.FirstOrDefaultAsync(u => u.Id == requestItem.UomId, cancellationToken) ?? existingItem.Uom;
         existingItem.Description = requestItem.Description ?? existingItem.Description;
         existingItem.Image = request.Item.Image ?? existingItem.Image;
+        existingItem.ListPrice = request.Item.ListPrice ?? existingItem.ListPrice;
+        existingItem.RetailPrice = request.Item.RetailPrice ?? existingItem.RetailPrice;
+        existingItem.CostPrice = request.Item.CostPrice ?? existingItem.CostPrice;
         existingItem.Quantity = requestItem.Quantity ?? existingItem.Quantity;
         existingItem.LowQuantityAlertThreshold = requestItem.LowQuantityAlertThreshold  ?? existingItem.LowQuantityAlertThreshold;
         existingItem.Locations = requestItem.Locations ?? existingItem.Locations;

@@ -24,6 +24,10 @@ namespace Squrl.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("id");
 
+                    b.Property<decimal?>("CostPrice")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("cost_price");
+
                     b.Property<string>("DateCreated")
                         .HasColumnType("TEXT")
                         .HasColumnName("date_created");
@@ -37,6 +41,10 @@ namespace Squrl.Migrations
                         .HasMaxLength(255)
                         .HasColumnType("TEXT")
                         .HasColumnName("image");
+
+                    b.Property<decimal?>("ListPrice")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("list_price");
 
                     b.PrimitiveCollection<string>("Locations")
                         .IsRequired()
@@ -56,6 +64,10 @@ namespace Squrl.Migrations
                     b.Property<decimal>("Quantity")
                         .HasColumnType("TEXT")
                         .HasColumnName("quantity");
+
+                    b.Property<decimal?>("RetailPrice")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("retail_price");
 
                     b.Property<Guid>("UomId")
                         .HasColumnType("TEXT")
@@ -99,6 +111,11 @@ namespace Squrl.Migrations
                     b.Property<string>("DateShipped")
                         .HasColumnType("TEXT")
                         .HasColumnName("date_shipped");
+
+                    b.Property<string>("InvoiceNumber")
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("invoice_number");
 
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER")
@@ -147,6 +164,10 @@ namespace Squrl.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("quantity");
 
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("unit_price");
+
                     b.HasKey("Id")
                         .HasName("pk_purchase_order_details");
 
@@ -163,6 +184,91 @@ namespace Squrl.Migrations
                     b.ToTable("purchase_order_details", null, t =>
                         {
                             t.HasCheckConstraint("CK_purchase_order_details_line_sequence", "line_sequence >= 1");
+                        });
+                });
+
+            modelBuilder.Entity("Squrl.App.Models.SalesOrder", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("id");
+
+                    b.Property<string>("Customer")
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("customer");
+
+                    b.Property<string>("DateCreated")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("date_created");
+
+                    b.Property<string>("DateOrdered")
+                        .IsRequired()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("date_ordered");
+
+                    b.Property<string>("InvoiceNumber")
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT")
+                        .HasColumnName("invoice_number");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_orders");
+
+                    b.HasIndex("DateCreated")
+                        .HasDatabaseName("ix_sales_orders_date_created");
+
+                    b.ToTable("sales_orders", (string)null);
+                });
+
+            modelBuilder.Entity("Squrl.App.Models.SalesOrderDetail", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("TEXT")
+                        .HasColumnName("id");
+
+                    b.Property<string>("DateCreated")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("date_created");
+
+                    b.Property<Guid>("ItemId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("item_id");
+
+                    b.Property<int>("LineSequence")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("line_sequence");
+
+                    b.Property<decimal>("Quantity")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("quantity");
+
+                    b.Property<Guid>("SalesOrderId")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("sales_order_id");
+
+                    b.Property<decimal>("UnitPrice")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("unit_price");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sales_order_details");
+
+                    b.HasIndex("DateCreated")
+                        .HasDatabaseName("ix_sales_order_details_date_created");
+
+                    b.HasIndex("ItemId")
+                        .HasDatabaseName("ix_sales_order_details_item_id");
+
+                    b.HasIndex("SalesOrderId", "LineSequence")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sales_order_details_sales_order_id_line_sequence");
+
+                    b.ToTable("sales_order_details", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_sales_order_details_line_sequence", "line_sequence >= 1");
                         });
                 });
 
@@ -284,6 +390,27 @@ namespace Squrl.Migrations
                     b.Navigation("Item");
 
                     b.Navigation("PurchaseOrder");
+                });
+
+            modelBuilder.Entity("Squrl.App.Models.SalesOrderDetail", b =>
+                {
+                    b.HasOne("Squrl.App.Models.Item", "Item")
+                        .WithMany()
+                        .HasForeignKey("ItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_sales_order_details_items_item_id");
+
+                    b.HasOne("Squrl.App.Models.SalesOrder", "SalesOrder")
+                        .WithMany()
+                        .HasForeignKey("SalesOrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_sales_order_details_sales_orders_sales_order_id");
+
+                    b.Navigation("Item");
+
+                    b.Navigation("SalesOrder");
                 });
 #pragma warning restore 612, 618
         }

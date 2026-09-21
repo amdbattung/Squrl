@@ -1,0 +1,104 @@
+﻿@page "/sos"
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inject ISalesOrderService SalesOrderService
+@inject NavigationManager Navigation
+
+<h1>Sales Orders</h1>
+
+<button class="btn btn-primary" @onclick="HandleAddSalesOrderButtonClick">+ New SO</button>
+
+<QuickGrid TGridItem="GetSalesOrderDto"
+           ItemsProvider="LoadSalesOrders"
+           Pagination="@_pagination">
+    <PropertyColumn Title="Sales Order" Property="s => s.Id" />
+    <PropertyColumn Title="Invoice" Property="s => s.InvoiceNumber" />
+    <PropertyColumn Property="s => s.Customer" />
+    <TemplateColumn Title="Date Ordered">
+        @context.DateOrdered?.InZone(_userTimeZone).Date.ToDateOnly().ToString("dd MMM yyyy")
+    </TemplateColumn>
+    <TemplateColumn Title="Actions">
+        <button class="btn btn-secondary"
+                @onclick="@(() => HandleEditSalesOrderButtonClick(context.Id ?? Guid.Empty))">
+            Edit
+        </button>
+        <button class="btn btn-danger"
+                @onclick="@(() => HandleCancelSalesOrderButtonClick(context.Id ?? Guid.Empty))">
+            Cancel
+        </button>
+    </TemplateColumn>
+</QuickGrid>
+
+<Paginator State="@_pagination" />
+
+<select @bind="@_pagination.ItemsPerPage"> 
+    <option>5</option> 
+    <option>10</option> 
+    <option>15</option> 
+    <option>20</option> 
+    <option>25</option> 
+</select>
+
+@code {
+    private readonly PaginationState _pagination = new()
+    {
+        ItemsPerPage = 10
+    };
+    
+    private readonly DateTimeZone _userTimeZone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+    
+    private async ValueTask<GridItemsProviderResult<GetSalesOrderDto>> LoadSalesOrders(
+        GridItemsProviderRequest<GetSalesOrderDto> request)
+    {
+        try
+        {
+            int pageSize = request.Count ?? _pagination.ItemsPerPage;
+
+            int pageNumber = (request.StartIndex / pageSize) + 1;
+
+            Result<GetManySalesOrdersDto> result =
+                await SalesOrderService.GetManySalesOrdersAsync(
+                    pageNumber: pageNumber,
+                    pageSize: pageSize);
+
+            if (result.Value?.SalesOrders is null)
+            {
+                // errorMessage = string.Join(", ", result.Errors);
+
+                return GridItemsProviderResult.From(
+                    Array.Empty<GetSalesOrderDto>(),
+                    0);
+            }
+
+            // errorMessage = null;
+
+            return GridItemsProviderResult.From(
+                result.Value?.SalesOrders?.ToList() ?? [],
+                result.Value?.TotalCount ?? 0);
+        }
+        catch (Exception ex)
+        {
+            // errorMessage = ex.Message;
+
+            return GridItemsProviderResult.From(
+                Array.Empty<GetSalesOrderDto>(),
+                0);
+        }
+    }
+    
+    private void HandleAddSalesOrderButtonClick()
+    {
+        Navigation.NavigateTo("/sos/new");
+    }
+    
+    private void HandleEditSalesOrderButtonClick(Guid salesOrderId)
+    {
+        Navigation.NavigateTo($"/sos/{salesOrderId}/edit");
+    }
+    
+    private async Task HandleCancelSalesOrderButtonClick(Guid salesOrderId)
+    {
+        Result<GetSalesOrderDto> result = await SalesOrderService
+            .DeleteSalesOrderAsync(salesOrderId);
+    }
+}

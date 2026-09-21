@@ -1,5 +1,6 @@
 ﻿using FluentValidation;
 using Squrl.App.Features.PurchaseOrderDetails.DTOs;
+using Squrl.App.Features.SalesOrderDetails.DTOs;
 
 namespace Squrl.App.Extensions;
 
@@ -15,6 +16,14 @@ public static class CustomValidationRulesExtensions
         public IRuleBuilderOptions<T, string?> BeAscii()
         {
             return ruleBuilder.Must(x => x is null || x.All(c => c >= 32 && c <= 126));
+        }
+        
+        public IRuleBuilderOptions<T, string?> BeAlphanumeric()
+        {
+            return ruleBuilder.Must(x => x is null || x.All(c =>
+                c is >= 'A' and <= 'Z'
+                    or >= 'a' and <= 'z'
+                    or >= '0' and <= '9'));
         }
     }
     
@@ -63,6 +72,62 @@ public static class CustomValidationRulesExtensions
                 }
 
                 int[] sequences = poDetails
+                    .Select(p => p.LineSequence ?? 0)
+                    .OrderBy(p => p)
+                    .ToArray();
+
+                return sequences
+                    .Select((value, index) => value == index + 1)
+                    .All(x => x);
+            });
+        }
+    }
+    
+    extension<T>(IRuleBuilder<T, List<CreateSoDetailDto>?> ruleBuilder)
+    {
+        public IRuleBuilderOptions<T, List<CreateSoDetailDto>?> BeSequential()
+        {
+            return ruleBuilder.Must(soDetails =>
+            {
+                if (soDetails is null || soDetails.Count == 0)
+                {
+                    return false;
+                }
+
+                if (soDetails.Any(p => !p.LineSequence.HasValue))
+                {
+                    return false;
+                }
+
+                int[] sequences = soDetails
+                    .Select(p => p.LineSequence ?? 0)
+                    .OrderBy(p => p)
+                    .ToArray();
+
+                return sequences
+                    .Select((value, index) => value == index + 1)
+                    .All(x => x);
+            });
+        }
+    }
+    
+    extension<T>(IRuleBuilder<T, List<UpdateSoDetailDto>?> ruleBuilder)
+    {
+        public IRuleBuilderOptions<T, List<UpdateSoDetailDto>?> BeSequential()
+        {
+            return ruleBuilder.Must(soDetails =>
+            {
+                if (soDetails is null || soDetails.Count == 0)
+                {
+                    return false;
+                }
+
+                if (soDetails.Any(p => !p.LineSequence.HasValue))
+                {
+                    return false;
+                }
+
+                int[] sequences = soDetails
                     .Select(p => p.LineSequence ?? 0)
                     .OrderBy(p => p)
                     .ToArray();

@@ -1,5 +1,4 @@
 ﻿@page "/pos/new"
-@using Squrl.App.Features.PurchaseOrderDetails.DTOs
 @rendermode InteractiveServer
 @inject IPurchaseOrderService PurchaseOrderService
 @inject ISupplierService SupplierService
@@ -10,6 +9,12 @@
 
 <EditForm Model="_purchaseOrder" OnValidSubmit="HandleSubmit" FormName="AddPurchaseOrderForm">
     <FluentValidator />
+    
+    <div>
+        <label>Invoice Number</label>
+        <InputText @bind-Value="_purchaseOrder.InvoiceNumber" />
+        <ValidationMessage For="@(() => _purchaseOrder.InvoiceNumber)" />
+    </div>
 
     <div>
         <label>Supplier</label>
@@ -66,7 +71,8 @@
 
             <div>
                 <label>Item</label>
-                <InputSelect @bind-Value="detail.ItemId">
+                <InputSelect @bind-Value="detail.ItemId"
+                             @bind-Value:after="() => HandleOnItemChange(detail)">
                     <option value="">Select an Item</option>
                     @if (ItemSelect != null)
                     {
@@ -76,6 +82,12 @@
                         }
                     }
                 </InputSelect>
+            </div>
+            
+            <div>
+                <label>Unit Price</label>
+                <InputNumber @bind-Value="detail.UnitPrice" />
+                <ValidationMessage For="@(() => detail.UnitPrice)" />
             </div>
 
             <div>
@@ -200,6 +212,16 @@
         for (int i = 0; i < _purchaseOrder.Details?.Count; i++)
         {
             _purchaseOrder.Details[i].LineSequence = i + 1;
+        }
+    }
+    
+    private void HandleOnItemChange(CreatePoDetailDto detail)
+    {
+        GetItemDto? item = ItemSelect?.FirstOrDefault(x => x.Id == detail.ItemId);
+
+        if (item != null)
+        {
+            detail.UnitPrice = item.CostPrice;
         }
     }
 

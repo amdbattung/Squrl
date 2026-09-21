@@ -1,5 +1,4 @@
 ﻿@page "/pos/{PurchaseOrderId:guid}/edit"
-@using Squrl.App.Features.PurchaseOrderDetails.DTOs
 @rendermode InteractiveServer
 @attribute [StreamRendering]
 @inject NavigationManager Navigation
@@ -13,6 +12,11 @@
 {
     <EditForm Model="PurchaseOrder" OnValidSubmit="HandleSubmit" FormName="EditPurchaseOrderForm">
         <FluentValidator />
+        <div>
+            <label>Invoice Number</label>
+            <InputText @bind-Value="PurchaseOrder.InvoiceNumber" />
+            <ValidationMessage For="@(() => PurchaseOrder.InvoiceNumber)" />
+        </div>
         <div>
             <label>Supplier</label>
             <InputSelect @bind-Value="PurchaseOrder.SupplierId">
@@ -78,7 +82,8 @@
 
                     <div>
                         <label>Item</label>
-                        <InputSelect @bind-Value="detail.ItemId">
+                        <InputSelect @bind-Value="detail.ItemId"
+                                     @bind-Value:after="() => HandleOnItemChange(detail)">
                             <option value="">Select an Item</option>
                             @if (ItemSelect != null)
                             {
@@ -88,6 +93,12 @@
                                 }
                             }
                         </InputSelect>
+                    </div>
+                    
+                    <div>
+                        <label>Unit Price</label>
+                        <InputNumber @bind-Value="detail.UnitPrice" />
+                        <ValidationMessage For="@(() => detail.UnitPrice)" />
                     </div>
 
                     <div>
@@ -201,6 +212,7 @@ else
             
             PurchaseOrder = new()
             {
+                InvoiceNumber =  purchaseOrderResult.InvoiceNumber,
                 SupplierId = purchaseOrderResult.SupplierId,
                 Status = purchaseOrderResult.Status,
                 DateOrdered = purchaseOrderResult.DateOrdered,
@@ -223,6 +235,7 @@ else
                     PurchaseOrderId = Guid.Empty,
                     LineSequence =  poDetail.LineSequence,
                     ItemId = poDetail.ItemId,
+                    UnitPrice =  poDetail.UnitPrice,
                     Quantity = poDetail.Quantity
                 });
             }
@@ -268,6 +281,16 @@ else
             {
                 PurchaseOrder.Details[i].LineSequence = i + 1;
             }
+        }
+    }
+    
+    private void HandleOnItemChange(UpdatePoDetailDto detail)
+    {
+        GetItemDto? item = ItemSelect?.FirstOrDefault(x => x.Id == detail.ItemId);
+
+        if (item != null)
+        {
+            detail.UnitPrice = item.CostPrice;
         }
     }
     

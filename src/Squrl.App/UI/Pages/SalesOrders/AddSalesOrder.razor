@@ -1,0 +1,202 @@
+﻿@page "/sos/new"
+@rendermode InteractiveServer
+@inject ISalesOrderService SalesOrderService
+@inject IInventoryService InventoryService
+@inject IClock Clock
+
+<h1>Add Sales Order</h1>
+
+<EditForm Model="_salesOrder" OnValidSubmit="HandleSubmit" FormName="AddSalesOrderForm">
+    <FluentValidator />
+    
+    <div>
+        <label>Invoice Number</label>
+        <InputText @bind-Value="_salesOrder.InvoiceNumber" />
+        <ValidationMessage For="@(() => _salesOrder.InvoiceNumber)" />
+    </div>
+
+    <div>
+        <label>Customer</label>
+        <InputText @bind-Value="_salesOrder.Customer" />
+        <ValidationMessage For="@(() => _salesOrder.Customer)" />
+    </div>
+
+    <div>
+        <label>Order Date</label>
+        <InputDate @bind-Value="DateOrderedLocal"
+                   Type="InputDateType.Date" />
+        <ValidationMessage For="@(() => _salesOrder.DateOrdered)" />
+    </div>
+
+    <hr />
+
+    <h2>Sales Order Details</h2>
+
+    @for (int i = 0; i < _salesOrder.Details?.Count; i++)
+    {
+        int index = i;
+        CreateSoDetailDto detail = _salesOrder.Details[index];
+
+        <div class="so-detail" @key="detail">
+            <h3>Detail @(index + 1)</h3>
+
+            <div>
+                <label>Item</label>
+                <InputSelect @bind-Value="detail.ItemId"
+                             @bind-Value:after="() => HandleOnItemChange(detail)">
+                    <option value="">Select an Item</option>
+                    @if (ItemSelect != null)
+                    {
+                        foreach (GetItemDto item in ItemSelect)
+                        {
+                            <option value="@item.Id">@item.Name</option>
+                        }
+                    }
+                </InputSelect>
+            </div>
+            
+            <div>
+                <label>Unit Price</label>
+                <InputNumber @bind-Value="detail.UnitPrice" />
+                <ValidationMessage For="@(() => detail.UnitPrice)" />
+            </div>
+
+            <div>
+                <label>Quantity</label>
+                <InputNumber @bind-Value="detail.Quantity" />
+                <ValidationMessage For="@(() => detail.Quantity)" />
+            </div>
+
+            @if (_salesOrder.Details.Count > 1)
+            {
+                <button type="button" @onclick="() => RemoveDetail(detail)">
+                    Remove
+                </button>
+            }
+        </div>
+    }
+
+    <button type="button" @onclick="AddDetail">
+        +
+    </button>
+
+    <button type="submit">Submit</button>
+</EditForm>
+
+@if (!string.IsNullOrEmpty(_successMessage))
+{
+    <div class="alert alert-success">
+        @_successMessage
+    </div>
+}
+
+@code {
+    private readonly DateTimeZone _userTimeZone =
+        DateTimeZoneProviders.Tzdb.GetSystemDefault();
+    
+    private CreateSalesOrderDto _salesOrder = new()
+    {
+        Details = new()
+        {
+            new CreateSoDetailDto
+            {
+                SalesOrderId = Guid.Empty,
+                LineSequence = 1
+            }
+        }
+    };
+    
+    private string? _successMessage;
+    
+    [PersistentState]
+    public IReadOnlyCollection<GetItemDto>? ItemSelect { get; set; }
+
+    private DateOnly? DateOrderedLocal
+    {
+        get => _salesOrder.DateOrdered?
+            .InZone(_userTimeZone)
+            .Date
+            .ToDateOnly();
+
+        set => _salesOrder.DateOrdered = value is null
+            ? null
+            : LocalDate.FromDateOnly(value.Value)
+                .AtMidnight()
+                .InZoneLeniently(_userTimeZone)
+                .ToInstant();
+    }
+    
+    protected override async Task OnInitializedAsync()
+    {
+        _salesOrder.DateOrdered = Clock.GetCurrentInstant();
+        
+        if (ItemSelect is null)
+        {
+            Result<GetManyItemsDto> result = await InventoryService.GetManyItemsAsync();
+            ItemSelect = result.Value?.Items ?? Array.Empty<GetItemDto>();
+        }
+    }
+    
+    private void AddDetail()
+    {
+        _salesOrder.Details?.Add(new CreateSoDetailDto
+        {
+            SalesOrderId = Guid.Empty,
+            LineSequence = _salesOrder.Details.Count + 1
+        });
+    }
+
+    private void RemoveDetail(CreateSoDetailDto detail)
+    {
+        if (_salesOrder.Details?.Count <= 1)
+        {
+            return;
+        }
+
+        _salesOrder.Details?.Remove(detail);
+            
+        for (int i = 0; i < _salesOrder.Details?.Count; i++)
+        {
+            _salesOrder.Details[i].LineSequence = i + 1;
+        }
+    }
+    
+    private void HandleOnItemChange(CreateSoDetailDto detail)
+    {
+        GetItemDto? item = ItemSelect?.FirstOrDefault(x => x.Id == detail.ItemId);
+
+        if (item != null)
+        {
+            detail.UnitPrice = item.RetailPrice;
+        }
+    }
+    
+    private async Task HandleSubmit()
+    {
+        if (_salesOrder.Details?.Count <= 0)
+        {
+            return;
+        }
+
+        Result<GetSalesOrderDto> result = await SalesOrderService.CreateSalesOrderAsync(_salesOrder);
+
+        if (result.IsSuccess)
+        {
+            _salesOrder = new()
+            {
+                Details = new()
+                {
+                    new CreateSoDetailDto
+                    {
+                        SalesOrderId = Guid.Empty,
+                        LineSequence = 1
+                    }
+                }
+            };
+
+            _salesOrder.DateOrdered = Clock.GetCurrentInstant();
+
+            _successMessage = "Sales Order successfully added";
+        }
+    }
+}

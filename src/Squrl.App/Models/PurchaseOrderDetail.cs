@@ -6,5 +6,6 @@ public class PurchaseOrderDetail
     public required PurchaseOrder PurchaseOrder { get; set; }
     public required int LineSequence { get; set; }
     public required Item Item { get; set; }
+    public required decimal UnitPrice { get; set; }
     public required decimal Quantity { get; set; }
 }

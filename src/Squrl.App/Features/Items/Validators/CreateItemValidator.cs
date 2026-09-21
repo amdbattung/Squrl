@@ -23,6 +23,27 @@ public class CreateItemValidator : AbstractValidator<CreateItemDto>
             .BeAscii()
             .WithMessage("Invalid {PropertyName}.");
         
+        RuleFor(x => x.Image)
+            .BeNullOrNonWhitespace()
+            .WithMessage("{PropertyName} must not only be whitespace.")
+            .BeAscii()
+            .WithMessage("Invalid {PropertyName}.");
+        
+        RuleFor(x => x.ListPrice)
+            .GreaterThanOrEqualTo(0m)
+            .WithName("List Price")
+            .WithMessage("{PropertyName} must not be negative.");
+        
+        RuleFor(x => x.RetailPrice)
+            .GreaterThanOrEqualTo(0m)
+            .WithName("Retail Price")
+            .WithMessage("{PropertyName} must not be negative.");
+        
+        RuleFor(x => x.CostPrice)
+            .GreaterThanOrEqualTo(0m)
+            .WithName("Cost Price")
+            .WithMessage("{PropertyName} must not be negative.");
+        
         RuleFor(x => x.Quantity)
             .NotNull()
             .WithMessage("{PropertyName} is required.")

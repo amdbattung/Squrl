@@ -39,7 +39,7 @@ public partial class PurchaseOrderService
             var poDetailsResult = await _mediator
                 .Send(new GetManyPoDetailsQuery(PurchaseOrderId: id, PageSize: null), cancellationToken);
             
-            var result = await _transactionManager.ExecuteAsync(async ct =>
+            Models.PurchaseOrder? result = await _transactionManager.ExecuteAsync(async ct =>
             {
                 foreach (PurchaseOrderDetail poDetail in poDetailsResult.Value)
                 {

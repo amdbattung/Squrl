@@ -13,6 +13,7 @@ public class PoDetailMapper
             poDetail.PurchaseOrder.Id,
             poDetail.LineSequence,
             poDetail.Item.Id,
+            poDetail.UnitPrice,
             poDetail.Quantity
         );
     }
@@ -26,6 +27,7 @@ public class PoDetailMapper
                 poDetail.PurchaseOrder.Id,
                 poDetail.LineSequence,
                 poDetail.Item.Id,
+                poDetail.UnitPrice,
                 poDetail.Quantity
             );
         }

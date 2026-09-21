@@ -1,0 +1,42 @@
+﻿using FluentValidation;
+using Squrl.App.Features.SalesOrderDetails.DTOs;
+
+namespace Squrl.App.Features.SalesOrderDetails.Validators;
+
+public class CreateSoDetailValidator : AbstractValidator<CreateSoDetailDto>
+{
+    public CreateSoDetailValidator()
+    {
+        RuleFor(x => x.SalesOrderId)
+            .NotEmpty()
+            .WithName("Sales Order")
+            .WithMessage("{PropertyName} is required.");
+
+        RuleFor(x => x.LineSequence)
+            .NotNull()
+            .WithName("Line Sequence")
+            .WithMessage("{PropertyName} is required.")
+            .GreaterThanOrEqualTo(1)
+            .WithName("Line Sequence")
+            .WithMessage("{PropertyName} must start at 1.");
+        
+        RuleFor(x => x.ItemId)
+            .NotEmpty()
+            .WithName("Item")
+            .WithMessage("{PropertyName} is required.");
+        
+        RuleFor(x => x.UnitPrice)
+            .NotNull()
+            .WithName("Unit Price")
+            .WithMessage("{PropertyName} is required.")
+            .GreaterThanOrEqualTo(0m)
+            .WithName("Unit Price")
+            .WithMessage("{PropertyName} must not be negative.");
+        
+        RuleFor(x => x.Quantity)
+            .NotNull()
+            .WithMessage("{PropertyName} is required.")
+            .GreaterThan(0m)
+            .WithMessage("{PropertyName} must not be zero or negative.");
+    }
+}
