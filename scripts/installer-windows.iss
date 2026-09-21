@@ -77,6 +77,8 @@ procedure ModifyAppSettings;
     UnicodeJson: string;
     AnsiJson: AnsiString;
     ConnString: string;
+    LogsPath: string;
+    Changed: Boolean;
   begin
     FileName := ExpandConstant('{commonappdata}\{#MyAppName}\appsettings.json');
 
@@ -100,11 +102,11 @@ procedure ModifyAppSettings;
         
         // Logs Path
         LogsPath := ExpandConstant('{commonappdata}\{#MyAppName}\logs\log.txt');
-        StringChangeEx(LogsDir, '\', '\\', True);
+        StringChangeEx(LogsPath, '\', '\\', True);
         
         if StringChangeEx(
           UnicodeJson,
-          '__LOGS_DIR__',
+          '__LOGS_PATH__',
           LogsPath,
           True) > 0 then
           begin
