@@ -81,6 +81,32 @@
             <InputNumber @bind-Value="Item.LowQuantityAlertThreshold" />
             <ValidationMessage For="@(() => Item.LowQuantityAlertThreshold)" />
         </div>
+        
+        <hr />
+
+        <h2>Locations</h2>
+
+        @for (int i = 0; i < Item.Locations?.Count; i++)
+        {
+            int index = i;
+
+            <div class="item-location" @key="index">
+                <div>
+                    <label hidden>Location @(index + 1)</label>
+                    <InputText @bind-Value="Item.Locations[index]"/>
+                    <ValidationMessage For="@(() => Item.Locations[index])" />
+                </div>
+
+                <button type="button" @onclick="() => RemoveLocation(index)">
+                    Remove
+                </button>
+            </div>
+        }
+
+        <button type="button" @onclick="AddLocation">
+            +
+        </button>
+        
         <button type="submit">Submit</button>
     </EditForm>
     
@@ -185,6 +211,19 @@ else
             _photoError = "Something went wrong while processing the image.";
             _processedPhoto = null;
             _photoPreviewUrl = null;
+        }
+    }
+    
+    private void AddLocation()
+    {
+        Item?.Locations?.Add(string.Empty);
+    }
+
+    private void RemoveLocation(int index)
+    {
+        if (index >= 0 && index < Item?.Locations?.Count)
+        {
+            Item.Locations.RemoveAt(index);
         }
     }
     
