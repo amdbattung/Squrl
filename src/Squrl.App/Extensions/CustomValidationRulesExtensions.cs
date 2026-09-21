@@ -27,6 +27,62 @@ public static class CustomValidationRulesExtensions
         }
     }
     
+    extension<T>(IRuleBuilder<T, List<CreateSoDetailDto>?> ruleBuilder)
+    {
+        public IRuleBuilderOptions<T, List<CreateSoDetailDto>?> BeSequential()
+        {
+            return ruleBuilder.Must(soDetails =>
+            {
+                if (soDetails is null || soDetails.Count == 0)
+                {
+                    return false;
+                }
+
+                if (soDetails.Any(s => !s.LineSequence.HasValue))
+                {
+                    return false;
+                }
+
+                int[] sequences = soDetails
+                    .Select(s => s.LineSequence ?? 0)
+                    .OrderBy(s => s)
+                    .ToArray();
+
+                return sequences
+                    .Select((value, index) => value == index + 1)
+                    .All(x => x);
+            });
+        }
+    }
+    
+    extension<T>(IRuleBuilder<T, List<UpdateSoDetailDto>?> ruleBuilder)
+    {
+        public IRuleBuilderOptions<T, List<UpdateSoDetailDto>?> BeSequential()
+        {
+            return ruleBuilder.Must(soDetails =>
+            {
+                if (soDetails is null || soDetails.Count == 0)
+                {
+                    return false;
+                }
+
+                if (soDetails.Any(s => !s.LineSequence.HasValue))
+                {
+                    return false;
+                }
+
+                int[] sequences = soDetails
+                    .Select(s => s.LineSequence ?? 0)
+                    .OrderBy(s => s)
+                    .ToArray();
+
+                return sequences
+                    .Select((value, index) => value == index + 1)
+                    .All(x => x);
+            });
+        }
+    }
+    
     extension<T>(IRuleBuilder<T, List<CreatePoDetailDto>?> ruleBuilder)
     {
         public IRuleBuilderOptions<T, List<CreatePoDetailDto>?> BeSequential()
@@ -72,62 +128,6 @@ public static class CustomValidationRulesExtensions
                 }
 
                 int[] sequences = poDetails
-                    .Select(p => p.LineSequence ?? 0)
-                    .OrderBy(p => p)
-                    .ToArray();
-
-                return sequences
-                    .Select((value, index) => value == index + 1)
-                    .All(x => x);
-            });
-        }
-    }
-    
-    extension<T>(IRuleBuilder<T, List<CreateSoDetailDto>?> ruleBuilder)
-    {
-        public IRuleBuilderOptions<T, List<CreateSoDetailDto>?> BeSequential()
-        {
-            return ruleBuilder.Must(soDetails =>
-            {
-                if (soDetails is null || soDetails.Count == 0)
-                {
-                    return false;
-                }
-
-                if (soDetails.Any(p => !p.LineSequence.HasValue))
-                {
-                    return false;
-                }
-
-                int[] sequences = soDetails
-                    .Select(p => p.LineSequence ?? 0)
-                    .OrderBy(p => p)
-                    .ToArray();
-
-                return sequences
-                    .Select((value, index) => value == index + 1)
-                    .All(x => x);
-            });
-        }
-    }
-    
-    extension<T>(IRuleBuilder<T, List<UpdateSoDetailDto>?> ruleBuilder)
-    {
-        public IRuleBuilderOptions<T, List<UpdateSoDetailDto>?> BeSequential()
-        {
-            return ruleBuilder.Must(soDetails =>
-            {
-                if (soDetails is null || soDetails.Count == 0)
-                {
-                    return false;
-                }
-
-                if (soDetails.Any(p => !p.LineSequence.HasValue))
-                {
-                    return false;
-                }
-
-                int[] sequences = soDetails
                     .Select(p => p.LineSequence ?? 0)
                     .OrderBy(p => p)
                     .ToArray();
