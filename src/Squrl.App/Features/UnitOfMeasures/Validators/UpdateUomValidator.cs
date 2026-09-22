@@ -19,7 +19,7 @@ public class UpdateUomValidator : AbstractValidator<UpdateUomDto>
         RuleFor(x => x.Description)
             .BeNullOrNonWhitespace()
             .WithMessage("{PropertyName} must not be only whitespace.")
-            .BeAscii()
+            .BeLatin1()
             .WithMessage("Invalid {PropertyName}.");
     }
 }

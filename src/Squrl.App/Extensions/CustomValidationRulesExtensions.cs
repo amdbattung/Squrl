@@ -15,7 +15,7 @@ public static class CustomValidationRulesExtensions
 
         public IRuleBuilderOptions<T, string?> BeAscii()
         {
-            return ruleBuilder.Must(x => x is null || x.All(c => c >= 32 && c <= 126));
+            return ruleBuilder.Must(x => x is null || x.All(c => c <= '\u007F'));
         }
         
         public IRuleBuilderOptions<T, string?> BeAlphanumeric()
@@ -24,6 +24,11 @@ public static class CustomValidationRulesExtensions
                 c is >= 'A' and <= 'Z'
                     or >= 'a' and <= 'z'
                     or >= '0' and <= '9'));
+        }
+        
+        public IRuleBuilderOptions<T, string?> BeLatin1()
+        {
+            return ruleBuilder.Must(x => x is null ||x.All(c => c is >= '\u0020' and <= '\u00FF'));
         }
     }
     
