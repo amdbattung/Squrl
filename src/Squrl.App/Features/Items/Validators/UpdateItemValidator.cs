@@ -19,13 +19,13 @@ public class UpdateItemValidator : AbstractValidator<UpdateItemDto>
         
         RuleFor(x => x.Description)
             .BeNullOrNonWhitespace()
-            .WithMessage("{PropertyName} must not only be whitespace.")
+            .WithMessage("{PropertyName} must not be only whitespace.")
             .BeLatin1()
             .WithMessage("Invalid {PropertyName}.");
         
         RuleFor(x => x.Image)
             .BeNullOrNonWhitespace()
-            .WithMessage("{PropertyName} must not only be whitespace.")
+            .WithMessage("{PropertyName} must not be only whitespace.")
             .BeAscii()
             .WithMessage("Invalid {PropertyName}.");
         

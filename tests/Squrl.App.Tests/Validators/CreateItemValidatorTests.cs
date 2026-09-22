@@ -76,7 +76,7 @@ public class CreateItemValidatorTests
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error => 
             error.PropertyName == nameof(CreateItemDto.Description) &&
-            error.ErrorMessage == "Description must not only be whitespace.");
+            error.ErrorMessage == "Description must not be only whitespace.");
     }
     
     [Fact]
@@ -117,7 +117,7 @@ public class CreateItemValidatorTests
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error => 
             error.PropertyName == nameof(CreateItemDto.Image) &&
-            error.ErrorMessage == "Image must not only be whitespace.");
+            error.ErrorMessage == "Image must not be only whitespace.");
     }
     
     [Fact]
