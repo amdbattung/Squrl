@@ -99,7 +99,7 @@ public class CreateUomValidatorTests
         {
             Name = "Test UOM",
             Code = "u",
-            Description = "A valid description.",
+            Description = "A valid description."
         };
     }
 }
