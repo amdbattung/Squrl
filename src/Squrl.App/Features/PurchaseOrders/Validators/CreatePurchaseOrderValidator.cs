@@ -12,7 +12,7 @@ public class CreatePurchaseOrderValidator : AbstractValidator<CreatePurchaseOrde
         RuleFor(x => x.InvoiceNumber)
             .BeNullOrNonWhitespace()
             .WithName("Invoice Number")
-            .WithMessage("{PropertyName} must not only be whitespace.")
+            .WithMessage("{PropertyName} must not be only whitespace.")
             .BeAlphanumeric()
             .WithName("Invoice Number")
             .WithMessage("Invalid {PropertyName}.");

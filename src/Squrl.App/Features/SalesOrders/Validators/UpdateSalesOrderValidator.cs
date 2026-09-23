@@ -11,14 +11,14 @@ public class UpdateSalesOrderValidator : AbstractValidator<UpdateSalesOrderDto>
     {
         RuleFor(x => x.Customer)
             .BeNullOrNonWhitespace()
-            .WithMessage("{PropertyName} must not only be whitespace.")
+            .WithMessage("{PropertyName} must not be only whitespace.")
             .BeAscii()
             .WithMessage("Invalid {PropertyName}.");
         
         RuleFor(x => x.InvoiceNumber)
             .BeNullOrNonWhitespace()
             .WithName("Invoice Number")
-            .WithMessage("{PropertyName} must not only be whitespace.")
+            .WithMessage("{PropertyName} must not be only whitespace.")
             .BeAlphanumeric()
             .WithName("Invoice Number")
             .WithMessage("Invalid {PropertyName}.");

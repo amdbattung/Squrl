@@ -28,7 +28,6 @@ public partial class SalesOrderService : ISalesOrderService
     private readonly IValidator<CreateSoDetailDto> _createSoDetailValidator;
     private readonly IValidator<UpdateSoDetailDto> _updateSoDetailValidator;
     private readonly IInventoryService _inventoryService;
-    private readonly IClock _clock;
 
     public SalesOrderService(IMediator mediator,
         ITransactionManager transactionManager,
@@ -36,8 +35,7 @@ public partial class SalesOrderService : ISalesOrderService
         IValidator<UpdateSalesOrderDto> updateSalesOrderValidator,
         IValidator<CreateSoDetailDto> createSoDetailValidator,
         IValidator<UpdateSoDetailDto> updateSoDetailValidator,
-        IInventoryService inventoryService,
-        IClock clock)
+        IInventoryService inventoryService)
     {
         _mediator = mediator;
         _transactionManager = transactionManager;
@@ -46,7 +44,6 @@ public partial class SalesOrderService : ISalesOrderService
         _createSoDetailValidator = createSoDetailValidator;
         _updateSoDetailValidator = updateSoDetailValidator;
         _inventoryService = inventoryService;
-        _clock = clock;
     }
     
     public async Task<Result<GetManySalesOrdersDto>> GetManySalesOrdersAsync(string? query = null,
@@ -59,7 +56,7 @@ public partial class SalesOrderService : ISalesOrderService
         try
         {
             pageNumber = pageNumber >= 1 ? pageNumber : 1;
-            pageSize = pageSize is >= 1 and <= 50 ? pageSize : 50;
+            pageSize = pageSize is >= 1 and <= 50 ? pageSize : 10;
             
             var result = await _mediator.Send(new GetManySalesOrdersQuery(
                 query,

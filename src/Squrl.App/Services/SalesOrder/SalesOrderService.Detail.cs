@@ -20,8 +20,8 @@ public partial class SalesOrderService
         {
             var result = await _mediator.Send(new GetManySoDetailsQuery(
                 SalesOrderId: salesOrderId,
-                OrderDirection: orderDirection,
-                PageSize: null), cancellationToken);
+                PageSize: null,
+                OrderDirection: orderDirection), cancellationToken);
             
             GetManySoDetailsDto payload = new GetManySoDetailsDto(
                 result.PageSize,
