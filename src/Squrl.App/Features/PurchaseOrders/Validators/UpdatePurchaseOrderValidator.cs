@@ -41,11 +41,11 @@ public class UpdatePurchaseOrderValidator : AbstractValidator<UpdatePurchaseOrde
         RuleFor(x => x.DateRequired)
             .GreaterThanOrEqualTo(x => x.DateOrdered)
             .WithName("Date Required")
-            .WithMessage("{PropertyName} must be after date ordered.");
+            .WithMessage("{PropertyName} must be after order date.");
         
         RuleFor(x => x.DateShipped)
             .GreaterThanOrEqualTo(x => x.DateOrdered)
             .WithName("Date Shipped")
-            .WithMessage("{PropertyName} must be after date ordered.");
+            .WithMessage("{PropertyName} must be after order date.");
     }
 }

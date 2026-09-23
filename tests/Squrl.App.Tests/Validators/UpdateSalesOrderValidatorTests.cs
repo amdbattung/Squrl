@@ -69,6 +69,47 @@ public class UpdateSalesOrderValidatorTests
     }
     
     [Fact]
+    public void InvoiceNumber_ShouldAllowNull()
+    {
+        UpdateSalesOrderDto salesOrder = CreateValidSalesOrder();
+        salesOrder.InvoiceNumber = null;
+        
+        ValidationResult? actual = _validator.Validate(salesOrder);
+        
+        Assert.True(actual.IsValid);
+        Assert.DoesNotContain(actual.Errors, error => 
+            error.PropertyName == nameof(UpdateSalesOrderDto.InvoiceNumber));
+    }
+    
+    [Fact]
+    public void InvoiceNumber_ShouldRejectWhitespace()
+    {
+        UpdateSalesOrderDto salesOrder = CreateValidSalesOrder();
+        salesOrder.InvoiceNumber = "     ";
+        
+        ValidationResult? actual = _validator.Validate(salesOrder);
+
+        Assert.False(actual.IsValid);
+        Assert.Contains(actual.Errors, error => 
+            error.PropertyName == nameof(UpdateSalesOrderDto.InvoiceNumber) &&
+            error.ErrorMessage == "Invoice Number must not be only whitespace.");
+    }
+    
+    [Fact]
+    public void InvoiceNumber_ShouldRejectNonAlphanumeric()
+    {
+        UpdateSalesOrderDto salesOrder = CreateValidSalesOrder();
+        salesOrder.InvoiceNumber = "R&B";
+
+        ValidationResult? actual = _validator.Validate(salesOrder);
+
+        Assert.False(actual.IsValid);
+        Assert.Contains(actual.Errors, error =>
+            error.PropertyName == nameof(UpdateSalesOrderDto.InvoiceNumber) &&
+            error.ErrorMessage == "Invalid Invoice Number.");
+    }
+    
+    [Fact]
     public void Details_ShouldBeRequired()
     {
         UpdateSalesOrderDto salesOrder = CreateValidSalesOrder();
