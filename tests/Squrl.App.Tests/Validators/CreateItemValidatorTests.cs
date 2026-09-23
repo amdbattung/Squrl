@@ -134,6 +134,19 @@ public class CreateItemValidatorTests
             error.ErrorMessage == "Invalid Image.");
     }
     
+    [Fact]
+    public void ListPrice_ShouldAllowNull()
+    {
+        CreateItemDto item = CreateValidItem();
+        item.ListPrice = null;
+
+        ValidationResult? actual = _validator.Validate(item);
+
+        Assert.True(actual.IsValid);
+        Assert.DoesNotContain(actual.Errors, error =>
+            error.PropertyName == nameof(CreateItemDto.ListPrice));
+    }
+    
     [Theory]
     [InlineData(-5)]
     [InlineData(-0.01)]
@@ -148,19 +161,6 @@ public class CreateItemValidatorTests
         Assert.Contains(actual.Errors, error =>
             error.PropertyName == nameof(CreateItemDto.ListPrice) &&
             error.ErrorMessage == "List Price must not be negative.");
-    }
-    
-    [Fact]
-    public void ListPrice_ShouldAllowNull()
-    {
-        CreateItemDto item = CreateValidItem();
-        item.ListPrice = null;
-
-        ValidationResult? actual = _validator.Validate(item);
-
-        Assert.True(actual.IsValid);
-        Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(CreateItemDto.ListPrice));
     }
     
     [Fact]
@@ -203,6 +203,19 @@ public class CreateItemValidatorTests
             error.ErrorMessage == "List Price must not be negative.");
     }
     
+    [Fact]
+    public void RetailPrice_ShouldAllowNull()
+    {
+        CreateItemDto item = CreateValidItem();
+        item.RetailPrice = null;
+
+        ValidationResult? actual = _validator.Validate(item);
+
+        Assert.True(actual.IsValid);
+        Assert.DoesNotContain(actual.Errors, error =>
+            error.PropertyName == nameof(CreateItemDto.RetailPrice));
+    }
+    
     [Theory]
     [InlineData(-5)]
     [InlineData(-0.01)]
@@ -217,19 +230,6 @@ public class CreateItemValidatorTests
         Assert.Contains(actual.Errors, error =>
             error.PropertyName == nameof(CreateItemDto.RetailPrice) &&
             error.ErrorMessage == "Retail Price must not be negative.");
-    }
-    
-    [Fact]
-    public void RetailPrice_ShouldAllowNull()
-    {
-        CreateItemDto item = CreateValidItem();
-        item.RetailPrice = null;
-
-        ValidationResult? actual = _validator.Validate(item);
-
-        Assert.True(actual.IsValid);
-        Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(CreateItemDto.RetailPrice));
     }
     
     [Fact]
@@ -272,6 +272,19 @@ public class CreateItemValidatorTests
             error.ErrorMessage == "Retail Price must not be negative.");
     }
     
+    [Fact]
+    public void CostPrice_ShouldAllowNull()
+    {
+        CreateItemDto item = CreateValidItem();
+        item.CostPrice = null;
+
+        ValidationResult? actual = _validator.Validate(item);
+
+        Assert.True(actual.IsValid);
+        Assert.DoesNotContain(actual.Errors, error =>
+            error.PropertyName == nameof(CreateItemDto.CostPrice));
+    }
+    
     [Theory]
     [InlineData(-5)]
     [InlineData(-0.01)]
@@ -286,19 +299,6 @@ public class CreateItemValidatorTests
         Assert.Contains(actual.Errors, error =>
             error.PropertyName == nameof(CreateItemDto.CostPrice) &&
             error.ErrorMessage == "Cost Price must not be negative.");
-    }
-    
-    [Fact]
-    public void CostPrice_ShouldAllowNull()
-    {
-        CreateItemDto item = CreateValidItem();
-        item.CostPrice = null;
-
-        ValidationResult? actual = _validator.Validate(item);
-
-        Assert.True(actual.IsValid);
-        Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(CreateItemDto.CostPrice));
     }
     
     [Fact]
@@ -358,10 +358,10 @@ public class CreateItemValidatorTests
     [Theory]
     [InlineData(-5)]
     [InlineData(-0.01)]
-    public void Quantity_ShouldRejectNegativeValues(decimal price)
+    public void Quantity_ShouldRejectNegativeValues(decimal quantity)
     {
         CreateItemDto item = CreateValidItem();
-        item.Quantity = price;
+        item.Quantity = quantity;
 
         ValidationResult? actual = _validator.Validate(item);
 
@@ -369,6 +369,19 @@ public class CreateItemValidatorTests
         Assert.Contains(actual.Errors, error =>
             error.PropertyName == nameof(CreateItemDto.Quantity) &&
             error.ErrorMessage == "Quantity must not be negative.");
+    }
+    
+    [Fact]
+    public void Quantity_ShouldAllowZero()
+    {
+        CreateItemDto item = CreateValidItem();
+        item.Quantity = 0m;
+
+        ValidationResult? actual = _validator.Validate(item);
+
+        Assert.True(actual.IsValid);
+        Assert.DoesNotContain(actual.Errors, error =>
+            error.PropertyName == nameof(CreateItemDto.Quantity));
     }
     
     [Fact]
@@ -414,10 +427,10 @@ public class CreateItemValidatorTests
     [Theory]
     [InlineData(-5)]
     [InlineData(-0.01)]
-    public void LowQuantityAlertThreshold_ShouldRejectNegativeValues(decimal price)
+    public void LowQuantityAlertThreshold_ShouldRejectNegativeValues(decimal quantity)
     {
         CreateItemDto item = CreateValidItem();
-        item.LowQuantityAlertThreshold = price;
+        item.LowQuantityAlertThreshold = quantity;
 
         ValidationResult? actual = _validator.Validate(item);
 
@@ -425,6 +438,19 @@ public class CreateItemValidatorTests
         Assert.Contains(actual.Errors, error =>
             error.PropertyName == nameof(CreateItemDto.LowQuantityAlertThreshold) &&
             error.ErrorMessage == "Low Stock Threshold must not be negative.");
+    }
+    
+    [Fact]
+    public void LowQuantityAlertThreshold_ShouldAllowZero()
+    {
+        CreateItemDto item = CreateValidItem();
+        item.LowQuantityAlertThreshold = 0m;
+
+        ValidationResult? actual = _validator.Validate(item);
+
+        Assert.True(actual.IsValid);
+        Assert.DoesNotContain(actual.Errors, error =>
+            error.PropertyName == nameof(CreateItemDto.LowQuantityAlertThreshold));
     }
     
     [Fact]
