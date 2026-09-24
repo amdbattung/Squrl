@@ -40,16 +40,20 @@
     }
     <div>
         <label>UOM</label>
-        <InputSelect @bind-Value="_item.UomId">
-            <option value="">Select a UOM</option>
-            @if (UomSelect != null)
-            {
-                foreach (GetUomDto uom in UomSelect)
-                {
-                    <option value="@uom.Id">@($"{uom.Name} ({uom.Code})")</option>
-                }
-            }
-        </InputSelect>
+        
+        <InputSearchableSelect
+            TItem="GetUomDto"
+            TValue="Guid?"
+            Value="_item.UomId"
+            ValueChanged="@(value => _item.UomId = value)"
+            Placeholder="Select a UOM"
+            NullText="Select a UOM"
+            AllowNull="true"
+            PageSize="10"
+            LoadItems="LoadUoms"
+            GetValue="@(uom => uom.Id)"
+            GetText="@(uom => $"{uom.Name} ({uom.Code})")" />
+
         <ValidationMessage For="@(() => _item.UomId)" />
     </div>
     <div>
@@ -124,16 +128,38 @@
     private string? _successMessage;
     private string? _photoError;
     
-    [PersistentState]
-    public IReadOnlyCollection<GetUomDto>? UomSelect { get; set; }
-
-    protected override async Task OnInitializedAsync()
+    private async Task<InputSearchableSelect<GetUomDto, Guid?>.PagedResult<GetUomDto>>
+        LoadUoms(
+            string? query,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken)
     {
-        if (UomSelect is null)
+        Result<GetManyUomsDto> result =
+            await UomService.GetManyUomsAsync(
+                query: query,
+                pageNumber: pageNumber,
+                pageSize: pageSize,
+                cancellationToken: cancellationToken);
+
+        if (!result.IsSuccess || result.Value is null)
         {
-            Result<GetManyUomsDto> result = await UomService.GetManyUomsAsync();
-            UomSelect = result.Value?.Uoms ?? Array.Empty<GetUomDto>();
+            return new()
+            {
+                Items = [],
+                HasMore = false
+            };
         }
+
+        GetManyUomsDto payload = result.Value;
+
+        bool hasMore = payload.PageNumber * payload.PageSize < payload.TotalCount;
+
+        return new()
+        {
+            Items = payload.Uoms ?? [],
+            HasMore = hasMore
+        };
     }
     
     private async Task OnPhotoSelected(InputFileChangeEventArgs e)

@@ -102,7 +102,7 @@
     private ElementReference _containerElement;
     private ElementReference _loadMoreSentinel;
 
-    private DotNetObjectReference<SearchableSelect<TItem, TValue>>? _dotNetReference;
+    private DotNetObjectReference<InputSearchableSelect<TItem, TValue>>? _dotNetReference;
 
     private CancellationTokenSource? _searchCancellation;
 
@@ -137,6 +137,9 @@
 
     [Parameter, EditorRequired]
     public Func<TItem, string> GetText { get; set; }
+    
+    [Parameter]
+    public string? InitialValueText { get; set; }
 
     [Parameter]
     public string Placeholder { get; set; } = "Select...";
@@ -159,6 +162,11 @@
     {
         if (firstRender)
         {
+            if (!string.IsNullOrWhiteSpace(InitialValueText))
+            {
+                _searchText = InitialValueText;
+            }
+            
             _dotNetReference = DotNetObjectReference.Create(this);
 
             await Js.InvokeVoidAsync(
@@ -182,6 +190,16 @@
                 _dotNetReference);
 
             _scrollInitialized = true;
+        }
+    }
+    
+    protected override void OnParametersSet()
+    {
+        if (!_isOpen &&
+            Value is not null &&
+            !string.IsNullOrWhiteSpace(InitialValueText))
+        {
+            _searchText = InitialValueText;
         }
     }
 
