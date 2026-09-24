@@ -107,6 +107,10 @@
     private CancellationTokenSource? _searchCancellation;
 
     private string _searchText = string.Empty;
+    
+    private TValue? _lastInitialValue;
+    private bool _hasInitializedValueText;
+    private bool _userHasSelectedValue;
 
     private int _pageNumber = 1;
 
@@ -162,11 +166,6 @@
     {
         if (firstRender)
         {
-            if (!string.IsNullOrWhiteSpace(InitialValueText))
-            {
-                _searchText = InitialValueText;
-            }
-            
             _dotNetReference = DotNetObjectReference.Create(this);
 
             await Js.InvokeVoidAsync(
@@ -195,7 +194,7 @@
     
     protected override void OnParametersSet()
     {
-        if (!_isOpen &&
+        if (!_userHasSelectedValue &&
             Value is not null &&
             !string.IsNullOrWhiteSpace(InitialValueText))
         {
@@ -309,14 +308,15 @@
             await InvokeAsync(StateHasChanged);
         }
     }
-
-
+    
     private async Task SelectItem(TItem item)
     {
         TValue value = GetValue(item);
         Value = value;
 
         _searchText = GetText(item);
+
+        _userHasSelectedValue = true;
 
         _isOpen = false;
         _scrollInitialized = false;
@@ -337,11 +337,12 @@
 
         await InvokeAsync(StateHasChanged);
     }
-
+    
     private async Task SelectNull()
     {
         Value = default;
         _searchText = string.Empty;
+        _userHasSelectedValue = true;
         _isOpen = false;
         _scrollInitialized = false;
 

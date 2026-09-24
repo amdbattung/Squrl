@@ -164,8 +164,12 @@ else
                 LowQuantityAlertThreshold = itemResult.LowQuantityAlertThreshold,
                 Locations = itemResult.Locations?.ToList()
             };
-            
-            _initialUomText = (await UomService.GetUomByIdAsync(itemResult.UomId ?? Guid.Empty)).Value?.Name;
+
+            GetUomDto? uom = (await UomService.GetUomByIdAsync(itemResult.UomId ?? Guid.Empty)).Value;
+            if (uom is not null)
+            {
+                _initialUomText = $"{uom.Name} ({uom.Code})";
+            }
 
             if (!string.IsNullOrWhiteSpace(itemResult.Image))
             {
