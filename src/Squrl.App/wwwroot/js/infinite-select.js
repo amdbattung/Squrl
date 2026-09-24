@@ -1,5 +1,6 @@
 ﻿window.infiniteSelect = {
     initialize: function (container, dotNetReference) {
+
         if (!container) {
             return;
         }
@@ -10,13 +11,16 @@
 
         container.dataset.initialized = "true";
 
-        container._outsidePointerHandler = function (event) {
-            if (!container.contains(event.target)) {
-                dotNetReference.invokeMethodAsync(
-                    "CloseDropdown"
-                );
-            }
-        };
+        container._outsidePointerHandler =
+            function (event) {
+
+                if (!container.contains(event.target)) {
+
+                    dotNetReference.invokeMethodAsync(
+                        "CloseDropdown"
+                    );
+                }
+            };
 
         document.addEventListener(
             "pointerdown",
@@ -24,41 +28,91 @@
         );
     },
 
-    initializeInfiniteScroll: function (sentinel, dotNetReference) {
-        if (!sentinel) {
+    observe: function (
+        container,
+        sentinel,
+        dotNetReference
+    ) {
+
+        if (!container || !sentinel) {
             return;
         }
 
-        if (sentinel._observer) {
-            sentinel._observer.disconnect();
+        if (container._infiniteObserver) {
+
+            container._infiniteObserver.disconnect();
+
+            container._infiniteObserver = null;
         }
 
-        sentinel._observer = new IntersectionObserver(
-            function (entries) {
-                if (!entries[0].isIntersecting) {
-                    return;
+        container._infiniteObserver =
+            new IntersectionObserver(
+                function (entries) {
+
+                    const entry =
+                        entries[0];
+
+
+                    if (!entry ||
+                        !entry.isIntersecting) {
+
+                        return;
+                    }
+
+                    /*
+                     * Stop observing while the request
+                     * is being processed.
+                     */
+                    if (container._infiniteObserver) {
+
+                        container._infiniteObserver.disconnect();
+
+                        container._infiniteObserver =
+                            null;
+                    }
+
+                    dotNetReference.invokeMethodAsync("LoadNextPage")
+                        .catch(function (error) {
+                            
+                        });
+
+                },
+                {
+                    /*
+                     * Use the browser viewport as the
+                     * intersection root.
+                     */
+                    root: null,
+
+                    /*
+                     * Begin loading before the user
+                     * reaches the sentinel.
+                     */
+                    rootMargin: "200px",
+
+                    threshold: 0
                 }
+            );
 
-                dotNetReference.invokeMethodAsync(
-                    "LoadNextPage"
-                );
-            },
-            {
-                root: sentinel.parentElement,
-                rootMargin: "100px",
-                threshold: 0
-            }
+        container._infiniteObserver.observe(
+            sentinel
         );
-
-        sentinel._observer.observe(sentinel);
     },
 
     dispose: function (container) {
+
         if (!container) {
             return;
         }
 
+        if (container._infiniteObserver) {
+            container._infiniteObserver.disconnect();
+            container._infiniteObserver = null;
+        }
+
+
         if (container._outsidePointerHandler) {
+
             document.removeEventListener(
                 "pointerdown",
                 container._outsidePointerHandler
@@ -66,5 +120,8 @@
 
             container._outsidePointerHandler = null;
         }
+        
+        container.dataset.initialized =
+            "false";
     }
 };

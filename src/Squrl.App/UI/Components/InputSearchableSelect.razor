@@ -5,15 +5,16 @@
 
 <div @ref="_containerElement"
      class="searchable-select">
-
     <div class="searchable-select-input-wrapper">
+        
         <input @ref="_input"
                class="form-control sis-input"
                value="@_searchText"
                placeholder="@Placeholder"
                autocomplete="off"
                @onfocus="Open"
-               @oninput="OnSearchInput" />
+               @onclick="Open"
+               @oninput="OnSearchInput"/>
 
         @if (_isLoading)
         {
@@ -26,15 +27,15 @@
     @if (_isOpen)
     {
         <div class="searchable-select-dropdown">
-
             @if (AllowNull)
             {
                 <button type="button"
                         class="searchable-select-option null-option"
                         @onclick="SelectNull">
-
-                    <span>@NullText</span>
-
+                    <span>
+                        @NullText
+                    </span>
+                    
                     @if (EqualityComparer<TValue?>.Default.Equals(
                         Value,
                         default))
@@ -61,12 +62,15 @@
                             @key="item"
                             @onclick="() => SelectItem(item)">
 
-                        <span>@GetText(item)</span>
+                        <span>
+                            @GetText(item)
+                        </span>
 
                         @if (IsSelected(itemValue))
                         {
                             <span>✓</span>
                         }
+
                     </button>
                 }
 
@@ -77,7 +81,8 @@
                     </div>
                 }
 
-                @if (_isLoading)
+
+                @if (_isLoading && _items.Count > 0)
                 {
                     <div class="searchable-select-loading">
                         Loading more...
@@ -93,33 +98,35 @@
             }
         </div>
     }
+
 </div>
 
 @code {
     private readonly List<TItem> _items = [];
-
+    
     private ElementReference _input;
     private ElementReference _containerElement;
     private ElementReference _loadMoreSentinel;
-
+    
     private DotNetObjectReference<InputSearchableSelect<TItem, TValue>>? _dotNetReference;
-
+    
     private CancellationTokenSource? _searchCancellation;
-
+    
+    // Text displayed in the input.
     private string _searchText = string.Empty;
     
-    private TValue? _lastInitialValue;
-    private bool _hasInitializedValueText;
+    // Actual search query sent to the backend.
+    private string _searchQuery = string.Empty;
+
     private bool _userHasSelectedValue;
-
     private int _pageNumber = 1;
-
     private bool _hasMore;
+    
     private bool _isLoading;
     private bool _isOpen;
-
+    
     private bool _jsInitialized;
-    private bool _scrollInitialized;
+    private bool _disposed;
 
     [Parameter]
     public TValue? Value { get; set; }
@@ -141,7 +148,7 @@
 
     [Parameter, EditorRequired]
     public Func<TItem, string> GetText { get; set; }
-    
+
     [Parameter]
     public string? InitialValueText { get; set; }
 
@@ -162,8 +169,24 @@
         await LoadFirstPage();
     }
 
+    protected override void OnParametersSet()
+    {
+        if (!_userHasSelectedValue &&
+            Value is not null &&
+            !string.IsNullOrWhiteSpace(InitialValueText))
+        {
+            _searchText =
+                InitialValueText;
+        }
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (_disposed)
+        {
+            return;
+        }
+        
         if (firstRender)
         {
             _dotNetReference = DotNetObjectReference.Create(this);
@@ -175,35 +198,31 @@
 
             _jsInitialized = true;
         }
-        
-        // The sentinel only exists when:
+
+        // The sentinel only exists while:
         // _isOpen == true
         // _hasMore == true
-        // Therefore initialize the observer only after
-        // the sentinel has actually been rendered.
-        if (_isOpen && _hasMore && !_scrollInitialized)
+        // _items.Count > 0
+        // Attach the observer after the sentinel has actually been rendered.
+        if (_isOpen &&
+            _hasMore &&
+            _items.Count > 0)
         {
             await Js.InvokeVoidAsync(
-                "infiniteSelect.initializeInfiniteScroll",
+                "infiniteSelect.observe",
+                _containerElement,
                 _loadMoreSentinel,
                 _dotNetReference);
-
-            _scrollInitialized = true;
-        }
-    }
-    
-    protected override void OnParametersSet()
-    {
-        if (!_userHasSelectedValue &&
-            Value is not null &&
-            !string.IsNullOrWhiteSpace(InitialValueText))
-        {
-            _searchText = InitialValueText;
         }
     }
 
     private async Task Open()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         if (_isOpen)
         {
             return;
@@ -211,67 +230,85 @@
 
         _isOpen = true;
 
-        _scrollInitialized = false;
-
-        await InvokeAsync(StateHasChanged);
+        // Do NOT reset pagination here.
+        // If the user selected an item, reopening should
+        // preserve the existing loaded items and pagination.
+        await InvokeAsync(
+            StateHasChanged);
     }
 
     private async Task OnSearchInput(ChangeEventArgs args)
     {
-        _searchText = args.Value?.ToString() ?? string.Empty;
+        if (_disposed)
+        {
+            return;
+        }
 
+        string newText =
+            args.Value?.ToString() ?? string.Empty;
+
+        // Don't perform a search if the text hasn't changed.
+        if (string.Equals(
+            _searchText,
+            newText,
+            StringComparison.Ordinal))
+        {
+            return;
+        }
+
+
+        // The user is typing.
+        // Therefore, the displayed text and backend
+        // query are the same.
+        _searchText =
+            newText;
+
+        _searchQuery =
+            newText;
+
+        _userHasSelectedValue =
+            false;
+
+        // Cancel previous search.
         _searchCancellation?.Cancel();
         _searchCancellation?.Dispose();
-
         _searchCancellation = new CancellationTokenSource();
-
-        CancellationToken cancellationToken = _searchCancellation.Token;
-
+        
+        CancellationToken token = _searchCancellation.Token;
+        
         try
         {
-            await Task.Delay(
-                300,
-                cancellationToken);
-
-            await LoadFirstPage(cancellationToken);
+            // Debounce.
+            await Task.Delay(300, token);
+            await LoadFirstPage(token);
         }
         catch (OperationCanceledException)
         {
-            // Expected when user continues typing.
+            // Expected when the user continues typing.
         }
     }
 
     private async Task LoadFirstPage(CancellationToken cancellationToken = default)
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         _pageNumber = 1;
-
         _items.Clear();
-
         _hasMore = true;
-
-        _scrollInitialized = false;
 
         await LoadPage(cancellationToken);
     }
 
-    [JSInvokable]
-    public async Task LoadNextPage()
-    {
-        if (_isLoading || !_hasMore)
-            return;
-
-        _pageNumber++;
-
-        // Allow the observer to be recreated after the new page has rendered.
-        _scrollInitialized = false;
-
-        await LoadPage();
-
-        await InvokeAsync(StateHasChanged);
-    }
-    
     private async Task LoadPage(CancellationToken cancellationToken = default)
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         if (_isLoading)
         {
             return;
@@ -283,83 +320,189 @@
 
         try
         {
+            // IMPORTANT: Send _searchQuery, not _searchText.
             PagedResult<TItem> result =
                 await LoadItems(
-                    _searchText,
+                    _searchQuery,
                     _pageNumber,
                     PageSize,
                     cancellationToken);
-            
-            // Don't append canceled/stale results.
+
+            // Prevent stale/canceled results from being added.
             cancellationToken.ThrowIfCancellationRequested();
 
-            _items.AddRange(result.Items);
+            int previousCount = _items.Count;
 
+            _items.AddRange(result.Items);
             _hasMore = result.HasMore;
         }
         catch (OperationCanceledException)
         {
-            // Expected when search is canceled.
+            
         }
         finally
         {
             _isLoading = false;
 
-            await InvokeAsync(StateHasChanged);
+            if (!_disposed)
+            {
+                await InvokeAsync(StateHasChanged);
+            }
         }
     }
-    
+
+    [JSInvokable]
+    public async Task LoadNextPage()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+
+        if (_isLoading)
+        {
+            return;
+        }
+
+        if (!_hasMore)
+        {
+            return;
+        }
+
+        int nextPage = _pageNumber + 1;
+
+        _isLoading = true;
+
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            // IMPORTANT: Use _searchQuery here.
+            PagedResult<TItem> result =
+                await LoadItems(
+                    _searchQuery,
+                    nextPage,
+                    PageSize,
+                    CancellationToken.None);
+
+            // Only update the page number after successful loading.
+            _pageNumber = nextPage;
+
+            int previousCount = _items.Count;
+
+            _items.AddRange(result.Items);
+
+            _hasMore = result.HasMore;
+        }
+        catch (Exception exception)
+        {
+            // Ignored
+        }
+        finally
+        {
+            _isLoading = false;
+
+
+            if (!_disposed)
+            {
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+
     private async Task SelectItem(TItem item)
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         TValue value = GetValue(item);
+        
+        _searchCancellation?.Cancel();
+        
         Value = value;
 
+
+        // This only changes what is displayed. It does NOT change _searchQuery.
         _searchText = GetText(item);
 
         _userHasSelectedValue = true;
+        
+        _isOpen =
+            false;
+        
+        await ValueChanged.InvokeAsync(value);
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SelectNull()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+        
+        _searchCancellation?.Cancel();
+        _searchCancellation?.Dispose();
+        _searchCancellation = new CancellationTokenSource();
+        
+        Value = default;
+        
+        _searchText = string.Empty;
+        _searchQuery = string.Empty;
+        _userHasSelectedValue = true;
 
         _isOpen = false;
-        _scrollInitialized = false;
+        
+        await LoadFirstPage(_searchCancellation.Token);
+        
+        await ValueChanged.InvokeAsync(default);
+        
+        _isOpen = false;
 
-        await ValueChanged.InvokeAsync(value);
+
+        await InvokeAsync(StateHasChanged);
     }
-    
+
     [JSInvokable]
     public async Task CloseDropdown()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
         if (!_isOpen)
         {
             return;
         }
 
         _isOpen = false;
-        _scrollInitialized = false;
 
         await InvokeAsync(StateHasChanged);
-    }
-    
-    private async Task SelectNull()
-    {
-        Value = default;
-        _searchText = string.Empty;
-        _userHasSelectedValue = true;
-        _isOpen = false;
-        _scrollInitialized = false;
-
-        await ValueChanged.InvokeAsync(default);
     }
 
     private bool IsSelected(TValue value)
     {
-        return EqualityComparer<TValue>.Default.Equals(
-            Value,
-            value);
+        return EqualityComparer<TValue>
+            .Default
+            .Equals(Value, value);
     }
 
     public async ValueTask DisposeAsync()
     {
+        if (_disposed)
+        {
+            return;
+        }
+
+        _disposed = true;
+
         _searchCancellation?.Cancel();
         _searchCancellation?.Dispose();
+        _searchCancellation = null;
 
         if (_jsInitialized)
         {
@@ -375,17 +518,18 @@
             }
             catch (InvalidOperationException)
             {
-                // JS unavailable during disposal/prerendering.
+                // JS unavailable during disposal.
             }
         }
 
         _dotNetReference?.Dispose();
+        _dotNetReference = null;
     }
+
 
     public sealed class PagedResult<T>
     {
         public IReadOnlyCollection<T> Items { get; init; } = [];
-
         public bool HasMore { get; init; }
     }
 }

@@ -44,8 +44,7 @@
         <InputSearchableSelect
             TItem="GetUomDto"
             TValue="Guid?"
-            Value="_item.UomId"
-            ValueChanged="@(value => _item.UomId = value)"
+            @bind-Value="_item.UomId"
             Placeholder="Select a UOM"
             NullText="Select a UOM"
             AllowNull="true"
