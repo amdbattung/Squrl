@@ -8,26 +8,28 @@
     <FluentValidator />
     <div>
         <label>Item</label>
-        <InputSelect @bind-Value="_adjustment.ItemId" @bind-Value:after="LoadCurrentStock">
-            <option value="">Select an Item</option>
-            @if (ItemSelect != null)
-            {
-                foreach (GetItemDto item in ItemSelect)
-                {
-                    <option value="@item.Id">@item.Name</option>
-                }
-            }
-        </InputSelect>
+        <InputSearchableSelect
+            TItem="GetItemDto"
+            TValue="Guid?"
+            @bind-Value="_adjustment.ItemId"
+            @bind-Value:after="HandleOnItemChange"
+            Placeholder="Select an item"
+            NullText="Select an item"
+            AllowNull="true"
+            PageSize="10"
+            LoadItems="LoadItems"
+            GetValue="@(item => item.Id)"
+            GetText="@(item => item.Name ?? string.Empty)" />
+
+        <ValidationMessage For="@(() => _adjustment.ItemId)" />
     </div>
     <div>
         <label>Adjustment</label>
         <InputText @bind-Value="_adjustment.Adjustment" />
-        @* <ValidationMessage For="@(() => _adjustment)" /> *@
     </div>
-    @* <p>Current Stock: @_currentStock?.ToString("#,##0.##")</p> *@
     <p>Current Stock: @(_currentStock.HasValue
                           ? ToStringFormatters.FormatDecimal(_currentStock.Value)
-                          : "")</p>
+                          : string.Empty)</p>
     <button type="submit">Submit</button>
 </EditForm>
 
@@ -40,19 +42,49 @@
 
 @code {
     private decimal? _currentStock;
-    private StockAdjustmentFormModel _adjustment = new();
+    private readonly StockAdjustmentFormModel _adjustment = new();
     private string? _successMessage;
     
-    [PersistentState]
-    public IReadOnlyCollection<GetItemDto>? ItemSelect { get; set; }
-
-    protected override async Task OnInitializedAsync()
+    private async Task<InputSearchableSelect<GetItemDto, Guid?>.PagedResult<GetItemDto>>
+        LoadItems(
+            string? query,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken)
     {
-        if (ItemSelect is null)
+        Result<GetManyItemsDto> result =
+            await InventoryService.GetManyItemsAsync(
+                query: query,
+                pageNumber: pageNumber,
+                pageSize: pageSize,
+                cancellationToken: cancellationToken);
+
+        if (!result.IsSuccess || result.Value is null)
         {
-            Result<GetManyItemsDto> result = await InventoryService.GetManyItemsAsync();
-            ItemSelect = result.Value?.Items ?? Array.Empty<GetItemDto>();
+            return new()
+            {
+                Items = [],
+                HasMore = false
+            };
         }
+
+        GetManyItemsDto payload = result.Value;
+
+        bool hasMore = payload.PageNumber * payload.PageSize < payload.TotalCount;
+
+        return new()
+        {
+            Items = payload.Items ?? [],
+            HasMore = hasMore
+        };
+    }
+    
+    private async Task HandleOnItemChange()
+    {
+        GetItemDto? item = (await InventoryService
+            .GetItemByIdAsync(_adjustment.ItemId ?? Guid.Empty)).Value;
+        
+        _currentStock = item?.Quantity;
     }
 
     private async Task HandleSubmit()
@@ -69,12 +101,6 @@
         {
             _successMessage = null;
         }
-    }
-
-    private async Task LoadCurrentStock()
-    {
-        Result<GetItemDto> result = await InventoryService.GetItemByIdAsync(_adjustment.ItemId ?? Guid.Empty);
-        _currentStock = result.Value?.Quantity;
     }
     
     private class StockAdjustmentFormModel
