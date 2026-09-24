@@ -19,16 +19,20 @@
         </div>
         <div>
             <label>Supplier</label>
-            <InputSelect @bind-Value="PurchaseOrder.SupplierId">
-                <option value="">Select Supplier</option>
-                @if (SupplierSelect != null)
-                {
-                    foreach (GetSupplierDto supplier in SupplierSelect)
-                    {
-                        <option value="@supplier.Id">@supplier.Name</option>
-                    }
-                }
-            </InputSelect>
+            
+            <InputSearchableSelect
+                TItem="GetSupplierDto"
+                TValue="Guid?"
+                @bind-Value="PurchaseOrder.SupplierId"
+                InitialValueText="@_initialSupplierText"
+                Placeholder="Select a supplier"
+                NullText="Select a supplier"
+                AllowNull="true"
+                PageSize="10"
+                LoadItems="LoadSuppliers"
+                GetValue="@(supplier => supplier.Id)"
+                GetText="@(supplier => supplier.Name ?? string.Empty)" />
+            
             <ValidationMessage For="@(() => PurchaseOrder.SupplierId)" />
         </div>
         <div>
@@ -82,17 +86,25 @@
 
                     <div>
                         <label>Item</label>
-                        <InputSelect @bind-Value="detail.ItemId"
-                                     @bind-Value:after="() => HandleOnItemChange(detail)">
-                            <option value="">Select an Item</option>
-                            @if (ItemSelect != null)
-                            {
-                                foreach (GetItemDto item in ItemSelect)
-                                {
-                                    <option value="@item.Id">@item.Name</option>
-                                }
-                            }
-                        </InputSelect>
+                        
+                        <InputSearchableSelect
+                            TItem="GetItemDto"
+                            TValue="Guid?"
+                            @bind-Value="detail.ItemId"
+                            @bind-Value:after="() => HandleOnItemChange(detail)"
+                            InitialValueText="@(_itemNameCache.TryGetValue(
+                                                  detail.ItemId ?? Guid.Empty, out string? itemName)
+                                                  ? itemName
+                                                  : null)"
+                            Placeholder="Select an item"
+                            NullText="Select an item"
+                            AllowNull="true"
+                            PageSize="10"
+                            LoadItems="LoadItems"
+                            GetValue="@(item => item.Id)"
+                            GetText="@(item => item.Name ?? string.Empty)" />
+                
+                        <ValidationMessage For="@(() => detail.ItemId)" />
                     </div>
                     
                     <div>
@@ -137,6 +149,8 @@ else
 }
 
 @code {
+    private string? _initialSupplierText;
+    private readonly Dictionary<Guid, string> _itemNameCache = new();
     private readonly DateTimeZone _userTimeZone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
     private string? _successMessage;
     
@@ -145,12 +159,6 @@ else
     
     [PersistentState]
     public UpdatePurchaseOrderDto? PurchaseOrder { get; set; }
-    
-    [PersistentState]
-    public IReadOnlyCollection<GetSupplierDto>? SupplierSelect { get; set; }
-    
-    [PersistentState]
-    public IReadOnlyCollection<GetItemDto>? ItemSelect { get; set; }
     
     private DateOnly? DateOrderedLocal
     {
@@ -219,6 +227,13 @@ else
                 DateRequired = purchaseOrderResult.DateRequired,
                 DateShipped = purchaseOrderResult.DateShipped
             };
+            
+            GetSupplierDto? supplier = (await SupplierService
+                .GetSupplierByIdAsync(purchaseOrderResult.SupplierId ?? Guid.Empty)).Value;
+            if (supplier is not null)
+            {
+                _initialSupplierText = supplier.Name;
+            }
         }
         
         if (PurchaseOrder is not null && PurchaseOrder.Details is null)
@@ -238,20 +253,87 @@ else
                     UnitPrice =  poDetail.UnitPrice,
                     Quantity = poDetail.Quantity
                 });
+                
+                if (!_itemNameCache.ContainsKey(poDetail.ItemId ?? Guid.Empty))
+                {
+                    Result<GetItemDto> item = await InventoryService
+                        .GetItemByIdAsync(poDetail.ItemId ?? Guid.Empty);
+
+                    if (item.IsSuccess)
+                    {
+                        _itemNameCache[poDetail.ItemId ?? Guid.Empty] = item.Value?.Name ?? string.Empty;
+                    }
+                }
             }
         }
-        
-        if (SupplierSelect is null)
+    }
+    
+    private async Task<InputSearchableSelect<GetSupplierDto, Guid?>.PagedResult<GetSupplierDto>>
+        LoadSuppliers(
+            string? query,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken)
+    {
+        Result<GetManySuppliersDto> result =
+            await SupplierService.GetManySuppliersAsync(
+                query: query,
+                pageNumber: pageNumber,
+                pageSize: pageSize,
+                cancellationToken: cancellationToken);
+
+        if (!result.IsSuccess || result.Value is null)
         {
-            Result<GetManySuppliersDto> supplierResult = await SupplierService.GetManySuppliersAsync();
-            SupplierSelect = supplierResult.Value?.Suppliers ?? Array.Empty<GetSupplierDto>();
+            return new()
+            {
+                Items = [],
+                HasMore = false
+            };
         }
-        
-        if (ItemSelect is null)
+
+        GetManySuppliersDto payload = result.Value;
+
+        bool hasMore = payload.PageNumber * payload.PageSize < payload.TotalCount;
+
+        return new()
         {
-            Result<GetManyItemsDto> itemResult = await InventoryService.GetManyItemsAsync();
-            ItemSelect = itemResult.Value?.Items ?? Array.Empty<GetItemDto>();
+            Items = payload.Suppliers ?? [],
+            HasMore = hasMore
+        };
+    }
+    
+    private async Task<InputSearchableSelect<GetItemDto, Guid?>.PagedResult<GetItemDto>>
+        LoadItems(
+            string? query,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken)
+    {
+        Result<GetManyItemsDto> result =
+            await InventoryService.GetManyItemsAsync(
+                query: query,
+                pageNumber: pageNumber,
+                pageSize: pageSize,
+                cancellationToken: cancellationToken);
+
+        if (!result.IsSuccess || result.Value is null)
+        {
+            return new()
+            {
+                Items = [],
+                HasMore = false
+            };
         }
+
+        GetManyItemsDto payload = result.Value;
+
+        bool hasMore = payload.PageNumber * payload.PageSize < payload.TotalCount;
+
+        return new()
+        {
+            Items = payload.Items ?? [],
+            HasMore = hasMore
+        };
     }
     
     private void AddDetail()
@@ -284,9 +366,10 @@ else
         }
     }
     
-    private void HandleOnItemChange(UpdatePoDetailDto detail)
+    private async Task HandleOnItemChange(UpdatePoDetailDto detail)
     {
-        GetItemDto? item = ItemSelect?.FirstOrDefault(x => x.Id == detail.ItemId);
+        GetItemDto? item = (await InventoryService
+            .GetItemByIdAsync(detail.ItemId ?? Guid.Empty)).Value;
 
         if (item != null)
         {

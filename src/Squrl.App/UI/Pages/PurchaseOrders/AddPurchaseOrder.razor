@@ -18,16 +18,19 @@
 
     <div>
         <label>Supplier</label>
-        <InputSelect @bind-Value="_purchaseOrder.SupplierId">
-            <option value="">Select Supplier</option>
-            @if (SupplierSelect != null)
-            {
-                foreach (GetSupplierDto supplier in SupplierSelect)
-                {
-                    <option value="@supplier.Id">@supplier.Name</option>
-                }
-            }
-        </InputSelect>
+        
+        <InputSearchableSelect
+            TItem="GetSupplierDto"
+            TValue="Guid?"
+            @bind-Value="_purchaseOrder.SupplierId"
+            Placeholder="Select a supplier"
+            NullText="Select a supplier"
+            AllowNull="true"
+            PageSize="10"
+            LoadItems="LoadSuppliers"
+            GetValue="@(supplier => supplier.Id)"
+            GetText="@(supplier => supplier.Name ?? string.Empty)" />
+        
         <ValidationMessage For="@(() => _purchaseOrder.SupplierId)" />
     </div>
 
@@ -71,17 +74,21 @@
 
             <div>
                 <label>Item</label>
-                <InputSelect @bind-Value="detail.ItemId"
-                             @bind-Value:after="() => HandleOnItemChange(detail)">
-                    <option value="">Select an Item</option>
-                    @if (ItemSelect != null)
-                    {
-                        foreach (GetItemDto item in ItemSelect)
-                        {
-                            <option value="@item.Id">@item.Name</option>
-                        }
-                    }
-                </InputSelect>
+                
+                <InputSearchableSelect
+                    TItem="GetItemDto"
+                    TValue="Guid?"
+                    @bind-Value="detail.ItemId"
+                    @bind-Value:after="() => HandleOnItemChange(detail)"
+                    Placeholder="Select an item"
+                    NullText="Select an item"
+                    AllowNull="true"
+                    PageSize="10"
+                    LoadItems="LoadItems"
+                    GetValue="@(item => item.Id)"
+                    GetText="@(item => item.Name ?? string.Empty)" />
+                
+                <ValidationMessage For="@(() => detail.ItemId)" />
             </div>
             
             <div>
@@ -138,12 +145,6 @@
 
     private string? _successMessage;
 
-    [PersistentState]
-    public IReadOnlyCollection<GetSupplierDto>? SupplierSelect { get; set; }
-    
-    [PersistentState]
-    public IReadOnlyCollection<GetItemDto>? ItemSelect { get; set; }
-
     private DateOnly? DateOrderedLocal
     {
         get => _purchaseOrder.DateOrdered?
@@ -174,21 +175,77 @@
                 .ToInstant();
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         _purchaseOrder.DateOrdered = Clock.GetCurrentInstant();
+    }
+    
+    private async Task<InputSearchableSelect<GetSupplierDto, Guid?>.PagedResult<GetSupplierDto>>
+        LoadSuppliers(
+            string? query,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken)
+    {
+        Result<GetManySuppliersDto> result =
+            await SupplierService.GetManySuppliersAsync(
+                query: query,
+                pageNumber: pageNumber,
+                pageSize: pageSize,
+                cancellationToken: cancellationToken);
 
-        if (SupplierSelect is null)
+        if (!result.IsSuccess || result.Value is null)
         {
-            Result<GetManySuppliersDto> result = await SupplierService.GetManySuppliersAsync();
-            SupplierSelect = result.Value?.Suppliers ?? Array.Empty<GetSupplierDto>();
+            return new()
+            {
+                Items = [],
+                HasMore = false
+            };
         }
-        
-        if (ItemSelect is null)
+
+        GetManySuppliersDto payload = result.Value;
+
+        bool hasMore = payload.PageNumber * payload.PageSize < payload.TotalCount;
+
+        return new()
         {
-            Result<GetManyItemsDto> result = await InventoryService.GetManyItemsAsync();
-            ItemSelect = result.Value?.Items ?? Array.Empty<GetItemDto>();
+            Items = payload.Suppliers ?? [],
+            HasMore = hasMore
+        };
+    }
+    
+    private async Task<InputSearchableSelect<GetItemDto, Guid?>.PagedResult<GetItemDto>>
+        LoadItems(
+            string? query,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken)
+    {
+        Result<GetManyItemsDto> result =
+            await InventoryService.GetManyItemsAsync(
+                query: query,
+                pageNumber: pageNumber,
+                pageSize: pageSize,
+                cancellationToken: cancellationToken);
+
+        if (!result.IsSuccess || result.Value is null)
+        {
+            return new()
+            {
+                Items = [],
+                HasMore = false
+            };
         }
+
+        GetManyItemsDto payload = result.Value;
+
+        bool hasMore = payload.PageNumber * payload.PageSize < payload.TotalCount;
+
+        return new()
+        {
+            Items = payload.Items ?? [],
+            HasMore = hasMore
+        };
     }
 
     private void AddDetail()
@@ -215,9 +272,10 @@
         }
     }
     
-    private void HandleOnItemChange(CreatePoDetailDto detail)
+    private async Task HandleOnItemChange(CreatePoDetailDto detail)
     {
-        GetItemDto? item = ItemSelect?.FirstOrDefault(x => x.Id == detail.ItemId);
+        GetItemDto? item = (await InventoryService
+            .GetItemByIdAsync(detail.ItemId ?? Guid.Empty)).Value;
 
         if (item != null)
         {
@@ -232,7 +290,8 @@
             return;
         }
 
-        Result<GetPurchaseOrderDto> result = await PurchaseOrderService.CreatePurchaseOrderAsync(_purchaseOrder);
+        Result<GetPurchaseOrderDto> result = await PurchaseOrderService
+            .CreatePurchaseOrderAsync(_purchaseOrder);
 
         if (result.IsSuccess)
         {

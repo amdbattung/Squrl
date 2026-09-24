@@ -157,26 +157,11 @@
 
         GetManyItemsDto payload = result.Value;
 
-        IReadOnlyCollection<GetItemDto> items =
-            payload.Items ?? [];
-
-        bool hasMore =
-            payload.PageNumber * payload.PageSize <
-            payload.TotalCount;
-
-        Console.WriteLine(
-            $"SearchableSelect: " +
-            $"Query='{query}', " +
-            $"RequestedPage={pageNumber}, " +
-            $"ResponsePage={payload.PageNumber}, " +
-            $"PageSize={payload.PageSize}, " +
-            $"Items={items.Count}, " +
-            $"Total={payload.TotalCount}, " +
-            $"HasMore={hasMore}");
+        bool hasMore = payload.PageNumber * payload.PageSize < payload.TotalCount;
 
         return new()
         {
-            Items = items,
+            Items = payload.Items ?? [],
             HasMore = hasMore
         };
     }
