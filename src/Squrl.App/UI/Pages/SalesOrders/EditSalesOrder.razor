@@ -44,17 +44,24 @@
 
                     <div>
                         <label>Item</label>
-                        <InputSelect @bind-Value="detail.ItemId"
-                                     @bind-Value:after="() => HandleOnItemChange(detail)">
-                            <option value="">Select an Item</option>
-                            @if (ItemSelect != null)
-                            {
-                                foreach (GetItemDto item in ItemSelect)
-                                {
-                                    <option value="@item.Id">@item.Name</option>
-                                }
-                            }
-                        </InputSelect>
+                        <InputSearchableSelect
+                            TItem="GetItemDto"
+                            TValue="Guid?"
+                            @bind-Value="detail.ItemId"
+                            @bind-Value:after="() => HandleOnItemChange(detail)"
+                            InitialValueText="@(_itemNameCache.TryGetValue(
+                                                  detail.ItemId ?? Guid.Empty, out string? itemName)
+                                                  ? itemName
+                                                  : null)"
+                            Placeholder="Select an item"
+                            NullText="Select an item"
+                            AllowNull="true"
+                            PageSize="10"
+                            LoadItems="LoadItems"
+                            GetValue="@(item => item.Id)"
+                            GetText="@(item => item.Name ?? string.Empty)" />
+                
+                        <ValidationMessage For="@(() => detail.ItemId)" />
                     </div>
                     
                     <div>
@@ -99,6 +106,7 @@ else
 }
 
 @code {
+    private readonly Dictionary<Guid, string> _itemNameCache = new();
     private readonly DateTimeZone _userTimeZone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
     private string? _successMessage;
     
@@ -107,9 +115,6 @@ else
     
     [PersistentState]
     public UpdateSalesOrderDto? SalesOrder { get; set; }
-    
-    [PersistentState]
-    public IReadOnlyCollection<GetItemDto>? ItemSelect { get; set; }
     
     private DateOnly? DateOrderedLocal
     {
@@ -164,14 +169,53 @@ else
                     UnitPrice =  soDetail.UnitPrice,
                     Quantity = soDetail.Quantity
                 });
+                
+                if (!_itemNameCache.ContainsKey(soDetail.ItemId ?? Guid.Empty))
+                {
+                    Result<GetItemDto> item = await InventoryService
+                        .GetItemByIdAsync(soDetail.ItemId ?? Guid.Empty);
+
+                    if (item.IsSuccess)
+                    {
+                        _itemNameCache[soDetail.ItemId ?? Guid.Empty] = item.Value?.Name ?? string.Empty;
+                    }
+                }
             }
         }
-        
-        if (ItemSelect is null)
+    }
+    
+    private async Task<InputSearchableSelect<GetItemDto, Guid?>.PagedResult<GetItemDto>>
+        LoadItems(
+            string? query,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken)
+    {
+        Result<GetManyItemsDto> result =
+            await InventoryService.GetManyItemsAsync(
+                query: query,
+                pageNumber: pageNumber,
+                pageSize: pageSize,
+                cancellationToken: cancellationToken);
+
+        if (!result.IsSuccess || result.Value is null)
         {
-            Result<GetManyItemsDto> itemResult = await InventoryService.GetManyItemsAsync();
-            ItemSelect = itemResult.Value?.Items ?? Array.Empty<GetItemDto>();
+            return new()
+            {
+                Items = [],
+                HasMore = false
+            };
         }
+
+        GetManyItemsDto payload = result.Value;
+
+        bool hasMore = payload.PageNumber * payload.PageSize < payload.TotalCount;
+
+        return new()
+        {
+            Items = payload.Items ?? [],
+            HasMore = hasMore
+        };
     }
     
     private void AddDetail()
@@ -204,9 +248,10 @@ else
         }
     }
     
-    private void HandleOnItemChange(UpdateSoDetailDto detail)
+    private async Task HandleOnItemChange(UpdateSoDetailDto detail)
     {
-        GetItemDto? item = ItemSelect?.FirstOrDefault(x => x.Id == detail.ItemId);
+        GetItemDto? item = (await InventoryService
+            .GetItemByIdAsync(detail.ItemId ?? Guid.Empty)).Value;
 
         if (item != null)
         {

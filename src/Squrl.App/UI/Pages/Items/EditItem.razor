@@ -44,16 +44,20 @@
         }
         <div>
             <label>UOM</label>
-            <InputSelect @bind-Value="Item.UomId">
-                <option value="">Select a UOM</option>
-                @if (UomSelect != null)
-                {
-                    foreach (GetUomDto uom in UomSelect)
-                    {
-                        <option value="@uom.Id">@($"{uom.Name} ({uom.Code})")</option>
-                    }
-                }
-            </InputSelect>
+        
+            <InputSearchableSelect
+                TItem="GetUomDto"
+                TValue="Guid?"
+                @bind-Value="Item.UomId"
+                InitialValueText="@_initialUomText"
+                Placeholder="Select a UOM"
+                NullText="Select a UOM"
+                AllowNull="true"
+                PageSize="10"
+                LoadItems="LoadUoms"
+                GetValue="@(uom => uom.Id)"
+                GetText="@(uom => $"{uom.Name} ({uom.Code})")" />
+
             <ValidationMessage For="@(() => Item.UomId)" />
         </div>
         <div>
@@ -124,6 +128,7 @@ else
 
 @code {
     private byte[]? _processedPhoto;
+    private string? _initialUomText;
     private string? _photoPreviewUrl;
     private string? _successMessage;
     private string? _photoError;
@@ -134,46 +139,76 @@ else
     [PersistentState]
     public UpdateItemDto? Item { get; set; }
     
-    [PersistentState]
-    public IReadOnlyCollection<GetUomDto>? UomSelect { get; set; }
-    
     protected override async Task OnInitializedAsync()
     {
-        GetItemDto? itemResult = null;
         if (Item is null)
         {
-            itemResult = (await InventoryService.GetItemByIdAsync(ItemId)).Value;
-        }
-        
-        if (itemResult is null)
-        {
-            Navigation.NotFound();
-            return;
-        }
-        
-        if (UomSelect is null)
-        {
-            Result<GetManyUomsDto> uomResult = await UomService.GetManyUomsAsync();
-            UomSelect = uomResult.Value?.Uoms ?? Array.Empty<GetUomDto>();
-        }
-        
-        Item = new()
-        {
-            Name = itemResult.Name,
-            UomId = itemResult.UomId,
-            Description = itemResult.Description,
-            ListPrice = itemResult.ListPrice,
-            RetailPrice = itemResult.RetailPrice,
-            CostPrice = itemResult.CostPrice,
-            Quantity = itemResult.Quantity,
-            LowQuantityAlertThreshold = itemResult.LowQuantityAlertThreshold,
-            Locations = itemResult.Locations?.ToList()
-        };
+            GetItemDto? itemResult = (await InventoryService.GetItemByIdAsync(ItemId)).Value;
+            
+            if (itemResult is null)
+            {
+                Navigation.NotFound();
+                return;
+            }
+            
+            Item = new()
+            {
+                Name = itemResult.Name,
+                UomId = itemResult.UomId,
+                Description = itemResult.Description,
+                ListPrice = itemResult.ListPrice,
+                RetailPrice = itemResult.RetailPrice,
+                CostPrice = itemResult.CostPrice,
+                Quantity = itemResult.Quantity,
+                LowQuantityAlertThreshold = itemResult.LowQuantityAlertThreshold,
+                Locations = itemResult.Locations?.ToList()
+            };
 
-        if (!string.IsNullOrWhiteSpace(itemResult.Image))
-        {
-            _photoPreviewUrl = $"/api/images/{itemResult.Image}";
+            GetUomDto? uom = (await UomService.GetUomByIdAsync(itemResult.UomId ?? Guid.Empty)).Value;
+            if (uom is not null)
+            {
+                _initialUomText = $"{uom.Name} ({uom.Code})";
+            }
+
+            if (!string.IsNullOrWhiteSpace(itemResult.Image))
+            {
+                _photoPreviewUrl = $"/api/images/{itemResult.Image}";
+            }
         }
+    }
+    
+    private async Task<InputSearchableSelect<GetUomDto, Guid?>.PagedResult<GetUomDto>>
+        LoadUoms(
+            string? query,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken)
+    {
+        Result<GetManyUomsDto> result =
+            await UomService.GetManyUomsAsync(
+                query: query,
+                pageNumber: pageNumber,
+                pageSize: pageSize,
+                cancellationToken: cancellationToken);
+
+        if (!result.IsSuccess || result.Value is null)
+        {
+            return new()
+            {
+                Items = [],
+                HasMore = false
+            };
+        }
+
+        GetManyUomsDto payload = result.Value;
+
+        bool hasMore = payload.PageNumber * payload.PageSize < payload.TotalCount;
+
+        return new()
+        {
+            Items = payload.Uoms ?? [],
+            HasMore = hasMore
+        };
     }
     
     private async Task OnPhotoSelected(InputFileChangeEventArgs e)

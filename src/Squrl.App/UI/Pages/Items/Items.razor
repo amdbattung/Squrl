@@ -109,7 +109,9 @@
                     Result<GetUomDto> uom = await UomService.GetUomByIdAsync(item.UomId ?? Guid.Empty);
 
                     if (uom.IsSuccess)
-                        _uomCache[item.UomId ?? Guid.Empty] = uom.Value?.Code ?? "";
+                    {
+                        _uomCache[item.UomId ?? Guid.Empty] = uom.Value?.Code ?? string.Empty;
+                    }
                 }
             }
 
