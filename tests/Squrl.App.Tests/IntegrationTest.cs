@@ -4,7 +4,7 @@ namespace Squrl.App.Tests;
 
 public abstract class IntegrationTest : IAsyncLifetime
 {
-    protected SqurlWebApplicationFactory Factory { get; }
+    private SqurlWebApplicationFactory Factory { get; }
 
     protected IntegrationTest(SqurlWebApplicationFactory factory)
     {

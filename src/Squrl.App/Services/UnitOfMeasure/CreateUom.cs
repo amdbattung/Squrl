@@ -10,13 +10,13 @@ using Squrl.App.Features.UnitOfMeasures.Queries;
 
 namespace Squrl.App.Services.UnitOfMeasure;
 
-public class UomService : IUomService
+public class CreateUom : IUomService
 {
     private readonly IMediator _mediator;
     private readonly IValidator<CreateUomDto> _createUomValidator;
     private readonly IValidator<UpdateUomDto> _updateUomValidator;
 
-    public UomService(IMediator mediator,
+    public CreateUom(IMediator mediator,
         IValidator<CreateUomDto> createUomValidator,
         IValidator<UpdateUomDto> updateUomValidator)
     {

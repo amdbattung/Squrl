@@ -135,7 +135,7 @@ try
     builder.Services.Decorate<ISalesOrderService, SalesOrderLoggingDecorator>();
     builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
     builder.Services.Decorate<IPurchaseOrderService, PurchaseOrderLoggingDecorator>();
-    builder.Services.AddScoped<IUomService, UomService>();
+    builder.Services.AddScoped<IUomService, CreateUom>();
     builder.Services.Decorate<IUomService, UomLoggingDecorator>();
     builder.Services.AddScoped<ISupplierService, SupplierService>();
     builder.Services.Decorate<ISupplierService, SupplierLoggingDecorator>();
