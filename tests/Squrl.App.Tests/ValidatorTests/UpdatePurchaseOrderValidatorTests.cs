@@ -6,7 +6,7 @@ using Squrl.App.Features.PurchaseOrderDetails.Validators;
 using Squrl.App.Features.PurchaseOrders.DTOs;
 using Squrl.App.Features.PurchaseOrders.Validators;
 
-namespace Squrl.App.Tests.Validators;
+namespace Squrl.App.Tests.ValidatorTests;
 
 public class UpdatePurchaseOrderValidatorTests
 {

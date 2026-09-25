@@ -2,21 +2,21 @@
 using Squrl.App.Features.Items.DTOs;
 using Squrl.App.Features.Items.Validators;
 
-namespace Squrl.App.Tests.Validators;
+namespace Squrl.App.Tests.ValidatorTests;
 
-public class UpdateItemValidatorTests
+public class CreateItemValidatorTests
 {
-    private readonly UpdateItemValidator _validator;
+    private readonly CreateItemValidator _validator;
     
-    public UpdateItemValidatorTests()
+    public CreateItemValidatorTests()
     {
-        _validator = new UpdateItemValidator();
+        _validator = new CreateItemValidator();
     }
     
     [Fact]
     public void ValidItem_ShouldPass()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
 
         ValidationResult? actual = _validator.Validate(item);
 
@@ -27,124 +27,124 @@ public class UpdateItemValidatorTests
     [Fact]
     public void Name_ShouldBeRequired()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.Name = "";
         
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.Name) &&
+            error.PropertyName == nameof(CreateItemDto.Name) &&
             error.ErrorMessage == "Name is required.");
     }
     
     [Fact]
     public void UomId_ShouldBeRequired()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.UomId = null;
         
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.UomId) &&
+            error.PropertyName == nameof(CreateItemDto.UomId) &&
             error.ErrorMessage == "UOM is required.");
     }
     
     [Fact]
     public void Description_ShouldAllowNull()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.Description = null;
         
         ValidationResult? actual = _validator.Validate(item);
         
         Assert.True(actual.IsValid);
         Assert.DoesNotContain(actual.Errors, error => 
-            error.PropertyName == nameof(UpdateItemDto.Description));
+            error.PropertyName == nameof(CreateItemDto.Description));
     }
     
     [Fact]
     public void Description_ShouldRejectWhitespace()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.Description = "     ";
         
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error => 
-            error.PropertyName == nameof(UpdateItemDto.Description) &&
+            error.PropertyName == nameof(CreateItemDto.Description) &&
             error.ErrorMessage == "Description must not be only whitespace.");
     }
     
     [Fact]
     public void Description_ShouldRejectNonLatin1()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.Description = "Москва";
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.Description) &&
+            error.PropertyName == nameof(CreateItemDto.Description) &&
             error.ErrorMessage == "Invalid Description.");
     }
     
     [Fact]
     public void Image_ShouldAllowNull()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.Image = null;
         
         ValidationResult? actual = _validator.Validate(item);
         
         Assert.True(actual.IsValid);
         Assert.DoesNotContain(actual.Errors, error => 
-            error.PropertyName == nameof(UpdateItemDto.Image));
+            error.PropertyName == nameof(CreateItemDto.Image));
     }
     
     [Fact]
     public void Image_ShouldRejectWhitespace()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.Image = "     ";
         
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error => 
-            error.PropertyName == nameof(UpdateItemDto.Image) &&
+            error.PropertyName == nameof(CreateItemDto.Image) &&
             error.ErrorMessage == "Image must not be only whitespace.");
     }
     
     [Fact]
     public void Image_ShouldRejectNonAscii()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.Image = "Café";
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.Image) &&
+            error.PropertyName == nameof(CreateItemDto.Image) &&
             error.ErrorMessage == "Invalid Image.");
     }
     
     [Fact]
     public void ListPrice_ShouldAllowNull()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.ListPrice = null;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.True(actual.IsValid);
         Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.ListPrice));
+            error.PropertyName == nameof(CreateItemDto.ListPrice));
     }
     
     [Theory]
@@ -152,68 +152,68 @@ public class UpdateItemValidatorTests
     [InlineData(-0.01)]
     public void ListPrice_ShouldRejectNegativeValues(decimal price)
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.ListPrice = price;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.ListPrice) &&
+            error.PropertyName == nameof(CreateItemDto.ListPrice) &&
             error.ErrorMessage == "List Price must not be negative.");
     }
     
     [Fact]
     public void ListPrice_ShouldAllowZero()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.ListPrice = 0m;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.True(actual.IsValid);
         Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.ListPrice));
+            error.PropertyName == nameof(CreateItemDto.ListPrice));
     }
     
     [Fact]
     public void ListPrice_ShouldAllowDecimalMaxValue()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.ListPrice = decimal.MaxValue;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.True(actual.IsValid);
         Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.ListPrice));
+            error.PropertyName == nameof(CreateItemDto.ListPrice));
     }
     
     [Fact]
     public void ListPrice_ShouldRejectDecimalMinValue()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.ListPrice = decimal.MinValue;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.ListPrice) &&
+            error.PropertyName == nameof(CreateItemDto.ListPrice) &&
             error.ErrorMessage == "List Price must not be negative.");
     }
     
     [Fact]
     public void RetailPrice_ShouldAllowNull()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.RetailPrice = null;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.True(actual.IsValid);
         Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.RetailPrice));
+            error.PropertyName == nameof(CreateItemDto.RetailPrice));
     }
     
     [Theory]
@@ -221,68 +221,68 @@ public class UpdateItemValidatorTests
     [InlineData(-0.01)]
     public void RetailPrice_ShouldRejectNegativeValues(decimal price)
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.RetailPrice = price;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.RetailPrice) &&
+            error.PropertyName == nameof(CreateItemDto.RetailPrice) &&
             error.ErrorMessage == "Retail Price must not be negative.");
     }
     
     [Fact]
     public void RetailPrice_ShouldAllowZero()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.RetailPrice = 0m;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.True(actual.IsValid);
         Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.RetailPrice));
+            error.PropertyName == nameof(CreateItemDto.RetailPrice));
     }
     
     [Fact]
     public void RetailPrice_ShouldAllowDecimalMaxValue()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.RetailPrice = decimal.MaxValue;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.True(actual.IsValid);
         Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.RetailPrice));
+            error.PropertyName == nameof(CreateItemDto.RetailPrice));
     }
     
     [Fact]
     public void RetailPrice_ShouldRejectDecimalMinValue()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.RetailPrice = decimal.MinValue;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.RetailPrice) &&
+            error.PropertyName == nameof(CreateItemDto.RetailPrice) &&
             error.ErrorMessage == "Retail Price must not be negative.");
     }
     
     [Fact]
     public void CostPrice_ShouldAllowNull()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.CostPrice = null;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.True(actual.IsValid);
         Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.CostPrice));
+            error.PropertyName == nameof(CreateItemDto.CostPrice));
     }
     
     [Theory]
@@ -290,68 +290,68 @@ public class UpdateItemValidatorTests
     [InlineData(-0.01)]
     public void CostPrice_ShouldRejectNegativeValues(decimal price)
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.CostPrice = price;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.CostPrice) &&
+            error.PropertyName == nameof(CreateItemDto.CostPrice) &&
             error.ErrorMessage == "Cost Price must not be negative.");
     }
     
     [Fact]
     public void CostPrice_ShouldAllowZero()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.CostPrice = 0m;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.True(actual.IsValid);
         Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.CostPrice));
+            error.PropertyName == nameof(CreateItemDto.CostPrice));
     }
     
     [Fact]
     public void CostPrice_ShouldAllowDecimalMaxValue()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.CostPrice = decimal.MaxValue;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.True(actual.IsValid);
         Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.CostPrice));
+            error.PropertyName == nameof(CreateItemDto.CostPrice));
     }
     
     [Fact]
     public void CostPrice_ShouldRejectDecimalMinValue()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.CostPrice = decimal.MinValue;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.CostPrice) &&
+            error.PropertyName == nameof(CreateItemDto.CostPrice) &&
             error.ErrorMessage == "Cost Price must not be negative.");
     }
     
     [Fact]
     public void Quantity_ShouldBeRequired()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.Quantity = null;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.Quantity) &&
+            error.PropertyName == nameof(CreateItemDto.Quantity) &&
             error.ErrorMessage == "Quantity is required.");
     }
     
@@ -360,68 +360,68 @@ public class UpdateItemValidatorTests
     [InlineData(-0.01)]
     public void Quantity_ShouldRejectNegativeValues(decimal quantity)
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.Quantity = quantity;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.Quantity) &&
+            error.PropertyName == nameof(CreateItemDto.Quantity) &&
             error.ErrorMessage == "Quantity must not be negative.");
     }
     
     [Fact]
     public void Quantity_ShouldAllowZero()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.Quantity = 0m;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.True(actual.IsValid);
         Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.Quantity));
+            error.PropertyName == nameof(CreateItemDto.Quantity));
     }
     
     [Fact]
     public void Quantity_ShouldAllowDecimalMaxValue()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.Quantity = decimal.MaxValue;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.True(actual.IsValid);
         Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.Quantity));
+            error.PropertyName == nameof(CreateItemDto.Quantity));
     }
     
     [Fact]
     public void Quantity_ShouldRejectDecimalMinValue()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.Quantity = decimal.MinValue;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.Quantity) &&
+            error.PropertyName == nameof(CreateItemDto.Quantity) &&
             error.ErrorMessage == "Quantity must not be negative.");
     }
     
     [Fact]
     public void LowQuantityAlertThreshold_ShouldAllowNull()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.LowQuantityAlertThreshold = null;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.True(actual.IsValid);
         Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.LowQuantityAlertThreshold));
+            error.PropertyName == nameof(CreateItemDto.LowQuantityAlertThreshold));
     }
     
     [Theory]
@@ -429,103 +429,103 @@ public class UpdateItemValidatorTests
     [InlineData(-0.01)]
     public void LowQuantityAlertThreshold_ShouldRejectNegativeValues(decimal quantity)
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.LowQuantityAlertThreshold = quantity;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.LowQuantityAlertThreshold) &&
+            error.PropertyName == nameof(CreateItemDto.LowQuantityAlertThreshold) &&
             error.ErrorMessage == "Low Stock Threshold must not be negative.");
     }
     
     [Fact]
     public void LowQuantityAlertThreshold_ShouldAllowZero()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.LowQuantityAlertThreshold = 0m;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.True(actual.IsValid);
         Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.LowQuantityAlertThreshold));
+            error.PropertyName == nameof(CreateItemDto.LowQuantityAlertThreshold));
     }
     
     [Fact]
     public void LowQuantityAlertThreshold_ShouldAllowDecimalMaxValue()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.LowQuantityAlertThreshold = decimal.MaxValue;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.True(actual.IsValid);
         Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.LowQuantityAlertThreshold));
+            error.PropertyName == nameof(CreateItemDto.LowQuantityAlertThreshold));
     }
     
     [Fact]
     public void LowQuantityAlertThreshold_ShouldRejectDecimalMinValue()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.LowQuantityAlertThreshold = decimal.MinValue;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.LowQuantityAlertThreshold) &&
+            error.PropertyName == nameof(CreateItemDto.LowQuantityAlertThreshold) &&
             error.ErrorMessage == "Low Stock Threshold must not be negative.");
     }
     
     [Fact]
     public void Locations_ShouldBeRequired()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.Locations = null;
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.Locations) &&
+            error.PropertyName == nameof(CreateItemDto.Locations) &&
             error.ErrorMessage == "Locations is required.");
     }
 
     [Fact]
     public void Locations_ShouldRejectDuplicateValues()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.Locations = ["Shelf A", "Shelf A"];
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.Locations) &&
+            error.PropertyName == nameof(CreateItemDto.Locations) &&
             error.ErrorMessage == "Locations must not contain duplicates.");
     }
 
     [Fact]
     public void Locations_ShouldRejectCaseInsensitiveDuplicates()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.Locations = ["Shelf A", "shelf a"];
 
         ValidationResult? actual = _validator.Validate(item);
 
         Assert.False(actual.IsValid);
         Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateItemDto.Locations) &&
+            error.PropertyName == nameof(CreateItemDto.Locations) &&
             error.ErrorMessage == "Locations must not contain duplicates.");
     }
     
     [Fact]
     public void Location_ShouldBeRequired()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.Locations = [""];
 
         ValidationResult? actual = _validator.Validate(item);
@@ -536,9 +536,9 @@ public class UpdateItemValidatorTests
     }
 
     [Fact]
-    public void Location_should_reject_non_ascii()
+    public void Location_ShouldRejectNonAscii()
     {
-        UpdateItemDto item = CreateValidItem();
+        CreateItemDto item = CreateValidItem();
         item.Locations = ["Café"];
 
         ValidationResult? actual = _validator.Validate(item);
@@ -548,9 +548,9 @@ public class UpdateItemValidatorTests
             error.ErrorMessage == "Invalid Location.");
     }
     
-    private static UpdateItemDto CreateValidItem()
+    private static CreateItemDto CreateValidItem()
     {
-        return new UpdateItemDto
+        return new CreateItemDto
         {
             Name = "Test Item",
             UomId = Guid.NewGuid(),

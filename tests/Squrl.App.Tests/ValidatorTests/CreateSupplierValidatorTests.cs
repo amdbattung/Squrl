@@ -2,7 +2,7 @@
 using Squrl.App.Features.Suppliers.DTOs;
 using Squrl.App.Features.Suppliers.Validators;
 
-namespace Squrl.App.Tests.Validators;
+namespace Squrl.App.Tests.ValidatorTests;
 
 public class CreateSupplierValidatorTests
 {

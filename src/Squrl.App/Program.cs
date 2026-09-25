@@ -186,17 +186,20 @@ try
         return Results.File(path, contentType);
     });
     
-    // Run Migrations.
-    using (IServiceScope scope = app.Services.CreateScope())
+    if (!app.Environment.IsEnvironment("Testing"))
     {
-        DataContext db = scope.ServiceProvider.GetRequiredService<DataContext>();
-        await db.Database.MigrateAsync();
+        // Run Migrations.
+        using (IServiceScope scope = app.Services.CreateScope())
+        {
+            DataContext db = scope.ServiceProvider.GetRequiredService<DataContext>();
+            await db.Database.MigrateAsync();
+        }
+        
+        // Initialize Alert Service.
+        await app.Services
+            .GetRequiredService<IAlertService>()
+            .InitializeAsync();
     }
-    
-    // Initialize Alert Service.
-    await app.Services
-        .GetRequiredService<IAlertService>()
-        .InitializeAsync();
 
     app.Run();
 }

@@ -2,7 +2,7 @@
 using Squrl.App.Features.PurchaseOrderDetails.DTOs;
 using Squrl.App.Features.PurchaseOrderDetails.Validators;
 
-namespace Squrl.App.Tests.Validators;
+namespace Squrl.App.Tests.ValidatorTests;
 
 public class CreatePoDetailValidatorTests
 {

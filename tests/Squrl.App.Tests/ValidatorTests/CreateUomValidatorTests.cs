@@ -2,7 +2,7 @@
 using Squrl.App.Features.UnitOfMeasures.DTOs;
 using Squrl.App.Features.UnitOfMeasures.Validators;
 
-namespace Squrl.App.Tests.Validators;
+namespace Squrl.App.Tests.ValidatorTests;
 
 public class CreateUomValidatorTests
 {

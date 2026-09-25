@@ -5,7 +5,7 @@ using Squrl.App.Features.SalesOrderDetails.Validators;
 using Squrl.App.Features.SalesOrders.DTOs;
 using Squrl.App.Features.SalesOrders.Validators;
 
-namespace Squrl.App.Tests.Validators;
+namespace Squrl.App.Tests.ValidatorTests;
 
 public class CreateSalesOrderValidatorTests
 {

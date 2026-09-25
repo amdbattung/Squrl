@@ -29,7 +29,7 @@ public class UpdateUomHandler : IRequestHandler<UpdateUomCommand, UnitOfMeasure?
         
         existingUom.Name = requestUom.Name ?? existingUom.Name;
         existingUom.Code = requestUom.Code ?? existingUom.Code;
-        existingUom.Description = requestUom.Name ?? existingUom.Description;
+        existingUom.Description = requestUom.Description ?? existingUom.Description;
         
         await _dataContext.SaveChangesAsync(cancellationToken);
         return existingUom;
