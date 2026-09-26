@@ -1,6 +1,6 @@
 ﻿namespace Squrl.App.Tests;
 
-[CollectionDefinition("Integration Tests")]
+[CollectionDefinition("IntegrationTests")]
 public class IntegrationTestCollection : ICollectionFixture<SqurlWebApplicationFactory>
 {
     

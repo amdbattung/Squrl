@@ -7,7 +7,7 @@ using Squrl.App.Services.UnitOfMeasure;
 
 namespace Squrl.App.Tests.ServiceTests.UomServiceTests;
 
-[Collection("Integration Tests")]
+[Collection("IntegrationTests")]
 public class GetManyUomsTests : IntegrationTest
 {
     public GetManyUomsTests(SqurlWebApplicationFactory factory) : base(factory)
@@ -46,6 +46,9 @@ public class GetManyUomsTests : IntegrationTest
         Assert.NotNull(actual.Value);
         Assert.NotNull(actual.Value.Uoms);
         Assert.NotEmpty(actual.Value.Uoms);
+        Assert.Empty(actual.Errors);
+        Assert.Null(actual.Exception);
+        Assert.Null(actual.FailureType);
         
         Assert.Equal(1, actual.Value.PageNumber);
         Assert.Equal(10, actual.Value.PageSize);

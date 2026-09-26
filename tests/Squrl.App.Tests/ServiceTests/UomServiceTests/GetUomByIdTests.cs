@@ -7,7 +7,7 @@ using Squrl.App.Services.UnitOfMeasure;
 
 namespace Squrl.App.Tests.ServiceTests.UomServiceTests;
 
-[Collection("Integration Tests")]
+[Collection("IntegrationTests")]
 public class GetUomByIdTests : IntegrationTest
 {
     public GetUomByIdTests(SqurlWebApplicationFactory factory) : base(factory)
@@ -42,6 +42,9 @@ public class GetUomByIdTests : IntegrationTest
         // Assert
         Assert.True(actual.IsSuccess);
         Assert.NotNull(actual.Value);
+        Assert.Empty(actual.Errors);
+        Assert.Null(actual.Exception);
+        Assert.Null(actual.FailureType);
         
         Assert.Equal(seed.Id, actual.Value.Id);
         Assert.Equal(seed.Name, actual.Value.Name);

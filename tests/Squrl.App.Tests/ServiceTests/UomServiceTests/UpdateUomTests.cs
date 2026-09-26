@@ -8,7 +8,7 @@ using Squrl.App.Services.UnitOfMeasure;
 
 namespace Squrl.App.Tests.ServiceTests.UomServiceTests;
 
-[Collection("Integration Tests")]
+[Collection("IntegrationTests")]
 public class UpdateUomTests : IntegrationTest
 {
     public UpdateUomTests(SqurlWebApplicationFactory factory) : base(factory)
@@ -50,6 +50,9 @@ public class UpdateUomTests : IntegrationTest
         // Assert
         Assert.True(actual.IsSuccess);
         Assert.NotNull(actual.Value);
+        Assert.Empty(actual.Errors);
+        Assert.Null(actual.Exception);
+        Assert.Null(actual.FailureType);
         
         Assert.Equal(seed.Id, actual.Value.Id);
         Assert.Equal(dto.Name, actual.Value.Name);
@@ -57,7 +60,7 @@ public class UpdateUomTests : IntegrationTest
         Assert.Equal(dto.Description, actual.Value.Description);
         
         UnitOfMeasure? updated = await dataContext.UnitOfMeasures
-            .SingleOrDefaultAsync(x => x.Id == seed.Id);
+            .SingleOrDefaultAsync(u => u.Id == seed.Id);
         
         Assert.NotNull(updated);
         

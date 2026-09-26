@@ -8,7 +8,7 @@ using Squrl.App.Services.UnitOfMeasure;
 
 namespace Squrl.App.Tests.ServiceTests.UomServiceTests;
 
-[Collection("Integration Tests")]
+[Collection("IntegrationTests")]
 public class DeleteUomTests : IntegrationTest
 {
     public DeleteUomTests(SqurlWebApplicationFactory factory) : base(factory)
@@ -43,15 +43,18 @@ public class DeleteUomTests : IntegrationTest
         // Assert
         Assert.True(actual.IsSuccess);
         Assert.NotNull(actual.Value);
+        Assert.Empty(actual.Errors);
+        Assert.Null(actual.Exception);
+        Assert.Null(actual.FailureType);
         
         Assert.Equal(seed.Id, actual.Value.Id);
         Assert.Equal(seed.Name, actual.Value.Name);
         Assert.Equal(seed.Code, actual.Value.Code);
         Assert.Equal(seed.Description, actual.Value.Description);
         
-        UnitOfMeasure? deleted = await dataContext.UnitOfMeasures
-            .SingleOrDefaultAsync(x => x.Id == seed.Id);
+        bool exists = await dataContext.UnitOfMeasures
+            .AnyAsync(u => u.Id == seed.Id);
         
-        Assert.Null(deleted);
+        Assert.False(exists);
     }
 }
