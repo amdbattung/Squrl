@@ -31,14 +31,14 @@ public class GetManySuppliersHandler : IRequestHandler<GetManySuppliersQuery, (I
         if (request.OrderDirection == SortDirection.Descending)
         {
             query = query
-                .OrderByDescending(p => EF.Property<Instant>(p, "DateCreated"))
-                .ThenBy(p => p.Id);
+                .OrderByDescending(s => EF.Property<Instant>(s, "DateCreated"))
+                .ThenBy(s => s.Id);
         }
         else
         {
             query = query
-                .OrderBy(p => EF.Property<Instant>(p, "DateCreated"))
-                .ThenBy(p => p.Id);
+                .OrderBy(s => EF.Property<Instant>(s, "DateCreated"))
+                .ThenBy(s => s.Id);
         }
         
         IReadOnlyList<Supplier> existingSuppliers;

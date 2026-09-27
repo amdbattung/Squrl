@@ -9,7 +9,7 @@ using Squrl.App.Services.UnitOfMeasure;
 namespace Squrl.App.Tests.ServiceTests.UomServiceTests;
 
 [Collection("IntegrationTests")]
-public class GetUomByIdTests : IntegrationTest
+public sealed class GetUomByIdTests : IntegrationTest
 {
     public GetUomByIdTests(SqurlWebApplicationFactory factory) : base(factory)
     {

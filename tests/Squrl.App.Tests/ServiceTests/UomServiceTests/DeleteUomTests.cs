@@ -10,7 +10,7 @@ using Squrl.App.Services.UnitOfMeasure;
 namespace Squrl.App.Tests.ServiceTests.UomServiceTests;
 
 [Collection("IntegrationTests")]
-public class DeleteUomTests : IntegrationTest
+public sealed class DeleteUomTests : IntegrationTest
 {
     public DeleteUomTests(SqurlWebApplicationFactory factory) : base(factory)
     {

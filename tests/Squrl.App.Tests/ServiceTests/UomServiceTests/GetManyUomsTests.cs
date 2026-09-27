@@ -11,7 +11,7 @@ using Squrl.App.Services.UnitOfMeasure;
 namespace Squrl.App.Tests.ServiceTests.UomServiceTests;
 
 [Collection("IntegrationTests")]
-public class GetManyUomsTests : IntegrationTest
+public sealed class GetManyUomsTests : IntegrationTest
 {
     public GetManyUomsTests(SqurlWebApplicationFactory factory) : base(factory)
     {
