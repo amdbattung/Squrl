@@ -2,6 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using Squrl.App.Common;
 using Squrl.App.Data;
+using Squrl.App.Enums;
 using Squrl.App.Features.UnitOfMeasures.DTOs;
 using Squrl.App.Models;
 using Squrl.App.Services.UnitOfMeasure;
@@ -30,8 +31,7 @@ public class DeleteUomTests : IntegrationTest
         {
             Id = Guid.NewGuid(),
             Name = "Test UOM",
-            Code = "u",
-            Description = "A valid description."
+            Code = "u"
         };
 
         dataContext.UnitOfMeasures.Add(seed);
@@ -56,5 +56,45 @@ public class DeleteUomTests : IntegrationTest
             .AnyAsync(u => u.Id == seed.Id);
         
         Assert.False(exists);
+    }
+    
+    [Fact]
+    public async Task DeleteUom_ShouldFailIfIdIsEmpty()
+    {
+        using IServiceScope scope = CreateScope();
+
+        IUomService service = scope.ServiceProvider.GetRequiredService<IUomService>();
+        
+        // Arrange
+        
+        // Act
+        Result<GetUomDto> actual = await service.DeleteUomAsync(Guid.Empty);
+        
+        // Assert
+        Assert.False(actual.IsSuccess);
+        Assert.Null(actual.Value);
+        Assert.Contains("Null or invalid ID.", actual.Errors);
+        Assert.Null(actual.Exception);
+        Assert.Equal(FailureType.Validation, actual.FailureType);
+    }
+
+    [Fact]
+    public async Task DeleteUom_ShouldFailIfUomDoesNotExist()
+    {
+        using IServiceScope scope = CreateScope();
+
+        IUomService service = scope.ServiceProvider.GetRequiredService<IUomService>();
+        
+        // Arrange
+        
+        // Act
+        Result<GetUomDto> actual = await service.DeleteUomAsync(Guid.NewGuid());
+        
+        // Assert
+        Assert.False(actual.IsSuccess);
+        Assert.Null(actual.Value);
+        Assert.Contains("UOM not found.", actual.Errors);
+        Assert.Null(actual.Exception);
+        Assert.Equal(FailureType.NotFound, actual.FailureType);
     }
 }

@@ -106,6 +106,9 @@ public sealed class CreateUomTests : IntegrationTest
         // Assert
         Assert.False(actual.IsSuccess);
         Assert.Null(actual.Value);
+        Assert.NotEmpty(actual.Errors);
+        Assert.Null(actual.Exception);
+        Assert.Equal(FailureType.Validation, actual.FailureType);
 
         bool exists = await dataContext.UnitOfMeasures
             .AnyAsync(u => u.Code == dto.Code);
