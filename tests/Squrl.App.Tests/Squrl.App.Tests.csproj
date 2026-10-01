@@ -27,4 +27,10 @@
       <ProjectReference Include="..\..\src\Squrl.App\Squrl.App.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <None Update="TestData\test-image.jpg">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
 </Project>

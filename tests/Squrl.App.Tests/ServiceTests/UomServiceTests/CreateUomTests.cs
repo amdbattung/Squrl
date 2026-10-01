@@ -27,7 +27,7 @@ public sealed class CreateUomTests : IntegrationTest
         DataContext dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
 
         // Arrange
-        CreateUomDto dto = new CreateUomDto
+        CreateUomDto dto = new()
         {
             Name = "Test UOM",
             Code = "u",
@@ -49,6 +49,7 @@ public sealed class CreateUomTests : IntegrationTest
         Assert.Equal(dto.Description, actual.Value.Description);
 
         UnitOfMeasure? created = await dataContext.UnitOfMeasures
+            .AsNoTracking()
             .SingleOrDefaultAsync(u => u.Id == actual.Value.Id);
 
         Assert.NotNull(created);
@@ -67,7 +68,7 @@ public sealed class CreateUomTests : IntegrationTest
         IUomService service = scope.ServiceProvider.GetRequiredService<IUomService>();
 
         // Arrange
-        CreateUomDto dto = new CreateUomDto
+        CreateUomDto dto = new()
         {
             Name = "",
             Code = "u"
@@ -94,7 +95,7 @@ public sealed class CreateUomTests : IntegrationTest
         DataContext dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
 
         // Arrange
-        CreateUomDto dto = new CreateUomDto
+        CreateUomDto dto = new()
         {
             Name = "",
             Code = "u"

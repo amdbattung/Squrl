@@ -61,6 +61,7 @@ public sealed class UpdateUomTests : IntegrationTest
         Assert.Equal(dto.Description, actual.Value.Description);
         
         UnitOfMeasure? updated = await dataContext.UnitOfMeasures
+            .AsNoTracking()
             .SingleOrDefaultAsync(u => u.Id == seed.Id);
         
         Assert.NotNull(updated);

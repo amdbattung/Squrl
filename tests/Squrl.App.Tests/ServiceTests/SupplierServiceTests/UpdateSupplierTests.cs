@@ -58,6 +58,7 @@ public sealed class UpdateSupplierTests : IntegrationTest
         Assert.Equal(dto.Description, actual.Value.Description);
         
         Supplier? updated = await dataContext.Suppliers
+            .AsNoTracking()
             .SingleOrDefaultAsync(s => s.Id == seed.Id);
         
         Assert.NotNull(updated);

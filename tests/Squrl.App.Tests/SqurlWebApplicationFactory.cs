@@ -21,12 +21,7 @@ public class SqurlWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseEnvironment("Testing");
         
         string databaseDirectory = Path.Combine(
-            Path.GetFullPath(
-                Path.Combine(
-                    AppContext.BaseDirectory,
-                    "..",
-                    "..",
-                    "..")),
+            AppContext.BaseDirectory,
             "database");
         
         Directory.CreateDirectory(databaseDirectory);
@@ -40,9 +35,19 @@ public class SqurlWebApplicationFactory : WebApplicationFactory<Program>
         builder.UseSetting(
             "ConnectionStrings:SqurlContext",
             $"Data Source={_databasePath}");
+        
+        string imageDirectory = Path.Combine(
+            AppContext.BaseDirectory,
+            "images");
 
-        builder.ConfigureServices(services =>
+        Directory.CreateDirectory(imageDirectory);
+        
+        CleanupOldImages(imageDirectory);
+
+        builder.ConfigureServices((context, services) =>
         {
+            context.Configuration["ImageDirectory"] = imageDirectory;
+            
             foreach (ServiceDescriptor descriptor in services
                 .Where(x =>
                     x.ServiceType == typeof(IHostedService) &&
@@ -106,6 +111,39 @@ public class SqurlWebApplicationFactory : WebApplicationFactory<Program>
             {
                 // Don't prevent the test suite from running because
                 // an old database couldn't be deleted.
+            }
+        }
+    }
+
+    private static void CleanupOldImages(string imageDirectory)
+    {
+        if (!Directory.Exists(imageDirectory))
+        {
+            return;
+        }
+
+        DateTime cutoff = DateTime.UtcNow.AddHours(-8);
+        
+        HashSet<string> imageExtensions = new(StringComparer.OrdinalIgnoreCase)
+        {
+            ".jpg", ".jpeg", ".png", ".gif",
+            ".bmp", ".webp", ".tif", ".tiff", ".ico"
+        };
+
+        foreach (string file in Directory.EnumerateFiles(imageDirectory))
+        {
+            try
+            {
+                if (imageExtensions.Contains(Path.GetExtension(file)) &&
+                    File.GetLastWriteTimeUtc(file) < cutoff)
+                {
+                    File.Delete(file);
+                }
+            }
+            catch
+            {
+                // Don't prevent the test suite from running because
+                // an old image couldn't be deleted.
             }
         }
     }

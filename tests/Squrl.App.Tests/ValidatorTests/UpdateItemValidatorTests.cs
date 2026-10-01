@@ -555,7 +555,7 @@ public class UpdateItemValidatorTests
             Name = "Test Item",
             UomId = Guid.NewGuid(),
             Description = "A valid description.",
-            Image = "be693c7e.webp",
+            Image = $"{Guid.NewGuid()}.webp",
             ListPrice = 1000m,
             RetailPrice = 1500.10m,
             CostPrice = 600m,

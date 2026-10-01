@@ -27,7 +27,7 @@ public sealed class CreateSupplierTests : IntegrationTest
         DataContext dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
 
         // Arrange
-        CreateSupplierDto dto = new CreateSupplierDto
+        CreateSupplierDto dto = new()
         {
             Name = "Test Supplier",
             Description = "A valid description."
@@ -47,6 +47,7 @@ public sealed class CreateSupplierTests : IntegrationTest
         Assert.Equal(dto.Description, actual.Value.Description);
 
         Supplier? created = await dataContext.Suppliers
+            .AsNoTracking()
             .SingleOrDefaultAsync(s => s.Id == actual.Value.Id);
 
         Assert.NotNull(created);
@@ -64,7 +65,7 @@ public sealed class CreateSupplierTests : IntegrationTest
         ISupplierService service = scope.ServiceProvider.GetRequiredService<ISupplierService>();
 
         // Arrange
-        CreateSupplierDto dto = new CreateSupplierDto
+        CreateSupplierDto dto = new()
         {
             Name = "",
         };
@@ -90,7 +91,7 @@ public sealed class CreateSupplierTests : IntegrationTest
         DataContext dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
 
         // Arrange
-        CreateSupplierDto dto = new CreateSupplierDto
+        CreateSupplierDto dto = new()
         {
             Name = "",
             Description = "A valid description."
