@@ -24,8 +24,8 @@ public partial class SalesOrderService
                 OrderDirection: orderDirection), cancellationToken);
             
             GetManySoDetailsDto payload = new GetManySoDetailsDto(
-                result.PageSize,
                 result.PageNumber,
+                result.PageSize,
                 result.TotalCount,
                 result.Value.Select(SoDetailMapper.ToDto).ToList());
             
@@ -132,6 +132,8 @@ public partial class SalesOrderService
                         .ToArray())
                     .WithFailureType(FailureType.Validation);
             }
+            
+            // Add logic to invalidate if proper line sequence wasn't followed
 
             SalesOrderDetail? result = await _mediator
                 .Send(new UpdateSoDetailCommand(id, soDetail), cancellationToken);

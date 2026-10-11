@@ -66,8 +66,8 @@ public partial class SalesOrderService : ISalesOrderService
                 orderDirection), cancellationToken);
             
             GetManySalesOrdersDto payload = new GetManySalesOrdersDto(
-                result.PageSize,
                 result.PageNumber,
+                result.PageSize,
                 result.TotalCount,
                 result.Value.Select(SalesOrderMapper.ToDto).ToList());
             
