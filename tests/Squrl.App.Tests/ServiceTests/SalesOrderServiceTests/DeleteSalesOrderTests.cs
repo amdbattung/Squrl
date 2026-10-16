@@ -49,7 +49,7 @@ public sealed class DeleteSalesOrderTests : IntegrationTest
                     Name = "Test UOM",
                     Code = "u"
                 },
-                Quantity = 100m,
+                Quantity = 10m,
                 Locations = ["Shelf A", "Shelf B"]
             },
             UnitPrice = 600m,

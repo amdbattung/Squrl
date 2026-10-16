@@ -210,7 +210,7 @@ public sealed class GetManySalesOrdersTests : IntegrationTest
     }
 
     [Fact]
-    public async Task GetManySalesOrders_ShouldReturnFilteredSalesOrders()
+    public async Task GetManySalesOrders_ShouldReturnFilteredSalesOrdersByCustomer()
     {
         using IServiceScope scope = CreateScope();
 
@@ -236,8 +236,8 @@ public sealed class GetManySalesOrdersTests : IntegrationTest
         List<SalesOrder> seed = Enumerable.Range(1, 15)
             .Select(i => new SalesOrder
             {
-                Customer = $"Test Customer {i}",
                 Id = Guid.NewGuid(),
+                Customer = $"Test Customer {i}",
                 DateOrdered = Instant.FromUtc(2020, 1, 1, 0, 0)
             })
             .ToList();

@@ -24,8 +24,8 @@ public partial class PurchaseOrderService
                 OrderDirection: orderDirection), cancellationToken);
             
             GetManyPoDetailsDto payload = new GetManyPoDetailsDto(
-                result.PageSize,
                 result.PageNumber,
+                result.PageSize,
                 result.TotalCount,
                 result.Value.Select(PoDetailMapper.ToDto).ToList());
             

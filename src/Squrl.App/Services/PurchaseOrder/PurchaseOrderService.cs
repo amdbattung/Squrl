@@ -78,8 +78,8 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                 orderDirection), cancellationToken);
             
             GetManyPurchaseOrdersDto payload = new GetManyPurchaseOrdersDto(
-                result.PageSize,
                 result.PageNumber,
+                result.PageSize,
                 result.TotalCount,
                 result.Value.Select(PurchaseOrderMapper.ToDto).ToList());
             

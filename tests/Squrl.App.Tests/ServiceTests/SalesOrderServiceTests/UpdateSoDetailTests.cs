@@ -104,8 +104,8 @@ public sealed class UpdateSoDetailTests : IntegrationTest
         
         SalesOrderDetail? updated = await dataContext.SalesOrderDetails
             .AsNoTracking()
-            .Include(salesOrderDetail => salesOrderDetail.SalesOrder)
-            .Include(salesOrderDetail => salesOrderDetail.Item)
+            .Include(s => s.SalesOrder)
+            .Include(s => s.Item)
             .SingleOrDefaultAsync(s => s.Id == seed.Id);
         
         Assert.NotNull(updated);

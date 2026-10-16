@@ -116,6 +116,8 @@ public sealed class CreateSalesOrderTests : IntegrationTest
             Assert.Equal(actual.Value.Id, createdSoDetail.SalesOrder.Id);
             Assert.Equal(dtoSoDetail.LineSequence, createdSoDetail.LineSequence);
             Assert.Equal(dtoSoDetail.ItemId, createdSoDetail.Item.Id);
+            Assert.Equal(dtoSoDetail.UnitPrice, createdSoDetail.UnitPrice);
+            Assert.Equal(dtoSoDetail.Quantity, createdSoDetail.Quantity);
         }
     }
 
@@ -179,6 +181,15 @@ public sealed class CreateSalesOrderTests : IntegrationTest
 
         Assert.False(exists);
     }
+
+    // TODO
+    // [Theory]
+    // [InlineData(10.01)]
+    // [InlineData(15)]
+    // public async Task CreateSalesOrder_ShouldRemoveStocksFromItems(decimal quantity)
+    // {
+    //     
+    // }
     
     [Theory]
     [InlineData(10.01)]

@@ -5,7 +5,6 @@ using Squrl.App.Common;
 using Squrl.App.Data;
 using Squrl.App.Enums;
 using Squrl.App.Features.SalesOrderDetails.DTOs;
-using Squrl.App.Features.UnitOfMeasures.DTOs;
 using Squrl.App.Models;
 using Squrl.App.Services.SalesOrder;
 

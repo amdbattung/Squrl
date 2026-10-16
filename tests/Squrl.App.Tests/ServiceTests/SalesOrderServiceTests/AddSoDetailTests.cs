@@ -81,7 +81,7 @@ public sealed class AddSoDetailTests : IntegrationTest
         Assert.Empty(actual.Errors);
         Assert.Null(actual.Exception);
         Assert.Null(actual.FailureType);
-
+        
         Assert.Equal(dto.LineSequence, actual.Value.LineSequence);
         Assert.Equal(dto.ItemId, actual.Value.ItemId);
         Assert.Equal(dto.UnitPrice, actual.Value.UnitPrice);

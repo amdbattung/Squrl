@@ -69,7 +69,7 @@ public class UpdateSalesOrderTests : IntegrationTest
                         Name = "Test UOM A",
                         Code = "uA"
                     },
-                    Quantity = 100m,
+                    Quantity = 10m,
                     Locations = ["Shelf A", "Shelf B"]
                 },
                 UnitPrice = 600m,
@@ -90,7 +90,7 @@ public class UpdateSalesOrderTests : IntegrationTest
                         Name = "Test UOM B",
                         Code = "uB"
                     },
-                    Quantity = 100m,
+                    Quantity = 10m,
                     Locations = ["Shelf A", "Shelf B"]
                 },
                 UnitPrice = 600m,
@@ -124,7 +124,7 @@ public class UpdateSalesOrderTests : IntegrationTest
                     Quantity = 6m
                 }
             ],
-            DateOrdered = Instant.FromUtc(2020, 1, 1, 0, 0)
+            DateOrdered = Instant.FromUtc(2020, 2, 1, 0, 0)
         };
         
         // Act
@@ -158,7 +158,7 @@ public class UpdateSalesOrderTests : IntegrationTest
             .Include(s => s.SalesOrder)
             .Include(s => s.Item)
             .Where(s => s.SalesOrder.Id == seed.Id)
-            .ToListAsync();;
+            .ToListAsync();
         
         Assert.NotNull(updatedSoDetails);
         Assert.NotEmpty(updatedSoDetails);
@@ -290,7 +290,7 @@ public class UpdateSalesOrderTests : IntegrationTest
         };
         
         // Act
-        Result<GetSalesOrderDto> actual = await service.UpdateSalesOrderAsync(Guid.Empty, dto);
+        Result<GetSalesOrderDto> actual = await service.UpdateSalesOrderAsync(Guid.NewGuid(), dto);
         
         // Assert
         Assert.False(actual.IsSuccess);
