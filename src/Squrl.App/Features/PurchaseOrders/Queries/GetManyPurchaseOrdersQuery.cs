@@ -9,7 +9,7 @@ public record GetManyPurchaseOrdersQuery(
     Guid? SupplierId = null,
     bool IsPending = false,
     bool IsReceived = false,
-    bool IsCancelled = false,
+    bool Iscanceled = false,
     bool HasFailed = false,
     bool IsReturned = false,
     int? PageNumber = null,

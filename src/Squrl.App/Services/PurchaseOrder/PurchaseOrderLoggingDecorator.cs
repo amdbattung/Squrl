@@ -22,7 +22,7 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
         Guid? supplierId = null,
         bool isPending = false,
         bool isReceived = false,
-        bool isCancelled = false,
+        bool iscanceled = false,
         bool hasFailed = false,
         bool isReturned = false,
         int? pageNumber = null,
@@ -35,7 +35,7 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
             supplierId,
             isPending,
             isReceived,
-            isCancelled,
+            iscanceled,
             hasFailed,
             isReturned,
             pageNumber,
@@ -386,7 +386,7 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Cancel Purchase Order Request: purchase order {result.Value?.Id} successfully cancelled.");
+            _logger.LogInformation($"Cancel Purchase Order Request: purchase order {result.Value?.Id} successfully canceled.");
         }
         else switch (result.FailureType)
         {
@@ -498,7 +498,7 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Uncancel Purchase Order Request: purchase order {result.Value?.Id} successfully uncancelled.");
+            _logger.LogInformation($"Uncancel Purchase Order Request: purchase order {result.Value?.Id} successfully uncanceled.");
         }
         else switch (result.FailureType)
         {

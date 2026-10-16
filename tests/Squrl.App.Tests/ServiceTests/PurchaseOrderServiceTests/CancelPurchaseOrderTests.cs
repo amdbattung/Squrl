@@ -19,7 +19,7 @@ public sealed class CancelPurchaseOrderTests : IntegrationTest
     }
 
     [Fact]
-    public async Task CancelPurchaseOrder_ShouldUpdatePurchaseOrderStatusToCancelled()
+    public async Task CancelPurchaseOrder_ShouldUpdatePurchaseOrderStatusTocanceled()
     {
         using IServiceScope scope = CreateScope();
 
@@ -71,7 +71,7 @@ public sealed class CancelPurchaseOrderTests : IntegrationTest
         Assert.Null(actual.Exception);
         Assert.Null(actual.FailureType);
         
-        Assert.Equal(PurchaseOrderStatus.Cancelled, actual.Value.Status);
+        Assert.Equal(PurchaseOrderStatus.canceled, actual.Value.Status);
         
         Assert.Equal(seed.Id, actual.Value.Id);
         Assert.Equal(seed.Supplier?.Id, actual.Value.SupplierId);
@@ -87,7 +87,7 @@ public sealed class CancelPurchaseOrderTests : IntegrationTest
         Assert.NotNull(updated);
         
         Assert.Equal(seed.Id, updated.Id);
-        Assert.Equal(PurchaseOrderStatus.Cancelled, updated.Status);
+        Assert.Equal(PurchaseOrderStatus.canceled, updated.Status);
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public sealed class CancelPurchaseOrderTests : IntegrationTest
         // Assert
         Assert.False(actual.IsSuccess);
         Assert.Null(actual.Value);
-        Assert.Contains("Purchase order cannot be cancelled.", actual.Errors);
+        Assert.Contains("Purchase order cannot be canceled.", actual.Errors);
         Assert.Null(actual.Exception);
         Assert.Equal(FailureType.BusinessLogic, actual.FailureType);
     }

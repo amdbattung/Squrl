@@ -31,7 +31,7 @@ public sealed class UncancelPurchaseOrderTests : IntegrationTest
         PurchaseOrder seed = new()
         {
             Id = Guid.NewGuid(),
-            Status = PurchaseOrderStatus.Cancelled,
+            Status = PurchaseOrderStatus.canceled,
             DateOrdered = Instant.FromUtc(2020, 1, 1, 0, 0)
         };
         
@@ -132,7 +132,7 @@ public sealed class UncancelPurchaseOrderTests : IntegrationTest
     }
 
     [Fact]
-    public async Task UncancelPurchaseOrder_ShouldRejectNotCancelledSalesOrder()
+    public async Task UncancelPurchaseOrder_ShouldRejectNotcanceledSalesOrder()
     {
         using IServiceScope scope = CreateScope();
 

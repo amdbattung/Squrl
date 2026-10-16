@@ -259,7 +259,7 @@ public sealed class ReceivePurchaseOrderTests : IntegrationTest
         // Assert
         Assert.False(actual.IsSuccess);
         Assert.Null(actual.Value);
-        Assert.Contains("Purchase order cannot be uncancelled.", actual.Errors);
+        Assert.Contains("Purchase order cannot be uncanceled.", actual.Errors);
         Assert.Null(actual.Exception);
         Assert.Equal(FailureType.BusinessLogic, actual.FailureType);
     }
