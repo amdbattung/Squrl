@@ -316,10 +316,10 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
         PurchaseOrderStatus[] statuses =
         [
             PurchaseOrderStatus.Pending, PurchaseOrderStatus.ToOrder, PurchaseOrderStatus.Ordered,
-            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.canceled,
+            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.Canceled,
             PurchaseOrderStatus.Lost, PurchaseOrderStatus.Failed, PurchaseOrderStatus.Returned,
             PurchaseOrderStatus.Pending, PurchaseOrderStatus.ToOrder, PurchaseOrderStatus.Ordered,
-            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.canceled
+            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.Canceled
         ];
         
         List<PurchaseOrder> seed = Enumerable.Range(1, 15)
@@ -398,10 +398,10 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
         PurchaseOrderStatus[] statuses =
         [
             PurchaseOrderStatus.Pending, PurchaseOrderStatus.ToOrder, PurchaseOrderStatus.Ordered,
-            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.canceled,
+            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.Canceled,
             PurchaseOrderStatus.Lost, PurchaseOrderStatus.Failed, PurchaseOrderStatus.Returned,
             PurchaseOrderStatus.Pending, PurchaseOrderStatus.ToOrder, PurchaseOrderStatus.Ordered,
-            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.canceled
+            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.Canceled
         ];
         
         List<PurchaseOrder> seed = Enumerable.Range(1, 15)
@@ -454,7 +454,7 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
     }
     
     [Fact]
-    public async Task GetManyPurchaseOrders_ShouldReturnFilteredPurchaseOrdersByStatuscanceled()
+    public async Task GetManyPurchaseOrders_ShouldReturnFilteredPurchaseOrdersByStatusCanceled()
     {
         using IServiceScope scope = CreateScope();
 
@@ -480,10 +480,10 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
         PurchaseOrderStatus[] statuses =
         [
             PurchaseOrderStatus.Pending, PurchaseOrderStatus.ToOrder, PurchaseOrderStatus.Ordered,
-            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.canceled,
+            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.Canceled,
             PurchaseOrderStatus.Lost, PurchaseOrderStatus.Failed, PurchaseOrderStatus.Returned,
             PurchaseOrderStatus.Pending, PurchaseOrderStatus.ToOrder, PurchaseOrderStatus.Ordered,
-            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.canceled
+            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.Canceled
         ];
         
         List<PurchaseOrder> seed = Enumerable.Range(1, 15)
@@ -518,7 +518,7 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
         
         // Act
         Result<GetManyPurchaseOrdersDto> actual = await service
-            .GetManyPurchaseOrdersAsync(iscanceled: true);
+            .GetManyPurchaseOrdersAsync(isCanceled: true);
         
         // Assert
         Assert.True(actual.IsSuccess);
@@ -562,10 +562,10 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
         PurchaseOrderStatus[] statuses =
         [
             PurchaseOrderStatus.Pending, PurchaseOrderStatus.ToOrder, PurchaseOrderStatus.Ordered,
-            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.canceled,
+            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.Canceled,
             PurchaseOrderStatus.Lost, PurchaseOrderStatus.Failed, PurchaseOrderStatus.Returned,
             PurchaseOrderStatus.Pending, PurchaseOrderStatus.ToOrder, PurchaseOrderStatus.Ordered,
-            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.canceled
+            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.Canceled
         ];
         
         List<PurchaseOrder> seed = Enumerable.Range(1, 15)
@@ -644,10 +644,10 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
         PurchaseOrderStatus[] statuses =
         [
             PurchaseOrderStatus.Pending, PurchaseOrderStatus.ToOrder, PurchaseOrderStatus.Ordered,
-            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.canceled,
+            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.Canceled,
             PurchaseOrderStatus.Lost, PurchaseOrderStatus.Failed, PurchaseOrderStatus.Returned,
             PurchaseOrderStatus.Pending, PurchaseOrderStatus.ToOrder, PurchaseOrderStatus.Ordered,
-            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.canceled
+            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.Canceled
         ];
         
         List<PurchaseOrder> seed = Enumerable.Range(1, 15)
@@ -726,10 +726,10 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
         PurchaseOrderStatus[] statuses =
         [
             PurchaseOrderStatus.Pending, PurchaseOrderStatus.ToOrder, PurchaseOrderStatus.Ordered,
-            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.canceled,
+            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.Canceled,
             PurchaseOrderStatus.Lost, PurchaseOrderStatus.Failed, PurchaseOrderStatus.Returned,
             PurchaseOrderStatus.Pending, PurchaseOrderStatus.ToOrder, PurchaseOrderStatus.Ordered,
-            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.canceled
+            PurchaseOrderStatus.InTransit, PurchaseOrderStatus.Received, PurchaseOrderStatus.Canceled
         ];
         
         List<PurchaseOrder> seed = Enumerable.Range(1, 15)
@@ -764,7 +764,7 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
         
         // Act
         Result<GetManyPurchaseOrdersDto> actual = await service
-            .GetManyPurchaseOrdersAsync(iscanceled: true, hasFailed: true, isReturned: true);
+            .GetManyPurchaseOrdersAsync(isCanceled: true, hasFailed: true, isReturned: true);
         
         // Assert
         Assert.True(actual.IsSuccess);

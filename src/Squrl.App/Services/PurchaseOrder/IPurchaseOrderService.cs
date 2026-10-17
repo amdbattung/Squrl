@@ -12,7 +12,7 @@ public interface IPurchaseOrderService
         Guid? supplierId = null,
         bool isPending = false,
         bool isReceived = false,
-        bool iscanceled = false,
+        bool isCanceled = false,
         bool hasFailed = false,
         bool isReturned = false,
         int? pageNumber = null,

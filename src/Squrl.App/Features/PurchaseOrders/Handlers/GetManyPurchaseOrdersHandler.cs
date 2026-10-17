@@ -45,9 +45,9 @@ public class GetManyPurchaseOrdersHandler : IRequestHandler<GetManyPurchaseOrder
             statuses.Add(PurchaseOrderStatus.Received);
         }
 
-        if (request.Iscanceled)
+        if (request.IsCanceled)
         {
-            statuses.Add(PurchaseOrderStatus.canceled);
+            statuses.Add(PurchaseOrderStatus.Canceled);
         }
 
         if (request.HasFailed)

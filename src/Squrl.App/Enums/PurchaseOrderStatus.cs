@@ -7,7 +7,7 @@ public enum PurchaseOrderStatus
     Ordered,
     InTransit,
     Received,
-    canceled,
+    Canceled,
     Lost,
     Failed,
     Returned
