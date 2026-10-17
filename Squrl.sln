@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Squrl.App", "src\Squrl.App\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Squrl.WindowsHost", "src\Squrl.WindowsHost\Squrl.WindowsHost.csproj", "{1373011F-CE49-4293-9E7F-3695A4E6AA5E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Squrl.App.Tests", "tests\Squrl.App.Tests\Squrl.App.Tests.csproj", "{FD8A5C65-FC6A-410C-B412-9A3C2705765A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -23,5 +25,9 @@ Global
 		{1373011F-CE49-4293-9E7F-3695A4E6AA5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1373011F-CE49-4293-9E7F-3695A4E6AA5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1373011F-CE49-4293-9E7F-3695A4E6AA5E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD8A5C65-FC6A-410C-B412-9A3C2705765A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD8A5C65-FC6A-410C-B412-9A3C2705765A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD8A5C65-FC6A-410C-B412-9A3C2705765A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD8A5C65-FC6A-410C-B412-9A3C2705765A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -45,7 +45,7 @@ public class SupplierService : ISupplierService
             
             GetManySuppliersDto payload = new GetManySuppliersDto(
                 result.PageNumber,
-                result.PageNumber,
+                result.PageSize,
                 result.TotalCount,
                 result.Value.Select(SupplierMapper.ToDto).ToList());
             

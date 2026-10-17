@@ -19,13 +19,13 @@ public class UpdateItemValidator : AbstractValidator<UpdateItemDto>
         
         RuleFor(x => x.Description)
             .BeNullOrNonWhitespace()
-            .WithMessage("{PropertyName} must not only be whitespace.")
-            .BeAscii()
+            .WithMessage("{PropertyName} must not be only whitespace.")
+            .BeLatin1()
             .WithMessage("Invalid {PropertyName}.");
         
         RuleFor(x => x.Image)
             .BeNullOrNonWhitespace()
-            .WithMessage("{PropertyName} must not only be whitespace.")
+            .WithMessage("{PropertyName} must not be only whitespace.")
             .BeAscii()
             .WithMessage("Invalid {PropertyName}.");
         
@@ -58,9 +58,7 @@ public class UpdateItemValidator : AbstractValidator<UpdateItemDto>
         RuleFor(x => x.Locations)
             .NotNull()
             .WithMessage("{PropertyName} is required.")
-            .Must(x =>
-                x == null ||
-                x.Distinct(StringComparer.OrdinalIgnoreCase).Count() == x.Count)
+            .Must(x => x?.Distinct(StringComparer.OrdinalIgnoreCase).Count() == x?.Count)
             .WithMessage("{PropertyName} must not contain duplicates.");
         
         RuleForEach(x => x.Locations)

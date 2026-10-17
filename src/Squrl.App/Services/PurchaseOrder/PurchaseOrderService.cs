@@ -52,7 +52,7 @@ public partial class PurchaseOrderService : IPurchaseOrderService
         Guid? supplierId = null,
         bool isPending = false,
         bool isReceived = false,
-        bool isCancelled = false,
+        bool iscanceled = false,
         bool hasFailed = false,
         bool isReturned = false,
         int? pageNumber = null,
@@ -70,7 +70,7 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                 supplierId,
                 isPending,
                 isReceived,
-                isCancelled,
+                iscanceled,
                 hasFailed,
                 isReturned,
                 pageNumber,
@@ -78,8 +78,8 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                 orderDirection), cancellationToken);
             
             GetManyPurchaseOrdersDto payload = new GetManyPurchaseOrdersDto(
-                result.PageSize,
                 result.PageNumber,
+                result.PageSize,
                 result.TotalCount,
                 result.Value.Select(PurchaseOrderMapper.ToDto).ToList());
             

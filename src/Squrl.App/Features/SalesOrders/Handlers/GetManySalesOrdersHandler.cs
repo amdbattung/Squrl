@@ -22,10 +22,14 @@ public class GetManySalesOrdersHandler : IRequestHandler<GetManySalesOrdersQuery
         IQueryable<SalesOrder> query = _dataContext.SalesOrders
             .AsNoTracking();
         
+        // TODO: Query by Customer & Invoice Number
+        
         if (!string.IsNullOrWhiteSpace(request.Customer))
         {
-            query = query.Where(s =>
-                EF.Functions.Like(s.Customer, $"%{request.Customer.Trim()}%"));
+            // query = query.Where(s =>
+            //     EF.Functions.Like(s.Customer, $"%{request.Customer.Trim()}%"));
+            
+            query = query.Where(s => s.Customer == request.Customer);
         }
         
         if (request.OrderDirection == SortDirection.Descending)

@@ -20,12 +20,12 @@ public partial class PurchaseOrderService
         {
             var result = await _mediator.Send(new GetManyPoDetailsQuery(
                 PurchaseOrderId: purchaseOrderId,
-                OrderDirection: orderDirection,
-                PageSize: null), cancellationToken);
+                PageSize: null,
+                OrderDirection: orderDirection), cancellationToken);
             
             GetManyPoDetailsDto payload = new GetManyPoDetailsDto(
-                result.PageSize,
                 result.PageNumber,
+                result.PageSize,
                 result.TotalCount,
                 result.Value.Select(PoDetailMapper.ToDto).ToList());
             

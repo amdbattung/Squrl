@@ -12,7 +12,7 @@ public class CreatePurchaseOrderValidator : AbstractValidator<CreatePurchaseOrde
         RuleFor(x => x.InvoiceNumber)
             .BeNullOrNonWhitespace()
             .WithName("Invoice Number")
-            .WithMessage("{PropertyName} must not only be whitespace.")
+            .WithMessage("{PropertyName} must not be only whitespace.")
             .BeAlphanumeric()
             .WithName("Invoice Number")
             .WithMessage("Invalid {PropertyName}.");
@@ -41,11 +41,11 @@ public class CreatePurchaseOrderValidator : AbstractValidator<CreatePurchaseOrde
         RuleFor(x => x.DateRequired)
             .GreaterThanOrEqualTo(x => x.DateOrdered)
             .WithName("Date Required")
-            .WithMessage("{PropertyName} must be after date ordered.");
+            .WithMessage("{PropertyName} must be after order date.");
         
         RuleFor(x => x.DateShipped)
             .GreaterThanOrEqualTo(x => x.DateOrdered)
             .WithName("Date Shipped")
-            .WithMessage("{PropertyName} must be after date ordered.");
+            .WithMessage("{PropertyName} must be after order date.");
     }
 }

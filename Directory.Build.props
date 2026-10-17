@@ -1,6 +1,6 @@
 ﻿<Project>
     <PropertyGroup>
-        <AppVersion>0.2.2-alpha</AppVersion>
+        <AppVersion>0.2.3-alpha</AppVersion>
         
         <Version>$(AppVersion)</Version>
         <AppVersionCore>$([System.Text.RegularExpressions.Regex]::Match('$(AppVersion)', '^\d+\.\d+\.\d+').Value)</AppVersionCore>
