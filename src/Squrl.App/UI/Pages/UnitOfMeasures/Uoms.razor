@@ -1,15 +1,15 @@
 ﻿@page "/uoms"
 @rendermode InteractiveServer
-@attribute [StreamRendering]
+@implements IDisposable
 @inject IUomService UomService
 @inject NavigationManager Navigation
 
 <h1>Unit of Measures</h1>
 
 <input class="form-control"
-       @bind="_searchInput"
-       @bind:event="oninput"
-       @bind:after="SearchAsync" />
+       placeholder="Search UOM..."
+       value="@_searchInput"
+       @oninput="OnSearchInput" />
 
 <button class="btn btn-primary" @onclick="HandleAddUomButtonClick">+ Add UOM</button>
 
@@ -44,6 +44,18 @@
     <option>25</option>
 </select>
 
+@if (_errorMessage.Count > 0)
+{
+    <div class="alert alert-danger mt-3" role="alert">
+        <ul class="mb-0">
+            @foreach (string error in _errorMessage)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}
+
 @code {
     private QuickGrid<GetUomDto>? _grid;
     
@@ -52,11 +64,15 @@
         ItemsPerPage = 10
     };
     
-    private string _searchInput = "";
-    private string _search = "";
+    private string _searchInput = string.Empty;
+    private string _search = string.Empty;
+
     private CancellationTokenSource? _debounceCts;
+    private int _searchVersion;
+    private bool _isDeleting;
+    private bool _disposed;
     
-    // private string? _errorMessage;
+    private IReadOnlyList<string> _errorMessage = [];
 
     private async ValueTask<GridItemsProviderResult<GetUomDto>> LoadUoms(
         GridItemsProviderRequest<GetUomDto> request)
@@ -64,33 +80,36 @@
         try
         {
             int pageSize = request.Count ?? _pagination.ItemsPerPage;
-
             int pageNumber = (request.StartIndex / pageSize) + 1;
 
-            Result<GetManyUomsDto> result =
-                await UomService.GetManyUomsAsync(
-                    _search,
-                    pageNumber,
-                    pageSize);
+            Result<GetManyUomsDto> result = await UomService.GetManyUomsAsync(
+                _search,
+                pageNumber,
+                pageSize,
+                cancellationToken: request.CancellationToken);
 
             if (!result.IsSuccess || result.Value is null)
             {
-                // errorMessage = string.Join(", ", result.Errors);
+                _errorMessage = result.Errors;
 
                 return GridItemsProviderResult.From(
                     Array.Empty<GetUomDto>(),
                     0);
             }
 
-            // errorMessage = null;
+            _errorMessage = [];
 
             return GridItemsProviderResult.From(
-                result.Value?.Uoms?.ToList() ?? [],
-                result.Value?.TotalCount ?? 0);
+                result.Value.Uoms?.ToList() ?? [],
+                result.Value.TotalCount);
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
         {
-            // errorMessage = ex.Message;
+            throw;
+        }
+        catch (Exception)
+        {
+            _errorMessage = ["An unexpected error occurred while loading UOMs."];
 
             return GridItemsProviderResult.From(
                 Array.Empty<GetUomDto>(),
@@ -98,29 +117,62 @@
         }
     }
     
-    private async Task SearchAsync()
+    private async Task OnSearchInput(ChangeEventArgs e)
     {
+        _searchInput = e.Value?.ToString() ?? string.Empty;
+
+        // Invalidate any previous pending search.
+        int version = ++_searchVersion;
+
         _debounceCts?.Cancel();
         _debounceCts?.Dispose();
 
-        _debounceCts = new();
-        CancellationToken token = _debounceCts.Token;
+        CancellationTokenSource cts = new();
+        _debounceCts = cts;
 
         try
         {
-            await Task.Delay(500, token);
+            await Task.Delay(500, cts.Token);
 
-            // Apply the search only after the delay
-            _search = _searchInput;
+            if (_disposed ||
+                cts.IsCancellationRequested ||
+                version != _searchVersion)
+            {
+                return;
+            }
 
-            await _pagination.SetCurrentPageIndexAsync(0);
+            string newSearch = _searchInput.Trim();
 
-            if (_grid is not null)
+            if (string.Equals(_search, newSearch, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _search = newSearch;
+            _errorMessage = [];
+
+            if (_pagination.CurrentPageIndex != 0)
+            {
+                await _pagination.SetCurrentPageIndexAsync(0);
+            }
+            else if (_grid is not null)
             {
                 await _grid.RefreshDataAsync();
             }
         }
-        catch (OperationCanceledException) { }
+        catch (OperationCanceledException)
+        {
+            // Expected when another keystroke arrives.
+        }
+        finally
+        {
+            if (ReferenceEquals(_debounceCts, cts))
+            {
+                _debounceCts = null;
+            }
+
+            cts.Dispose();
+        }
     }
 
     private void HandleAddUomButtonClick()
@@ -135,11 +187,46 @@
     
     private async Task HandleDeleteUomButtonClick(Guid uomId)
     {
-        Result<GetUomDto> result = await UomService.DeleteUomAsync(uomId);
-
-        if (result.IsSuccess && _grid is not null)
+        if (_isDeleting)
         {
-            await _grid.RefreshDataAsync();
+            return;
         }
+
+        _isDeleting = true;
+        _errorMessage = [];
+
+        try
+        {
+            Result<GetUomDto> result = await UomService.DeleteUomAsync(uomId);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessage = result.Errors;
+                return;
+            }
+
+            if (_grid is not null)
+            {
+                await _grid.RefreshDataAsync();
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessage = ["An unexpected error occurred while deleting the UOM."];
+        }
+        finally
+        {
+            _isDeleting = false;
+        }
+    }
+    
+    public void Dispose()
+    {
+        _disposed = true;
+        _searchVersion++;
+
+        _debounceCts?.Cancel();
+        _debounceCts?.Dispose();
+        _debounceCts = null;
     }
 }
