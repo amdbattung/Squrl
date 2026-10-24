@@ -80,12 +80,20 @@ namespace Squrl.Migrations
                         .HasDatabaseName("ix_items_date_created");
 
                     b.HasIndex("Name")
+                        .IsUnique()
                         .HasDatabaseName("ix_items_name");
 
                     b.HasIndex("UomId")
                         .HasDatabaseName("ix_items_uom_id");
 
-                    b.ToTable("items", (string)null);
+                    b.ToTable("items", null, t =>
+                        {
+                            t.HasCheckConstraint("CK_items_cost_price", "cost_price >= 0");
+
+                            t.HasCheckConstraint("CK_items_list_price", "list_price >= 0");
+
+                            t.HasCheckConstraint("CK_items_retail_price", "retail_price >= 0");
+                        });
                 });
 
             modelBuilder.Entity("Squrl.App.Models.PurchaseOrder", b =>
@@ -130,6 +138,9 @@ namespace Squrl.Migrations
 
                     b.HasIndex("DateCreated")
                         .HasDatabaseName("ix_purchase_orders_date_created");
+
+                    b.HasIndex("InvoiceNumber")
+                        .HasDatabaseName("ix_purchase_orders_invoice_number");
 
                     b.HasIndex("SupplierId")
                         .HasDatabaseName("ix_purchase_orders_supplier_id");
@@ -184,6 +195,10 @@ namespace Squrl.Migrations
                     b.ToTable("purchase_order_details", null, t =>
                         {
                             t.HasCheckConstraint("CK_purchase_order_details_line_sequence", "line_sequence >= 1");
+
+                            t.HasCheckConstraint("CK_purchase_order_details_quantity", "quantity >= 0");
+
+                            t.HasCheckConstraint("CK_purchase_order_details_unit_price", "unit_price >= 0");
                         });
                 });
 
@@ -218,6 +233,9 @@ namespace Squrl.Migrations
 
                     b.HasIndex("DateCreated")
                         .HasDatabaseName("ix_sales_orders_date_created");
+
+                    b.HasIndex("InvoiceNumber")
+                        .HasDatabaseName("ix_sales_orders_invoice_number");
 
                     b.ToTable("sales_orders", (string)null);
                 });
@@ -269,6 +287,10 @@ namespace Squrl.Migrations
                     b.ToTable("sales_order_details", null, t =>
                         {
                             t.HasCheckConstraint("CK_sales_order_details_line_sequence", "line_sequence >= 1");
+
+                            t.HasCheckConstraint("CK_sales_order_details_quantity", "quantity >= 0");
+
+                            t.HasCheckConstraint("CK_sales_order_details_unit_price", "unit_price >= 0");
                         });
                 });
 
@@ -301,6 +323,7 @@ namespace Squrl.Migrations
                         .HasDatabaseName("ix_suppliers_date_created");
 
                     b.HasIndex("Name")
+                        .IsUnique()
                         .HasDatabaseName("ix_suppliers_name");
 
                     b.ToTable("suppliers", (string)null);
@@ -338,12 +361,14 @@ namespace Squrl.Migrations
                         .HasName("pk_unit_of_measures");
 
                     b.HasIndex("Code")
+                        .IsUnique()
                         .HasDatabaseName("ix_unit_of_measures_code");
 
                     b.HasIndex("DateCreated")
                         .HasDatabaseName("ix_unit_of_measures_date_created");
 
                     b.HasIndex("Name")
+                        .IsUnique()
                         .HasDatabaseName("ix_unit_of_measures_name");
 
                     b.ToTable("unit_of_measures", (string)null);
