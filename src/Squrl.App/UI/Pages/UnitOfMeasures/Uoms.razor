@@ -86,7 +86,7 @@
                 pageSize,
                 cancellationToken: request.CancellationToken);
 
-            if (!result.IsSuccess || result.Value is null)
+            if (!result.IsSuccess || result.Value?.Uoms is null)
             {
                 _errorMessages = result.Errors;
 

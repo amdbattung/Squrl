@@ -86,7 +86,7 @@
                     pageSize,
                     cancellationToken: request.CancellationToken);
 
-            if (!result.IsSuccess || result.Value is null)
+            if (!result.IsSuccess || result.Value?.Suppliers is null)
             {
                 _errorMessages = result.Errors;
 
@@ -107,7 +107,7 @@
         }
         catch (Exception)
         {
-            _errorMessages = ["An unexpected error occurred while loading UOMs."];
+            _errorMessages = ["An unexpected error occurred while loading suppliers."];
 
             return GridItemsProviderResult.From(
                 Array.Empty<GetSupplierDto>(),
