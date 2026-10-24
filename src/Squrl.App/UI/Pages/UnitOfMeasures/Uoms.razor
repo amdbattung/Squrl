@@ -14,9 +14,9 @@
 <button class="btn btn-primary" @onclick="HandleAddUomButtonClick">+ Add UOM</button>
 
 <QuickGrid @ref="_grid"
-    TGridItem="GetUomDto"
-    ItemsProvider="LoadUoms"
-    Pagination="@_pagination">
+           TGridItem="GetUomDto"
+           ItemsProvider="LoadUoms"
+           Pagination="@_pagination">
     <PropertyColumn Property="u => u.Name" />
     <PropertyColumn Property="u => u.Code" />
     <PropertyColumn Property="u => u.Description" />
@@ -34,9 +34,7 @@
 
 <Paginator State="_pagination" />
 
-<select class="form-select mt-3"
-        style="width:120px"
-        @bind="_pagination.ItemsPerPage">
+<select @bind="_pagination.ItemsPerPage">
     <option>5</option>
     <option>10</option>
     <option>15</option>
@@ -44,11 +42,11 @@
     <option>25</option>
 </select>
 
-@if (_errorMessage.Count > 0)
+@if (_errorMessages.Count > 0)
 {
     <div class="alert alert-danger mt-3" role="alert">
         <ul class="mb-0">
-            @foreach (string error in _errorMessage)
+            @foreach (string error in _errorMessages)
             {
                 <li>@error</li>
             }
@@ -72,7 +70,7 @@
     private bool _isDeleting;
     private bool _disposed;
     
-    private IReadOnlyList<string> _errorMessage = [];
+    private IReadOnlyList<string> _errorMessages = [];
 
     private async ValueTask<GridItemsProviderResult<GetUomDto>> LoadUoms(
         GridItemsProviderRequest<GetUomDto> request)
@@ -80,7 +78,7 @@
         try
         {
             int pageSize = request.Count ?? _pagination.ItemsPerPage;
-            int pageNumber = (request.StartIndex / pageSize) + 1;
+            int pageNumber = request.StartIndex / pageSize + 1;
 
             Result<GetManyUomsDto> result = await UomService.GetManyUomsAsync(
                 _search,
@@ -90,14 +88,14 @@
 
             if (!result.IsSuccess || result.Value is null)
             {
-                _errorMessage = result.Errors;
+                _errorMessages = result.Errors;
 
                 return GridItemsProviderResult.From(
                     Array.Empty<GetUomDto>(),
                     0);
             }
 
-            _errorMessage = [];
+            _errorMessages = [];
 
             return GridItemsProviderResult.From(
                 result.Value.Uoms?.ToList() ?? [],
@@ -109,7 +107,7 @@
         }
         catch (Exception)
         {
-            _errorMessage = ["An unexpected error occurred while loading UOMs."];
+            _errorMessages = ["An unexpected error occurred while loading UOMs."];
 
             return GridItemsProviderResult.From(
                 Array.Empty<GetUomDto>(),
@@ -149,7 +147,7 @@
             }
 
             _search = newSearch;
-            _errorMessage = [];
+            _errorMessages = [];
 
             if (_pagination.CurrentPageIndex != 0)
             {
@@ -193,7 +191,7 @@
         }
 
         _isDeleting = true;
-        _errorMessage = [];
+        _errorMessages = [];
 
         try
         {
@@ -201,7 +199,7 @@
 
             if (!result.IsSuccess)
             {
-                _errorMessage = result.Errors;
+                _errorMessages = result.Errors;
                 return;
             }
 
@@ -212,7 +210,7 @@
         }
         catch (Exception)
         {
-            _errorMessage = ["An unexpected error occurred while deleting the UOM."];
+            _errorMessages = ["An unexpected error occurred while deleting UOM."];
         }
         finally
         {

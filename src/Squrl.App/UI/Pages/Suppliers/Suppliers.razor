@@ -1,14 +1,20 @@
 ﻿@page "/suppliers"
 @rendermode InteractiveServer
-@attribute [StreamRendering]
+@implements IDisposable
 @inject ISupplierService SupplierService
 @inject NavigationManager Navigation
 
 <h1>Suppliers</h1>
 
+<input class="form-control"
+       placeholder="Search supplier..."
+       value="@_searchInput"
+       @oninput="OnSearchInput" />
+
 <button class="btn btn-primary" @onclick="HandleAddSupplierButtonClick">+ Add Supplier</button>
 
-<QuickGrid TGridItem="GetSupplierDto"
+<QuickGrid @ref="_grid"
+           TGridItem="GetSupplierDto"
            ItemsProvider="LoadSuppliers"
            Pagination="@_pagination">
     <PropertyColumn Property="s => s.Name" />
@@ -35,13 +41,35 @@
     <option>25</option> 
 </select>
 
+@if (_errorMessages.Count > 0)
+{
+    <div class="alert alert-danger mt-3" role="alert">
+        <ul class="mb-0">
+            @foreach (string error in _errorMessages)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}
+
 @code {
+    private QuickGrid<GetSupplierDto>? _grid;
+    
     private readonly PaginationState _pagination = new()
     {
         ItemsPerPage = 10
     };
     
-    // private string? _errorMessage;
+    private string _searchInput = string.Empty;
+    private string _search = string.Empty;
+
+    private CancellationTokenSource? _debounceCts;
+    private int _searchVersion;
+    private bool _isDeleting;
+    private bool _disposed;
+    
+    private IReadOnlyList<string> _errorMessages = [];
 
     private async ValueTask<GridItemsProviderResult<GetSupplierDto>> LoadSuppliers(
         GridItemsProviderRequest<GetSupplierDto> request)
@@ -49,36 +77,99 @@
         try
         {
             int pageSize = request.Count ?? _pagination.ItemsPerPage;
-
-            int pageNumber = (request.StartIndex / pageSize) + 1;
+            int pageNumber = request.StartIndex / pageSize + 1;
 
             Result<GetManySuppliersDto> result =
                 await SupplierService.GetManySuppliersAsync(
-                    pageNumber: pageNumber,
-                    pageSize: pageSize);
+                    _search,
+                    pageNumber,
+                    pageSize,
+                    cancellationToken: request.CancellationToken);
 
             if (!result.IsSuccess || result.Value is null)
             {
-                // errorMessage = string.Join(", ", result.Errors);
+                _errorMessages = result.Errors;
 
                 return GridItemsProviderResult.From(
                     Array.Empty<GetSupplierDto>(),
                     0);
             }
 
-            // errorMessage = null;
+            _errorMessages = [];
 
             return GridItemsProviderResult.From(
-                result.Value?.Suppliers?.ToList() ?? [],
-                result.Value?.TotalCount ?? 0);
+                result.Value.Suppliers?.ToList() ?? [],
+                result.Value.TotalCount);
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
         {
-            // errorMessage = ex.Message;
+            throw;
+        }
+        catch (Exception)
+        {
+            _errorMessages = ["An unexpected error occurred while loading UOMs."];
 
             return GridItemsProviderResult.From(
                 Array.Empty<GetSupplierDto>(),
                 0);
+        }
+    }
+    
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        _searchInput = e.Value?.ToString() ?? string.Empty;
+
+        // Invalidate any previous pending search.
+        int version = ++_searchVersion;
+
+        _debounceCts?.Cancel();
+        _debounceCts?.Dispose();
+
+        CancellationTokenSource cts = new();
+        _debounceCts = cts;
+
+        try
+        {
+            await Task.Delay(500, cts.Token);
+
+            if (_disposed ||
+                cts.IsCancellationRequested ||
+                version != _searchVersion)
+            {
+                return;
+            }
+
+            string newSearch = _searchInput.Trim();
+
+            if (string.Equals(_search, newSearch, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            _search = newSearch;
+            _errorMessages = [];
+
+            if (_pagination.CurrentPageIndex != 0)
+            {
+                await _pagination.SetCurrentPageIndexAsync(0);
+            }
+            else if (_grid is not null)
+            {
+                await _grid.RefreshDataAsync();
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Expected when another keystroke arrives.
+        }
+        finally
+        {
+            if (ReferenceEquals(_debounceCts, cts))
+            {
+                _debounceCts = null;
+            }
+
+            cts.Dispose();
         }
     }
 
@@ -92,8 +183,48 @@
         Navigation.NavigateTo($"/suppliers/{supplierId}/edit");
     }
     
-    private async void HandleDeleteSupplierButtonClick(Guid supplierId)
+    private async Task HandleDeleteSupplierButtonClick(Guid supplierId)
     {
-        Result<GetSupplierDto> result = await SupplierService.DeleteSupplierAsync(supplierId);
+        if (_isDeleting)
+        {
+            return;
+        }
+
+        _isDeleting = true;
+        _errorMessages = [];
+
+        try
+        {
+            Result<GetSupplierDto> result = await SupplierService.DeleteSupplierAsync(supplierId);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            if (_grid is not null)
+            {
+                await _grid.RefreshDataAsync();
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessages = ["An unexpected error occurred while deleting supplier."];
+        }
+        finally
+        {
+            _isDeleting = false;
+        }
+    }
+    
+    public void Dispose()
+    {
+        _disposed = true;
+        _searchVersion++;
+
+        _debounceCts?.Cancel();
+        _debounceCts?.Dispose();
+        _debounceCts = null;
     }
 }
