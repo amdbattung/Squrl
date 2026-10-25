@@ -29,9 +29,7 @@ public class GetManyPurchaseOrdersHandler : IRequestHandler<GetManyPurchaseOrder
 
             query = query.Where(p =>
                 EF.Functions.Like(p.Id.ToString(), pattern) ||
-                EF.Functions.Like(p.InvoiceNumber, pattern) ||
-                (p.Supplier != null && EF.Functions
-                    .Like(p.Supplier.Name, pattern)));
+                EF.Functions.Like(p.InvoiceNumber, pattern));
         }
         
         if (request.SupplierId.HasValue)

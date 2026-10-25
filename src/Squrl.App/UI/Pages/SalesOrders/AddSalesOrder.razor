@@ -146,7 +146,7 @@
                 pageSize: pageSize,
                 cancellationToken: cancellationToken);
 
-        if (!result.IsSuccess || result.Value is null)
+        if (!result.IsSuccess || result.Value?.Items is null)
         {
             return new()
             {
