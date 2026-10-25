@@ -22,11 +22,12 @@
     <TemplateColumn Title="Actions">
         <button class="btn btn-secondary"
                 @onclick="@(() => HandleEditSupplierButtonClick(context.Id ?? Guid.Empty))">
-            Edit Supplier
+            Edit
         </button>
         <button class="btn btn-danger"
+                disabled="@(_isDeleting)"
                 @onclick="@(() => HandleDeleteSupplierButtonClick(context.Id ?? Guid.Empty))">
-            Delete Supplier
+            @(_isDeleting ? "Deleting..." : "Delete")
         </button>
     </TemplateColumn>
 </QuickGrid>
@@ -63,9 +64,9 @@
     
     private string _searchInput = string.Empty;
     private string _search = string.Empty;
-
-    private CancellationTokenSource? _debounceCts;
-    private int _searchVersion;
+    
+    private readonly Debouncer _debouncer = new();
+    
     private bool _isDeleting;
     private bool _disposed;
     
@@ -119,57 +120,39 @@
     {
         _searchInput = e.Value?.ToString() ?? string.Empty;
 
-        // Invalidate any previous pending search.
-        int version = ++_searchVersion;
+        await _debouncer.DebounceAsync(
+            async cancellationToken =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await ApplyFiltersAsync();
+            },
+            TimeSpan.FromMilliseconds(500));
+    }
+    
+    private async Task ApplyFiltersAsync()
+    {
+        string newSearch = _searchInput.Trim();
 
-        _debounceCts?.Cancel();
-        _debounceCts?.Dispose();
+        bool searchChanged = !string.Equals(
+            _search,
+            newSearch,
+            StringComparison.Ordinal);
 
-        CancellationTokenSource cts = new();
-        _debounceCts = cts;
-
-        try
+        if (!searchChanged && _grid is null)
         {
-            await Task.Delay(500, cts.Token);
-
-            if (_disposed ||
-                cts.IsCancellationRequested ||
-                version != _searchVersion)
-            {
-                return;
-            }
-
-            string newSearch = _searchInput.Trim();
-
-            if (string.Equals(_search, newSearch, StringComparison.Ordinal))
-            {
-                return;
-            }
-
-            _search = newSearch;
-            _errorMessages = [];
-
-            if (_pagination.CurrentPageIndex != 0)
-            {
-                await _pagination.SetCurrentPageIndexAsync(0);
-            }
-            else if (_grid is not null)
-            {
-                await _grid.RefreshDataAsync();
-            }
+            return;
         }
-        catch (OperationCanceledException)
-        {
-            // Expected when another keystroke arrives.
-        }
-        finally
-        {
-            if (ReferenceEquals(_debounceCts, cts))
-            {
-                _debounceCts = null;
-            }
 
-            cts.Dispose();
+        _search = newSearch;
+        _errorMessages = [];
+
+        if (_pagination.CurrentPageIndex != 0)
+        {
+            await _pagination.SetCurrentPageIndexAsync(0);
+        }
+        else if (_grid is not null)
+        {
+            await _grid.RefreshDataAsync();
         }
     }
 
@@ -221,10 +204,6 @@
     public void Dispose()
     {
         _disposed = true;
-        _searchVersion++;
-
-        _debounceCts?.Cancel();
-        _debounceCts?.Dispose();
-        _debounceCts = null;
+        _debouncer.Dispose();
     }
 }

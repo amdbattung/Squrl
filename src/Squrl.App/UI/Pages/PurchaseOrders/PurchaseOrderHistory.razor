@@ -110,8 +110,9 @@
             Edit
         </button>
         <button class="btn btn-danger"
+                disabled="@(_isDeleting)"
                 @onclick="@(() => HandleDeletePurchaseOrderButtonClick(context.Id ?? Guid.Empty))">
-            Delete
+            @(_isDeleting ? "Deleting..." : "Delete")
         </button>
     </TemplateColumn>
 </QuickGrid>
