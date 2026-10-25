@@ -16,7 +16,7 @@
     TItem="GetSupplierDto"
     TValue="Guid?"
     @bind-Value="_supplierFilter"
-    @bind-Value:after="HandleOnSupplierFilterChange"
+    @bind-Value:after="HandleOnFiltersChange"
     Placeholder="Filter supplier"
     NullText="Select a supplier"
     AllowNull="true"
@@ -215,7 +215,7 @@
         };
     }
     
-    private async Task HandleOnSupplierFilterChange()
+    private async Task HandleOnFiltersChange()
     {
         _debouncer.Cancel();
 

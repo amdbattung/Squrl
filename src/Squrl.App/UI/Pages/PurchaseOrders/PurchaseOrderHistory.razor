@@ -9,9 +9,79 @@
 <h1>Purchase Orders</h1>
 
 <input class="form-control"
-       placeholder="Search invoice no. or supplier..."
+       placeholder="Search invoice no..."
        value="@_searchInput"
        @oninput="OnSearchInput" />
+
+<InputSearchableSelect
+    TItem="GetSupplierDto"
+    TValue="Guid?"
+    @bind-Value="_supplierFilter"
+    @bind-Value:after="HandleOnFiltersChange"
+    Placeholder="Filter supplier"
+    NullText="Select a supplier"
+    AllowNull="true"
+    PageSize="10"
+    LoadItems="LoadSuppliers"
+    GetValue="@(supplier => supplier.Id)"
+    GetText="@(supplier => supplier.Name ?? string.Empty)" />
+
+<div class="d-flex align-items-center gap-3 mb-3">
+    <div class="form-check">
+        <input class="form-check-input"
+               type="checkbox"
+               id="isPending"
+               @bind="_isPendingFilter"
+               @bind:after="HandleOnFiltersChange" />
+        <label class="form-check-label" for="isPending">
+            Pending
+        </label>
+    </div>
+
+    <div class="form-check">
+        <input class="form-check-input"
+               type="checkbox"
+               id="isReceived"
+               @bind="_isReceivedFilter"
+               @bind:after="HandleOnFiltersChange" />
+        <label class="form-check-label" for="isReceived">
+            Received
+        </label>
+    </div>
+    
+    <div class="form-check">
+        <input class="form-check-input"
+               type="checkbox"
+               id="isCanceled"
+               @bind="_isCanceledFilter"
+               @bind:after="HandleOnFiltersChange" />
+        <label class="form-check-label" for="isCanceled">
+            Canceled
+        </label>
+    </div>
+    
+    <div class="form-check">
+        <input class="form-check-input"
+               type="checkbox"
+               id="hasFailed"
+               @bind="_hasFailedFilter"
+               @bind:after="HandleOnFiltersChange" />
+        <label class="form-check-label" for="hasFailed">
+            Failed
+        </label>
+    </div>
+    
+    <div class="form-check">
+        <input class="form-check-input"
+               type="checkbox"
+               id="isReturned"
+               @bind="_isReturnedFilter"
+               @bind:after="HandleOnFiltersChange" />
+        <label class="form-check-label" for="isReturned">
+            Returned
+        </label>
+    </div>
+</div>
 
 <QuickGrid @ref="_grid"
            TGridItem="GetPurchaseOrderDto"
@@ -83,8 +153,15 @@
     private string _searchInput = string.Empty;
     private string _search = string.Empty;
 
-    private CancellationTokenSource? _debounceCts;
-    private int _searchVersion;
+    private Guid? _supplierFilter;
+    private bool _isReceivedFilter = true;
+    private bool _isPendingFilter = true;
+    private bool _isCanceledFilter = true;
+    private bool _hasFailedFilter = true;
+    private bool _isReturnedFilter = true;
+    
+    private readonly Debouncer _debouncer = new();
+    
     private bool _isDeleting;
     private bool _disposed;
     
@@ -101,6 +178,12 @@
             Result<GetManyPurchaseOrdersDto> result =
                 await PurchaseOrderService.GetManyPurchaseOrdersAsync(
                     _search,
+                    _supplierFilter,
+                    _isPendingFilter,
+                    _isReceivedFilter,
+                    _isCanceledFilter,
+                    _hasFailedFilter,
+                    _isReturnedFilter,
                     orderDirection: SortDirection.Descending,
                     pageNumber: pageNumber,
                     pageSize: pageSize,
@@ -151,57 +234,80 @@
     {
         _searchInput = e.Value?.ToString() ?? string.Empty;
 
-        // Invalidate any previous pending search.
-        int version = ++_searchVersion;
+        await _debouncer.DebounceAsync(
+            async cancellationToken =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await ApplyFiltersAsync();
+            },
+            TimeSpan.FromMilliseconds(500));
+    }
+    
+    private async Task<InputSearchableSelect<GetSupplierDto, Guid?>.PagedResult<GetSupplierDto>>
+        LoadSuppliers(
+            string? query,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken)
+    {
+        Result<GetManySuppliersDto> result =
+            await SupplierService.GetManySuppliersAsync(
+                query: query,
+                pageNumber: pageNumber,
+                pageSize: pageSize,
+                cancellationToken: cancellationToken);
 
-        _debounceCts?.Cancel();
-        _debounceCts?.Dispose();
-
-        CancellationTokenSource cts = new();
-        _debounceCts = cts;
-
-        try
+        if (!result.IsSuccess || result.Value?.Suppliers is null)
         {
-            await Task.Delay(500, cts.Token);
-
-            if (_disposed ||
-                cts.IsCancellationRequested ||
-                version != _searchVersion)
+            return new()
             {
-                return;
-            }
-
-            string newSearch = _searchInput.Trim();
-
-            if (string.Equals(_search, newSearch, StringComparison.Ordinal))
-            {
-                return;
-            }
-
-            _search = newSearch;
-            _errorMessages = [];
-
-            if (_pagination.CurrentPageIndex != 0)
-            {
-                await _pagination.SetCurrentPageIndexAsync(0);
-            }
-            else if (_grid is not null)
-            {
-                await _grid.RefreshDataAsync();
-            }
+                Items = [],
+                HasMore = false
+            };
         }
-        catch (OperationCanceledException)
-        {
-            // Expected when another keystroke arrives.
-        }
-        finally
-        {
-            if (ReferenceEquals(_debounceCts, cts))
-            {
-                _debounceCts = null;
-            }
 
-            cts.Dispose();
+        GetManySuppliersDto payload = result.Value;
+
+        bool hasMore = payload.PageNumber * payload.PageSize < payload.TotalCount;
+
+        return new()
+        {
+            Items = payload.Suppliers ?? [],
+            HasMore = hasMore
+        };
+    }
+    
+    private async Task HandleOnFiltersChange()
+    {
+        _debouncer.Cancel();
+
+        await ApplyFiltersAsync();
+    }
+    
+    private async Task ApplyFiltersAsync()
+    {
+        string newSearch = _searchInput.Trim();
+
+        bool searchChanged = !string.Equals(
+            _search,
+            newSearch,
+            StringComparison.Ordinal);
+
+        if (!searchChanged && _grid is null)
+        {
+            return;
+        }
+
+        _search = newSearch;
+        _errorMessages = [];
+
+        if (_pagination.CurrentPageIndex != 0)
+        {
+            await _pagination.SetCurrentPageIndexAsync(0);
+        }
+        else if (_grid is not null)
+        {
+            await _grid.RefreshDataAsync();
         }
     }
     
@@ -249,10 +355,6 @@
     public void Dispose()
     {
         _disposed = true;
-        _searchVersion++;
-
-        _debounceCts?.Cancel();
-        _debounceCts?.Dispose();
-        _debounceCts = null;
+        _debouncer.Dispose();
     }
 }
