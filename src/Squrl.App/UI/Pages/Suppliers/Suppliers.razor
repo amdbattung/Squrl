@@ -1,14 +1,20 @@
 ﻿@page "/suppliers"
 @rendermode InteractiveServer
-@attribute [StreamRendering]
+@implements IDisposable
 @inject ISupplierService SupplierService
 @inject NavigationManager Navigation
 
 <h1>Suppliers</h1>
 
+<input class="form-control"
+       placeholder="Search supplier..."
+       value="@_searchInput"
+       @oninput="OnSearchInput" />
+
 <button class="btn btn-primary" @onclick="HandleAddSupplierButtonClick">+ Add Supplier</button>
 
-<QuickGrid TGridItem="GetSupplierDto"
+<QuickGrid @ref="_grid"
+           TGridItem="GetSupplierDto"
            ItemsProvider="LoadSuppliers"
            Pagination="@_pagination">
     <PropertyColumn Property="s => s.Name" />
@@ -16,11 +22,12 @@
     <TemplateColumn Title="Actions">
         <button class="btn btn-secondary"
                 @onclick="@(() => HandleEditSupplierButtonClick(context.Id ?? Guid.Empty))">
-            Edit Supplier
+            Edit
         </button>
         <button class="btn btn-danger"
+                disabled="@(_isDeleting)"
                 @onclick="@(() => HandleDeleteSupplierButtonClick(context.Id ?? Guid.Empty))">
-            Delete Supplier
+            @(_isDeleting ? "Deleting..." : "Delete")
         </button>
     </TemplateColumn>
 </QuickGrid>
@@ -35,13 +42,35 @@
     <option>25</option> 
 </select>
 
+@if (_errorMessages.Count > 0)
+{
+    <div class="alert alert-danger mt-3" role="alert">
+        <ul class="mb-0">
+            @foreach (string error in _errorMessages)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}
+
 @code {
+    private QuickGrid<GetSupplierDto>? _grid;
+    
     private readonly PaginationState _pagination = new()
     {
         ItemsPerPage = 10
     };
     
-    // private string? _errorMessage;
+    private string _searchInput = string.Empty;
+    private string _search = string.Empty;
+    
+    private readonly Debouncer _debouncer = new();
+    
+    private bool _isDeleting;
+    private bool _disposed;
+    
+    private IReadOnlyList<string> _errorMessages = [];
 
     private async ValueTask<GridItemsProviderResult<GetSupplierDto>> LoadSuppliers(
         GridItemsProviderRequest<GetSupplierDto> request)
@@ -49,36 +78,81 @@
         try
         {
             int pageSize = request.Count ?? _pagination.ItemsPerPage;
-
-            int pageNumber = (request.StartIndex / pageSize) + 1;
+            int pageNumber = request.StartIndex / pageSize + 1;
 
             Result<GetManySuppliersDto> result =
                 await SupplierService.GetManySuppliersAsync(
-                    pageNumber: pageNumber,
-                    pageSize: pageSize);
+                    _search,
+                    pageNumber,
+                    pageSize,
+                    cancellationToken: request.CancellationToken);
 
-            if (!result.IsSuccess || result.Value is null)
+            if (!result.IsSuccess || result.Value?.Suppliers is null)
             {
-                // errorMessage = string.Join(", ", result.Errors);
+                _errorMessages = result.Errors;
 
                 return GridItemsProviderResult.From(
                     Array.Empty<GetSupplierDto>(),
                     0);
             }
 
-            // errorMessage = null;
+            _errorMessages = [];
 
             return GridItemsProviderResult.From(
-                result.Value?.Suppliers?.ToList() ?? [],
-                result.Value?.TotalCount ?? 0);
+                result.Value.Suppliers?.ToList() ?? [],
+                result.Value.TotalCount);
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
         {
-            // errorMessage = ex.Message;
+            throw;
+        }
+        catch (Exception)
+        {
+            _errorMessages = ["An unexpected error occurred while loading suppliers."];
 
             return GridItemsProviderResult.From(
                 Array.Empty<GetSupplierDto>(),
                 0);
+        }
+    }
+    
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        _searchInput = e.Value?.ToString() ?? string.Empty;
+
+        await _debouncer.DebounceAsync(
+            async cancellationToken =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await ApplyFiltersAsync();
+            },
+            TimeSpan.FromMilliseconds(500));
+    }
+    
+    private async Task ApplyFiltersAsync()
+    {
+        string newSearch = _searchInput.Trim();
+
+        bool searchChanged = !string.Equals(
+            _search,
+            newSearch,
+            StringComparison.Ordinal);
+
+        if (!searchChanged && _grid is null)
+        {
+            return;
+        }
+
+        _search = newSearch;
+        _errorMessages = [];
+
+        if (_pagination.CurrentPageIndex != 0)
+        {
+            await _pagination.SetCurrentPageIndexAsync(0);
+        }
+        else if (_grid is not null)
+        {
+            await _grid.RefreshDataAsync();
         }
     }
 
@@ -92,8 +166,44 @@
         Navigation.NavigateTo($"/suppliers/{supplierId}/edit");
     }
     
-    private async void HandleDeleteSupplierButtonClick(Guid supplierId)
+    private async Task HandleDeleteSupplierButtonClick(Guid supplierId)
     {
-        Result<GetSupplierDto> result = await SupplierService.DeleteSupplierAsync(supplierId);
+        if (_isDeleting)
+        {
+            return;
+        }
+
+        _isDeleting = true;
+        _errorMessages = [];
+
+        try
+        {
+            Result<GetSupplierDto> result = await SupplierService.DeleteSupplierAsync(supplierId);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            if (_grid is not null)
+            {
+                await _grid.RefreshDataAsync();
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessages = ["An unexpected error occurred while deleting supplier."];
+        }
+        finally
+        {
+            _isDeleting = false;
+        }
+    }
+    
+    public void Dispose()
+    {
+        _disposed = true;
+        _debouncer.Dispose();
     }
 }

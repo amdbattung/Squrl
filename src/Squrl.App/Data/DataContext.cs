@@ -47,25 +47,32 @@ public class DataContext : DbContext
 
         // Indexes
         modelBuilder.Entity<Item>()
-            .HasIndex(e => new { e.Name  });
+            .HasIndex(e => new { e.Name  })
+            .IsUnique();
         
         modelBuilder.Entity<Item>()
             .HasIndex("DateCreated");
         
         modelBuilder.Entity<Supplier>()
-            .HasIndex(e => new { e.Name });
+            .HasIndex(e => new { e.Name })
+            .IsUnique();
         
         modelBuilder.Entity<Supplier>()
             .HasIndex("DateCreated");
 
         modelBuilder.Entity<UnitOfMeasure>()
-            .HasIndex(e => new { e.Name });
+            .HasIndex(e => new { e.Name })
+            .IsUnique();
         
         modelBuilder.Entity<UnitOfMeasure>()
-            .HasIndex(e => new { e.Code });
+            .HasIndex(e => new { e.Code })
+            .IsUnique();
         
         modelBuilder.Entity<UnitOfMeasure>()
             .HasIndex("DateCreated");
+        
+        modelBuilder.Entity<SalesOrder>()
+            .HasIndex(e => new { e.InvoiceNumber });
         
         modelBuilder.Entity<SalesOrder>()
             .HasIndex("DateCreated");
@@ -76,6 +83,9 @@ public class DataContext : DbContext
         
         modelBuilder.Entity<SalesOrderDetail>()
             .HasIndex("DateCreated");
+        
+        modelBuilder.Entity<PurchaseOrder>()
+            .HasIndex(e => new { e.InvoiceNumber });
         
         modelBuilder.Entity<PurchaseOrder>()
             .HasIndex("DateCreated");
@@ -118,12 +128,68 @@ public class DataContext : DbContext
             .IsRequired();
         
         // Constraints
+        modelBuilder.Entity<Item>()
+            .ToTable("items", t =>
+            {
+                t.HasCheckConstraint(
+                    "CK_items_list_price",
+                    "list_price >= 0");
+            });
+        
+        modelBuilder.Entity<Item>()
+            .ToTable("items", t =>
+            {
+                t.HasCheckConstraint(
+                    "CK_items_retail_price",
+                    "retail_price >= 0");
+            });
+        
+        modelBuilder.Entity<Item>()
+            .ToTable("items", t =>
+            {
+                t.HasCheckConstraint(
+                    "CK_items_cost_price",
+                    "cost_price >= 0");
+            });
+        
+        modelBuilder.Entity<SalesOrderDetail>()
+            .ToTable("sales_order_details", t =>
+            {
+                t.HasCheckConstraint(
+                    "CK_sales_order_details_unit_price",
+                    "unit_price >= 0");
+            });
+        
+        modelBuilder.Entity<SalesOrderDetail>()
+            .ToTable("sales_order_details", t =>
+            {
+                t.HasCheckConstraint(
+                    "CK_sales_order_details_quantity",
+                    "quantity >= 0");
+            });
+        
         modelBuilder.Entity<SalesOrderDetail>()
             .ToTable("sales_order_details", t =>
             {
                 t.HasCheckConstraint(
                     "CK_sales_order_details_line_sequence",
                     "line_sequence >= 1");
+            });
+        
+        modelBuilder.Entity<PurchaseOrderDetail>()
+            .ToTable("purchase_order_details", t =>
+            {
+                t.HasCheckConstraint(
+                    "CK_purchase_order_details_unit_price",
+                    "unit_price >= 0");
+            });
+        
+        modelBuilder.Entity<PurchaseOrderDetail>()
+            .ToTable("purchase_order_details", t =>
+            {
+                t.HasCheckConstraint(
+                    "CK_purchase_order_details_quantity",
+                    "quantity >= 0");
             });
         
         modelBuilder.Entity<PurchaseOrderDetail>()

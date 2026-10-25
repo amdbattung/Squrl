@@ -113,7 +113,7 @@ public partial class PurchaseOrderService
             
             UpdatePurchaseOrderDto updatePurchaseOrder = new()
             {
-                Status = PurchaseOrderStatus.canceled
+                Status = PurchaseOrderStatus.Canceled
             };
                 
             Models.PurchaseOrder? result = await _mediator
@@ -327,7 +327,7 @@ public partial class PurchaseOrderService
                     .WithFailureType(FailureType.NotFound);
             }
             
-            if (existingPurchaseOrder.Status != PurchaseOrderStatus.canceled)
+            if (existingPurchaseOrder.Status != PurchaseOrderStatus.Canceled)
             {
                 return Result<GetPurchaseOrderDto>.Fail("Purchase order cannot be uncanceled.")
                     .WithFailureType(FailureType.BusinessLogic);

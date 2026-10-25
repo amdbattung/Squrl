@@ -1,14 +1,20 @@
 ﻿@page "/sos"
 @rendermode InteractiveServer
-@attribute [StreamRendering]
+@implements IDisposable
 @inject ISalesOrderService SalesOrderService
 @inject NavigationManager Navigation
 
 <h1>Sales Orders</h1>
 
+<input class="form-control"
+       placeholder="Search invoice no. or customer..."
+       value="@_searchInput"
+       @oninput="OnSearchInput" />
+
 <button class="btn btn-primary" @onclick="HandleAddSalesOrderButtonClick">+ New SO</button>
 
-<QuickGrid TGridItem="GetSalesOrderDto"
+<QuickGrid @ref="_grid"
+           TGridItem="GetSalesOrderDto"
            ItemsProvider="LoadSalesOrders"
            Pagination="@_pagination">
     <PropertyColumn Title="Sales Order" Property="s => s.Id" />
@@ -23,8 +29,9 @@
             Edit
         </button>
         <button class="btn btn-danger"
+                disabled="@(_isCanceling)"
                 @onclick="@(() => HandleCancelSalesOrderButtonClick(context.Id ?? Guid.Empty))">
-            Cancel
+            @(_isCanceling ? "Canceling..." : "Cancel")
         </button>
     </TemplateColumn>
 </QuickGrid>
@@ -39,7 +46,21 @@
     <option>25</option> 
 </select>
 
+@if (_errorMessages.Count > 0)
+{
+    <div class="alert alert-danger mt-3" role="alert">
+        <ul class="mb-0">
+            @foreach (string error in _errorMessages)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}
+
 @code {
+    private QuickGrid<GetSalesOrderDto>? _grid;
+    
     private readonly PaginationState _pagination = new()
     {
         ItemsPerPage = 10
@@ -47,42 +68,97 @@
     
     private readonly DateTimeZone _userTimeZone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
     
+    private string _searchInput = string.Empty;
+    private string _search = string.Empty;
+    
+    private readonly Debouncer _debouncer = new();
+    
+    private bool _isCanceling;
+    private bool _disposed;
+    
+    private IReadOnlyList<string> _errorMessages = [];
+    
     private async ValueTask<GridItemsProviderResult<GetSalesOrderDto>> LoadSalesOrders(
         GridItemsProviderRequest<GetSalesOrderDto> request)
     {
         try
         {
             int pageSize = request.Count ?? _pagination.ItemsPerPage;
-
-            int pageNumber = (request.StartIndex / pageSize) + 1;
+            int pageNumber = request.StartIndex / pageSize + 1;
 
             Result<GetManySalesOrdersDto> result =
                 await SalesOrderService.GetManySalesOrdersAsync(
-                    pageNumber: pageNumber,
-                    pageSize: pageSize);
+                    _search,
+                    pageNumber:  pageNumber,
+                    pageSize: pageSize,
+                    cancellationToken: request.CancellationToken);
 
-            if (result.Value?.SalesOrders is null)
+            if (!result.IsSuccess || result.Value?.SalesOrders is null)
             {
-                // errorMessage = string.Join(", ", result.Errors);
+                _errorMessages = result.Errors;
 
                 return GridItemsProviderResult.From(
                     Array.Empty<GetSalesOrderDto>(),
                     0);
             }
 
-            // errorMessage = null;
+            _errorMessages = [];
 
             return GridItemsProviderResult.From(
-                result.Value?.SalesOrders?.ToList() ?? [],
-                result.Value?.TotalCount ?? 0);
+                result.Value.SalesOrders?.ToList() ?? [],
+                result.Value.TotalCount);
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
         {
-            // errorMessage = ex.Message;
+            throw;
+        }
+        catch (Exception)
+        {
+            _errorMessages = ["An unexpected error occurred while loading sales orders."];
 
             return GridItemsProviderResult.From(
                 Array.Empty<GetSalesOrderDto>(),
                 0);
+        }
+    }
+    
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        _searchInput = e.Value?.ToString() ?? string.Empty;
+
+        await _debouncer.DebounceAsync(
+            async cancellationToken =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await ApplyFiltersAsync();
+            },
+            TimeSpan.FromMilliseconds(500));
+    }
+    
+    private async Task ApplyFiltersAsync()
+    {
+        string newSearch = _searchInput.Trim();
+
+        bool searchChanged = !string.Equals(
+            _search,
+            newSearch,
+            StringComparison.Ordinal);
+
+        if (!searchChanged && _grid is null)
+        {
+            return;
+        }
+
+        _search = newSearch;
+        _errorMessages = [];
+
+        if (_pagination.CurrentPageIndex != 0)
+        {
+            await _pagination.SetCurrentPageIndexAsync(0);
+        }
+        else if (_grid is not null)
+        {
+            await _grid.RefreshDataAsync();
         }
     }
     
@@ -98,7 +174,43 @@
     
     private async Task HandleCancelSalesOrderButtonClick(Guid salesOrderId)
     {
-        Result<GetSalesOrderDto> result = await SalesOrderService
-            .DeleteSalesOrderAsync(salesOrderId);
+        if (_isCanceling)
+        {
+            return;
+        }
+
+        _isCanceling = true;
+        _errorMessages = [];
+
+        try
+        {
+            Result<GetSalesOrderDto> result = await SalesOrderService
+                .DeleteSalesOrderAsync(salesOrderId);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            if (_grid is not null)
+            {
+                await _grid.RefreshDataAsync();
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessages = ["An unexpected error occurred while canceling sales order."];
+        }
+        finally
+        {
+            _isCanceling = false;
+        }
+    }
+    
+    public void Dispose()
+    {
+        _disposed = true;
+        _debouncer.Dispose();
     }
 }

@@ -61,11 +61,6 @@
             <ValidationMessage For="@(() => Item.UomId)" />
         </div>
         <div>
-            <label>Quantity</label>
-            <InputNumber @bind-Value="Item.Quantity" />
-            <ValidationMessage For="@(() => Item.Quantity)" />
-        </div>
-        <div>
             <label>List Price</label>
             <InputNumber @bind-Value="Item.ListPrice" />
             <ValidationMessage For="@(() => Item.ListPrice)" />
@@ -191,7 +186,7 @@ else
                 pageSize: pageSize,
                 cancellationToken: cancellationToken);
 
-        if (!result.IsSuccess || result.Value is null)
+        if (!result.IsSuccess || result.Value?.Uoms is null)
         {
             return new()
             {

@@ -1,15 +1,34 @@
 ﻿@page "/pos"
 @rendermode InteractiveServer
-@attribute [StreamRendering]
+@implements IDisposable
 @inject IPurchaseOrderService PurchaseOrderService
 @inject ISupplierService SupplierService
 @inject NavigationManager Navigation
 
 <h1>Purchase Orders</h1>
 
+<input class="form-control"
+       placeholder="Search invoice no..."
+       value="@_searchInput"
+       @oninput="OnSearchInput" />
+
+<InputSearchableSelect
+    TItem="GetSupplierDto"
+    TValue="Guid?"
+    @bind-Value="_supplierFilter"
+    @bind-Value:after="HandleOnFiltersChange"
+    Placeholder="Filter supplier"
+    NullText="Select a supplier"
+    AllowNull="true"
+    PageSize="10"
+    LoadItems="LoadSuppliers"
+    GetValue="@(supplier => supplier.Id)"
+    GetText="@(supplier => supplier.Name ?? string.Empty)" />
+
 <button class="btn btn-primary" @onclick="HandleAddPurchaseOrderButtonClick">+ New PO</button>
 
-<QuickGrid TGridItem="GetPurchaseOrderDto"
+<QuickGrid @ref="_grid"
+           TGridItem="GetPurchaseOrderDto"
            ItemsProvider="LoadPurchaseOrders"
            Pagination="@_pagination">
     <PropertyColumn Title="Purchase Order" Property="p => p.Id" />
@@ -28,16 +47,18 @@
     </TemplateColumn>
     <TemplateColumn Title="Actions">
         <button class="btn btn-success"
+                disabled="@(_isReceiving || _isCanceling)"
                 @onclick="@(() => HandleReceivePurchaseOrderButtonClick(context.Id ?? Guid.Empty))">
-            Receive
+            @(_isReceiving ? "Receiving..." : "Receive")
         </button>
         <button class="btn btn-secondary"
                 @onclick="@(() => HandleEditPurchaseOrderButtonClick(context.Id ?? Guid.Empty))">
             Edit
         </button>
         <button class="btn btn-danger"
+                disabled="@(_isCanceling || _isReceiving)"
                 @onclick="@(() => HandleCancelPurchaseOrderButtonClick(context.Id ?? Guid.Empty))">
-            Cancel
+            @(_isCanceling ? "Canceling..." : "Cancel")
         </button>
     </TemplateColumn>
 </QuickGrid>
@@ -52,7 +73,21 @@
     <option>25</option> 
 </select>
 
+@if (_errorMessages.Count > 0)
+{
+    <div class="alert alert-danger mt-3" role="alert">
+        <ul class="mb-0">
+            @foreach (string error in _errorMessages)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}
+
 @code {
+    private QuickGrid<GetPurchaseOrderDto>? _grid;
+    
     private readonly PaginationState _pagination = new()
     {
         ItemsPerPage = 10
@@ -62,7 +97,18 @@
     
     private readonly DateTimeZone _userTimeZone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
     
-    // private string? _errorMessage;
+    private string _searchInput = string.Empty;
+    private string _search = string.Empty;
+
+    private Guid? _supplierFilter;
+    
+    private readonly Debouncer _debouncer = new();
+    
+    private bool _isReceiving;
+    private bool _isCanceling;
+    private bool _disposed;
+    
+    private IReadOnlyList<string> _errorMessages = [];
 
     private async ValueTask<GridItemsProviderResult<GetPurchaseOrderDto>> LoadPurchaseOrders(
         GridItemsProviderRequest<GetPurchaseOrderDto> request)
@@ -70,18 +116,20 @@
         try
         {
             int pageSize = request.Count ?? _pagination.ItemsPerPage;
-
-            int pageNumber = (request.StartIndex / pageSize) + 1;
+            int pageNumber = request.StartIndex / pageSize + 1;
 
             Result<GetManyPurchaseOrdersDto> result =
                 await PurchaseOrderService.GetManyPurchaseOrdersAsync(
+                    _search,
+                    _supplierFilter,
                     isPending: true,
                     pageNumber: pageNumber,
-                    pageSize: pageSize);
+                    pageSize: pageSize,
+                    cancellationToken: request.CancellationToken);
 
-            if (result.Value?.PurchaseOrders is null)
+            if (!result.IsSuccess || result.Value?.PurchaseOrders is null)
             {
-                // errorMessage = string.Join(", ", result.Errors);
+                _errorMessages = result.Errors;
 
                 return GridItemsProviderResult.From(
                     Array.Empty<GetPurchaseOrderDto>(),
@@ -100,19 +148,104 @@
                 }
             }
 
-            // errorMessage = null;
+            _errorMessages = [];
 
             return GridItemsProviderResult.From(
-                result.Value?.PurchaseOrders?.ToList() ?? [],
-                result.Value?.TotalCount ?? 0);
+                result.Value.PurchaseOrders?.ToList() ?? [],
+                result.Value.TotalCount);
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
         {
-            // errorMessage = ex.Message;
+            throw;
+        }
+        catch (Exception)
+        {
+            _errorMessages = ["An unexpected error occurred while loading purchase orders."];
 
             return GridItemsProviderResult.From(
                 Array.Empty<GetPurchaseOrderDto>(),
                 0);
+        }
+    }
+    
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        _searchInput = e.Value?.ToString() ?? string.Empty;
+
+        await _debouncer.DebounceAsync(
+            async cancellationToken =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await ApplyFiltersAsync();
+            },
+            TimeSpan.FromMilliseconds(500));
+    }
+    
+    private async Task<InputSearchableSelect<GetSupplierDto, Guid?>.PagedResult<GetSupplierDto>>
+        LoadSuppliers(
+            string? query,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken)
+    {
+        Result<GetManySuppliersDto> result =
+            await SupplierService.GetManySuppliersAsync(
+                query: query,
+                pageNumber: pageNumber,
+                pageSize: pageSize,
+                cancellationToken: cancellationToken);
+
+        if (!result.IsSuccess || result.Value?.Suppliers is null)
+        {
+            return new()
+            {
+                Items = [],
+                HasMore = false
+            };
+        }
+
+        GetManySuppliersDto payload = result.Value;
+
+        bool hasMore = payload.PageNumber * payload.PageSize < payload.TotalCount;
+
+        return new()
+        {
+            Items = payload.Suppliers ?? [],
+            HasMore = hasMore
+        };
+    }
+    
+    private async Task HandleOnFiltersChange()
+    {
+        _debouncer.Cancel();
+
+        await ApplyFiltersAsync();
+    }
+    
+    private async Task ApplyFiltersAsync()
+    {
+        string newSearch = _searchInput.Trim();
+
+        bool searchChanged = !string.Equals(
+            _search,
+            newSearch,
+            StringComparison.Ordinal);
+
+        if (!searchChanged && _grid is null)
+        {
+            return;
+        }
+
+        _search = newSearch;
+        _errorMessages = [];
+
+        if (_pagination.CurrentPageIndex != 0)
+        {
+            await _pagination.SetCurrentPageIndexAsync(0);
+        }
+        else if (_grid is not null)
+        {
+            await _grid.RefreshDataAsync();
         }
     }
 
@@ -123,8 +256,38 @@
     
     private async Task HandleReceivePurchaseOrderButtonClick(Guid purchaseOrderId)
     {
-        Result<GetPurchaseOrderDto> result = await PurchaseOrderService
-            .ReceivePurchaseOrderAsync(purchaseOrderId);
+        if (_isReceiving || _isCanceling)
+        {
+            return;
+        }
+
+        _isReceiving = true;
+        _errorMessages = [];
+
+        try
+        {
+            Result<GetPurchaseOrderDto> result = await PurchaseOrderService
+                .ReceivePurchaseOrderAsync(purchaseOrderId);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            if (_grid is not null)
+            {
+                await _grid.RefreshDataAsync();
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessages = ["An unexpected error occurred while receiving purchase order."];
+        }
+        finally
+        {
+            _isReceiving = false;
+        }
     }
     
     private void HandleEditPurchaseOrderButtonClick(Guid purchaseOrderId)
@@ -134,7 +297,43 @@
     
     private async Task HandleCancelPurchaseOrderButtonClick(Guid purchaseOrderId)
     {
-        Result<GetPurchaseOrderDto> result = await PurchaseOrderService
-            .CancelPurchaseOrderAsync(purchaseOrderId);
+        if (_isCanceling || _isReceiving)
+        {
+            return;
+        }
+
+        _isCanceling = true;
+        _errorMessages = [];
+
+        try
+        {
+            Result<GetPurchaseOrderDto> result = await PurchaseOrderService
+                .CancelPurchaseOrderAsync(purchaseOrderId);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            if (_grid is not null)
+            {
+                await _grid.RefreshDataAsync();
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessages = ["An unexpected error occurred while canceling purchase order."];
+        }
+        finally
+        {
+            _isCanceling = false;
+        }
+    }
+    
+    public void Dispose()
+    {
+        _disposed = true;
+        _debouncer.Dispose();
     }
 }

@@ -1,15 +1,21 @@
 ﻿@page "/items"
 @rendermode InteractiveServer
-@attribute [StreamRendering]
+@implements IDisposable
 @inject IInventoryService InventoryService
 @inject IUomService UomService
 @inject NavigationManager Navigation
 
 <h1>Items</h1>
 
+<input class="form-control"
+       placeholder="Search item..."
+       value="@_searchInput"
+       @oninput="OnSearchInput" />
+
 <button class="btn btn-primary" @onclick="HandleAddItemButtonClick">+ Add Item</button>
 
-<QuickGrid TGridItem="GetItemDto"
+<QuickGrid @ref="_grid"
+           TGridItem="GetItemDto"
            ItemsProvider="LoadItems"
            Pagination="@_pagination">
     <PropertyColumn Property="i => i.Name" />
@@ -50,11 +56,12 @@
     <TemplateColumn Title="Actions">
         <button class="btn btn-secondary"
                 @onclick="@(() => HandleEditItemButtonClick(context.Id ?? Guid.Empty))">
-            Edit Item
+            Edit
         </button>
         <button class="btn btn-danger"
+                disabled="@(_isDeleting)"
                 @onclick="@(() => HandleDeleteItemButtonClick(context.Id ?? Guid.Empty))">
-            Delete Item
+            @(_isDeleting ? "Deleting..." : "Delete")
         </button>
     </TemplateColumn>
 </QuickGrid>
@@ -69,7 +76,21 @@
     <option>25</option> 
 </select>
 
+@if (_errorMessages.Count > 0)
+{
+    <div class="alert alert-danger mt-3" role="alert">
+        <ul class="mb-0">
+            @foreach (string error in _errorMessages)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}
+
 @code {
+    private QuickGrid<GetItemDto>? _grid;
+    
     private readonly PaginationState _pagination = new()
     {
         ItemsPerPage = 10
@@ -77,7 +98,15 @@
     
     private readonly Dictionary<Guid, string> _uomCache = new();
     
-    // private string? _errorMessage;
+    private string _searchInput = string.Empty;
+    private string _search = string.Empty;
+    
+    private readonly Debouncer _debouncer = new();
+    
+    private bool _isDeleting;
+    private bool _disposed;
+    
+    private IReadOnlyList<string> _errorMessages = [];
 
     private async ValueTask<GridItemsProviderResult<GetItemDto>> LoadItems(
         GridItemsProviderRequest<GetItemDto> request)
@@ -85,17 +114,18 @@
         try
         {
             int pageSize = request.Count ?? _pagination.ItemsPerPage;
-
-            int pageNumber = (request.StartIndex / pageSize) + 1;
+            int pageNumber = request.StartIndex / pageSize + 1;
 
             Result<GetManyItemsDto> result =
                 await InventoryService.GetManyItemsAsync(
-                    pageNumber: pageNumber,
-                    pageSize: pageSize);
+                    _search,
+                    pageNumber,
+                    pageSize,
+                    cancellationToken: request.CancellationToken);
 
-            if (result.Value?.Items is null)
+            if (!result.IsSuccess || result.Value?.Items is null)
             {
-                // errorMessage = string.Join(", ", result.Errors);
+                _errorMessages = result.Errors;
 
                 return GridItemsProviderResult.From(
                     Array.Empty<GetItemDto>(),
@@ -115,19 +145,63 @@
                 }
             }
 
-            // errorMessage = null;
+            _errorMessages = [];
 
             return GridItemsProviderResult.From(
-                result.Value?.Items?.ToList() ?? [],
-                result.Value?.TotalCount ?? 0);
+                result.Value.Items?.ToList() ?? [],
+                result.Value.TotalCount);
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
         {
-            // errorMessage = ex.Message;
+            throw;
+        }
+        catch (Exception)
+        {
+            _errorMessages = ["An unexpected error occurred while loading items."];
 
             return GridItemsProviderResult.From(
                 Array.Empty<GetItemDto>(),
                 0);
+        }
+    }
+    
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        _searchInput = e.Value?.ToString() ?? string.Empty;
+
+        await _debouncer.DebounceAsync(
+            async cancellationToken =>
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                await ApplyFiltersAsync();
+            },
+            TimeSpan.FromMilliseconds(500));
+    }
+    
+    private async Task ApplyFiltersAsync()
+    {
+        string newSearch = _searchInput.Trim();
+
+        bool searchChanged = !string.Equals(
+            _search,
+            newSearch,
+            StringComparison.Ordinal);
+
+        if (!searchChanged && _grid is null)
+        {
+            return;
+        }
+
+        _search = newSearch;
+        _errorMessages = [];
+
+        if (_pagination.CurrentPageIndex != 0)
+        {
+            await _pagination.SetCurrentPageIndexAsync(0);
+        }
+        else if (_grid is not null)
+        {
+            await _grid.RefreshDataAsync();
         }
     }
 
@@ -143,6 +217,42 @@
     
     private async void HandleDeleteItemButtonClick(Guid itemId)
     {
-        Result<GetItemDto> result = await InventoryService.DeleteItemAsync(itemId);
+        if (_isDeleting)
+        {
+            return;
+        }
+
+        _isDeleting = true;
+        _errorMessages = [];
+
+        try
+        {
+            Result<GetItemDto> result = await InventoryService.DeleteItemAsync(itemId);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            if (_grid is not null)
+            {
+                await _grid.RefreshDataAsync();
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessages = ["An unexpected error occurred while deleting item."];
+        }
+        finally
+        {
+            _isDeleting = false;
+        }
+    }
+    
+    public void Dispose()
+    {
+        _disposed = true;
+        _debouncer.Dispose();
     }
 }

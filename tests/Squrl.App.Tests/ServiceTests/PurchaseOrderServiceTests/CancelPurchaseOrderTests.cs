@@ -19,7 +19,7 @@ public sealed class CancelPurchaseOrderTests : IntegrationTest
     }
 
     [Fact]
-    public async Task CancelPurchaseOrder_ShouldUpdatePurchaseOrderStatusTocanceled()
+    public async Task CancelPurchaseOrder_ShouldUpdatePurchaseOrderStatusToCanceled()
     {
         using IServiceScope scope = CreateScope();
 
@@ -71,7 +71,7 @@ public sealed class CancelPurchaseOrderTests : IntegrationTest
         Assert.Null(actual.Exception);
         Assert.Null(actual.FailureType);
         
-        Assert.Equal(PurchaseOrderStatus.canceled, actual.Value.Status);
+        Assert.Equal(PurchaseOrderStatus.Canceled, actual.Value.Status);
         
         Assert.Equal(seed.Id, actual.Value.Id);
         Assert.Equal(seed.Supplier?.Id, actual.Value.SupplierId);
@@ -87,7 +87,7 @@ public sealed class CancelPurchaseOrderTests : IntegrationTest
         Assert.NotNull(updated);
         
         Assert.Equal(seed.Id, updated.Id);
-        Assert.Equal(PurchaseOrderStatus.canceled, updated.Status);
+        Assert.Equal(PurchaseOrderStatus.Canceled, updated.Status);
     }
 
     [Fact]

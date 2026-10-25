@@ -44,7 +44,7 @@
                 <option value="@PurchaseOrderStatus.Ordered">Ordered</option>
                 <option value="@PurchaseOrderStatus.InTransit">In Transit</option>
                 <option value="@PurchaseOrderStatus.Received">Received</option>
-                <option value="@PurchaseOrderStatus.canceled">canceled</option>
+                <option value="@PurchaseOrderStatus.Canceled">Canceled</option>
                 <option value="@PurchaseOrderStatus.Lost">Lost</option>
                 <option value="@PurchaseOrderStatus.Failed">Failed</option>
                 <option value="@PurchaseOrderStatus.Returned">Returned</option>
@@ -282,7 +282,7 @@ else
                 pageSize: pageSize,
                 cancellationToken: cancellationToken);
 
-        if (!result.IsSuccess || result.Value is null)
+        if (!result.IsSuccess || result.Value?.Suppliers is null)
         {
             return new()
             {
@@ -316,7 +316,7 @@ else
                 pageSize: pageSize,
                 cancellationToken: cancellationToken);
 
-        if (!result.IsSuccess || result.Value is null)
+        if (!result.IsSuccess || result.Value?.Items is null)
         {
             return new()
             {

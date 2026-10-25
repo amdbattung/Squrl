@@ -23,6 +23,15 @@ public class GetManyPurchaseOrdersHandler : IRequestHandler<GetManyPurchaseOrder
             .AsNoTracking()
             .Include(p => p.Supplier);
         
+        if (!string.IsNullOrWhiteSpace(request.Query))
+        {
+            string pattern = $"%{request.Query.Trim()}%";
+
+            query = query.Where(p =>
+                EF.Functions.Like(p.Id.ToString(), pattern) ||
+                EF.Functions.Like(p.InvoiceNumber, pattern));
+        }
+        
         if (request.SupplierId.HasValue)
         {
             query = query.Where(p => p.Supplier != null && p.Supplier.Id == request.SupplierId);
@@ -45,9 +54,9 @@ public class GetManyPurchaseOrdersHandler : IRequestHandler<GetManyPurchaseOrder
             statuses.Add(PurchaseOrderStatus.Received);
         }
 
-        if (request.Iscanceled)
+        if (request.IsCanceled)
         {
-            statuses.Add(PurchaseOrderStatus.canceled);
+            statuses.Add(PurchaseOrderStatus.Canceled);
         }
 
         if (request.HasFailed)

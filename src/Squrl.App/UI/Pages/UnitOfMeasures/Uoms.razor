@@ -1,48 +1,59 @@
 ﻿@page "/uoms"
 @rendermode InteractiveServer
-@attribute [StreamRendering]
+@implements IDisposable
 @inject IUomService UomService
 @inject NavigationManager Navigation
 
 <h1>Unit of Measures</h1>
 
 <input class="form-control"
-       @bind="_searchInput"
-       @bind:event="oninput"
-       @bind:after="SearchAsync" />
+       placeholder="Search UOM..."
+       value="@_searchInput"
+       @oninput="OnSearchInput" />
 
 <button class="btn btn-primary" @onclick="HandleAddUomButtonClick">+ Add UOM</button>
 
 <QuickGrid @ref="_grid"
-    TGridItem="GetUomDto"
-    ItemsProvider="LoadUoms"
-    Pagination="@_pagination">
+           TGridItem="GetUomDto"
+           ItemsProvider="LoadUoms"
+           Pagination="@_pagination">
     <PropertyColumn Property="u => u.Name" />
     <PropertyColumn Property="u => u.Code" />
     <PropertyColumn Property="u => u.Description" />
     <TemplateColumn Title="Actions">
         <button class="btn btn-secondary"
                 @onclick="@(() => HandleEditUomButtonClick(context.Id ?? Guid.Empty))">
-            Edit UOM
+            Edit
         </button>
         <button class="btn btn-danger"
+                disabled="@(_isDeleting)"
                 @onclick="@(() => HandleDeleteUomButtonClick(context.Id ?? Guid.Empty))">
-            Delete UOM
+            @(_isDeleting ? "Deleting..." : "Delete")
         </button>
     </TemplateColumn>
 </QuickGrid>
 
 <Paginator State="_pagination" />
 
-<select class="form-select mt-3"
-        style="width:120px"
-        @bind="_pagination.ItemsPerPage">
+<select @bind="_pagination.ItemsPerPage">
     <option>5</option>
     <option>10</option>
     <option>15</option>
     <option>20</option>
     <option>25</option>
 </select>
+
+@if (_errorMessages.Count > 0)
+{
+    <div class="alert alert-danger mt-3" role="alert">
+        <ul class="mb-0">
+            @foreach (string error in _errorMessages)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}
 
 @code {
     private QuickGrid<GetUomDto>? _grid;
@@ -52,11 +63,15 @@
         ItemsPerPage = 10
     };
     
-    private string _searchInput = "";
-    private string _search = "";
-    private CancellationTokenSource? _debounceCts;
+    private string _searchInput = string.Empty;
+    private string _search = string.Empty;
     
-    // private string? _errorMessage;
+    private readonly Debouncer _debouncer = new();
+    
+    private bool _isDeleting;
+    private bool _disposed;
+    
+    private IReadOnlyList<string> _errorMessages = [];
 
     private async ValueTask<GridItemsProviderResult<GetUomDto>> LoadUoms(
         GridItemsProviderRequest<GetUomDto> request)
@@ -64,33 +79,36 @@
         try
         {
             int pageSize = request.Count ?? _pagination.ItemsPerPage;
+            int pageNumber = request.StartIndex / pageSize + 1;
 
-            int pageNumber = (request.StartIndex / pageSize) + 1;
+            Result<GetManyUomsDto> result = await UomService.GetManyUomsAsync(
+                _search,
+                pageNumber,
+                pageSize,
+                cancellationToken: request.CancellationToken);
 
-            Result<GetManyUomsDto> result =
-                await UomService.GetManyUomsAsync(
-                    _search,
-                    pageNumber,
-                    pageSize);
-
-            if (!result.IsSuccess || result.Value is null)
+            if (!result.IsSuccess || result.Value?.Uoms is null)
             {
-                // errorMessage = string.Join(", ", result.Errors);
+                _errorMessages = result.Errors;
 
                 return GridItemsProviderResult.From(
                     Array.Empty<GetUomDto>(),
                     0);
             }
 
-            // errorMessage = null;
+            _errorMessages = [];
 
             return GridItemsProviderResult.From(
-                result.Value?.Uoms?.ToList() ?? [],
-                result.Value?.TotalCount ?? 0);
+                result.Value.Uoms?.ToList() ?? [],
+                result.Value.TotalCount);
         }
-        catch (Exception ex)
+        catch (OperationCanceledException)
         {
-            // errorMessage = ex.Message;
+            throw;
+        }
+        catch (Exception)
+        {
+            _errorMessages = ["An unexpected error occurred while loading UOMs."];
 
             return GridItemsProviderResult.From(
                 Array.Empty<GetUomDto>(),
@@ -98,29 +116,44 @@
         }
     }
     
-    private async Task SearchAsync()
+    private async Task OnSearchInput(ChangeEventArgs e)
     {
-        _debounceCts?.Cancel();
-        _debounceCts?.Dispose();
+        _searchInput = e.Value?.ToString() ?? string.Empty;
 
-        _debounceCts = new();
-        CancellationToken token = _debounceCts.Token;
-
-        try
-        {
-            await Task.Delay(500, token);
-
-            // Apply the search only after the delay
-            _search = _searchInput;
-
-            await _pagination.SetCurrentPageIndexAsync(0);
-
-            if (_grid is not null)
+        await _debouncer.DebounceAsync(
+            async cancellationToken =>
             {
-                await _grid.RefreshDataAsync();
-            }
+                cancellationToken.ThrowIfCancellationRequested();
+                await ApplyFiltersAsync();
+            },
+            TimeSpan.FromMilliseconds(500));
+    }
+    
+    private async Task ApplyFiltersAsync()
+    {
+        string newSearch = _searchInput.Trim();
+
+        bool searchChanged = !string.Equals(
+            _search,
+            newSearch,
+            StringComparison.Ordinal);
+
+        if (!searchChanged && _grid is null)
+        {
+            return;
         }
-        catch (OperationCanceledException) { }
+
+        _search = newSearch;
+        _errorMessages = [];
+
+        if (_pagination.CurrentPageIndex != 0)
+        {
+            await _pagination.SetCurrentPageIndexAsync(0);
+        }
+        else if (_grid is not null)
+        {
+            await _grid.RefreshDataAsync();
+        }
     }
 
     private void HandleAddUomButtonClick()
@@ -135,11 +168,42 @@
     
     private async Task HandleDeleteUomButtonClick(Guid uomId)
     {
-        Result<GetUomDto> result = await UomService.DeleteUomAsync(uomId);
-
-        if (result.IsSuccess && _grid is not null)
+        if (_isDeleting)
         {
-            await _grid.RefreshDataAsync();
+            return;
         }
+
+        _isDeleting = true;
+        _errorMessages = [];
+
+        try
+        {
+            Result<GetUomDto> result = await UomService.DeleteUomAsync(uomId);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            if (_grid is not null)
+            {
+                await _grid.RefreshDataAsync();
+            }
+        }
+        catch (Exception)
+        {
+            _errorMessages = ["An unexpected error occurred while deleting UOM."];
+        }
+        finally
+        {
+            _isDeleting = false;
+        }
+    }
+    
+    public void Dispose()
+    {
+        _disposed = true;
+        _debouncer.Dispose();
     }
 }
