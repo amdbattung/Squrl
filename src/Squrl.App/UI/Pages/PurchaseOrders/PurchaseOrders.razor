@@ -190,7 +190,7 @@
     {
         Result<GetManySuppliersDto> result =
             await SupplierService.GetManySuppliersAsync(
-                query: query,
+                search: query,
                 pageNumber: pageNumber,
                 pageSize: pageSize,
                 cancellationToken: cancellationToken);

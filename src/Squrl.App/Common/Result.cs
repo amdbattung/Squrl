@@ -42,6 +42,28 @@ public class Result<T>
                 message: errors.FirstOrDefault()));
     }
     
+    public static FailureBuilder<T> Fail(IEnumerable<string> errors)
+    {
+        string[] errorArray = errors as string[] ?? errors.ToArray();
+        
+        return new FailureBuilder<T>(
+            new Result<T>(
+                isSuccess: false,
+                errors: errorArray,
+                message: errorArray.FirstOrDefault()));
+    }
+    
+    public Result<T> WithoutException()
+    {
+        return new Result<T>(
+            isSuccess: IsSuccess,
+            value: Value,
+            message: Message,
+            errors: Errors,
+            exception: null,
+            failureType: FailureType);
+    }
+    
     // Success Builder
     public sealed class SuccessBuilder<TValue>
     {
