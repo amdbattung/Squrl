@@ -53,7 +53,7 @@ public class SupplierService : ISupplierService
             .Take(pageSize)
             .ToListAsync(cancellationToken);
         
-        GetManySuppliersDto payload = new GetManySuppliersDto(
+        GetManySuppliersDto payload = new(
             pageNumber,
             pageSize,
             totalCount,

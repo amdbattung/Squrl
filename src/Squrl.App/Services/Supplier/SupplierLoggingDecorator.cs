@@ -37,9 +37,7 @@ public class SupplierLoggingDecorator : ISupplierService
         catch (Exception e)
         {
             _logger.LogError(e, "Get Many Suppliers Request: unhandled exception.");
-            return Result<GetManySuppliersDto>
-                .Fail("Failed to retrieve suppliers, something went wrong.")
-                .WithFailureType(FailureType.Unexpected);
+            throw;
         }
 
         if (result.IsSuccess)
@@ -50,7 +48,10 @@ public class SupplierLoggingDecorator : ISupplierService
         else
         {
             _logger.LogError(result.Exception,
-                "Get Many Suppliers Request: failed to fetch suppliers.");
+                "Get Many Suppliers Request: unhandled exception type {FailureType}.",
+                nameof(result.FailureType));
+            throw result.Exception
+                  ?? new Exception(result.Message ?? "Failed to retrieve suppliers, something went wrong.");
         }
         
         return result;
@@ -67,9 +68,7 @@ public class SupplierLoggingDecorator : ISupplierService
         catch (Exception e)
         {
             _logger.LogError(e, "Create Supplier Request: unhandled exception.");
-            return Result<GetSupplierDto>
-                .Fail("Failed to create supplier, something went wrong.")
-                .WithFailureType(FailureType.Unexpected);
+            throw;
         }
 
         if (result.IsSuccess)
@@ -88,16 +87,15 @@ public class SupplierLoggingDecorator : ISupplierService
             case FailureType.Exception:
                 _logger.LogError(result.Exception,
                     "Create Supplier Request: unhandled exception.");
-                return Result<GetSupplierDto>
-                    .Fail(result.Message ?? "Failed to create supplier, something went wrong.")
-                    .WithFailureType(FailureType.Unexpected);
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to create supplier, something went wrong.");
             
             default:
                 _logger.LogError(result.Exception,
-                    "Create Supplier Request: unhandled exception.");
-                return Result<GetSupplierDto>
-                    .Fail(result.Message ?? "Failed to create supplier, something went wrong.")
-                    .WithFailureType(FailureType.Unexpected);
+                    "Create Supplier Request: unhandled exception type {FailureType}.",
+                    nameof(result.FailureType));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to create supplier, something went wrong.");
         }
     
         return result;
@@ -114,9 +112,7 @@ public class SupplierLoggingDecorator : ISupplierService
         catch (Exception e)
         {
             _logger.LogError(e, "Get Supplier By ID Request: unhandled exception.");
-            return Result<GetSupplierDto>
-                .Fail("Failed to retrieve supplier, something went wrong.")
-                .WithFailureType(FailureType.Unexpected);
+            throw;
         }
 
         if (result.IsSuccess)
@@ -139,16 +135,15 @@ public class SupplierLoggingDecorator : ISupplierService
             case FailureType.Exception:
                 _logger.LogError(result.Exception,
                     "Get Supplier By ID Request: unhandled exception.");
-                return Result<GetSupplierDto>
-                    .Fail(result.Message ?? "Failed to retrieve supplier, something went wrong.")
-                    .WithFailureType(FailureType.Unexpected);
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve supplier, something went wrong.");
             
             default:
                 _logger.LogError(result.Exception,
-                    "Get Supplier By ID Request: unhandled exception.");
-                return Result<GetSupplierDto>
-                    .Fail(result.Message ?? "Failed to retrieve supplier, something went wrong.")
-                    .WithFailureType(FailureType.Unexpected);
+                    "Get Supplier Request By ID: unhandled exception type {FailureType}.",
+                    nameof(result.FailureType));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve supplier, something went wrong.");
         }
         
         return result;
@@ -165,9 +160,7 @@ public class SupplierLoggingDecorator : ISupplierService
         catch (Exception e)
         {
             _logger.LogError(e, "Update Supplier Request: unhandled exception.");
-            return Result<GetSupplierDto>
-                .Fail("Failed to update supplier, something went wrong.")
-                .WithFailureType(FailureType.Unexpected);
+            throw;
         }
 
         if (result.IsSuccess)
@@ -190,16 +183,15 @@ public class SupplierLoggingDecorator : ISupplierService
             case FailureType.Exception:
                 _logger.LogError(result.Exception,
                     "Update Supplier Request: unhandled exception.");
-                return Result<GetSupplierDto>
-                    .Fail(result.Message ?? "Failed to update supplier, something went wrong.")
-                    .WithFailureType(FailureType.Unexpected);
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to update supplier, something went wrong.");
             
             default:
                 _logger.LogError(result.Exception,
-                    "Update Supplier Request: unhandled exception.");
-                return Result<GetSupplierDto>
-                    .Fail(result.Message ?? "Failed to update supplier, something went wrong.")
-                    .WithFailureType(FailureType.Unexpected);
+                    "Update Supplier Request: unhandled exception type {FailureType}.",
+                    nameof(result.FailureType));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to update supplier, something went wrong.");
         }
         
         return result;
@@ -216,9 +208,7 @@ public class SupplierLoggingDecorator : ISupplierService
         catch (Exception e)
         {
             _logger.LogError(e, "Delete Supplier Request: unhandled exception.");
-            return Result<GetSupplierDto>
-                .Fail("Failed to delete supplier, something went wrong.")
-                .WithFailureType(FailureType.Unexpected);
+            throw;
         }
 
         if (result.IsSuccess)
@@ -235,22 +225,21 @@ public class SupplierLoggingDecorator : ISupplierService
             
             case FailureType.NotFound:
                 _logger.LogInformation(result.Exception,
-                    "Delete Supplier Request: failed to update, supplier not found.");
+                    "Delete Supplier Request: failed to delete, supplier not found.");
                 break;
             
             case FailureType.Exception:
                 _logger.LogError(result.Exception,
                     "Delete Supplier Request: unhandled exception.");
-                return Result<GetSupplierDto>
-                    .Fail(result.Message ?? "Failed to delete supplier, something went wrong.")
-                    .WithFailureType(FailureType.Unexpected);
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to delete supplier, something went wrong.");
             
             default:
                 _logger.LogError(result.Exception,
-                    "Delete Supplier Request: unhandled exception.");
-                return Result<GetSupplierDto>
-                    .Fail(result.Message ?? "Failed to delete supplier, something went wrong.")
-                    .WithFailureType(FailureType.Unexpected);
+                    "Delete Supplier Request: unhandled exception type {FailureType}.",
+                    nameof(result.FailureType));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to delete supplier, something went wrong.");
         }
         
         return result;

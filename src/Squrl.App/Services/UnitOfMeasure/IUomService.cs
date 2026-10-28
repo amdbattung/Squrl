@@ -7,9 +7,9 @@ namespace Squrl.App.Services.UnitOfMeasure;
 public interface IUomService
 {
     Task<Result<GetManyUomsDto>> GetManyUomsAsync(
-        string? query = null,
-        int? pageNumber = null,
-        int? pageSize = null,
+        string? search = null,
+        int pageNumber = 1,
+        int pageSize = 10,
         SortDirection orderDirection = SortDirection.Ascending,
         CancellationToken cancellationToken = default);
     Task<Result<GetUomDto>> CreateUomAsync(CreateUomDto uom, CancellationToken cancellationToken = default);

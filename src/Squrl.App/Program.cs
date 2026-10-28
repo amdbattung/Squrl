@@ -139,7 +139,9 @@ try
     builder.Services.Decorate<IPurchaseOrderService, PurchaseOrderLoggingDecorator>();
     
     builder.Services.AddScoped<IUomService, UomService>();
+    builder.Services.Decorate<IUomService, UomPreprocessingDecorator>();
     builder.Services.Decorate<IUomService, UomLoggingDecorator>();
+    builder.Services.Decorate<IUomService, UomErrorHandlingDecorator>();
     
     builder.Services.AddScoped<ISupplierService, SupplierService>();
     builder.Services.Decorate<ISupplierService, SupplierPreprocessingDecorator>();

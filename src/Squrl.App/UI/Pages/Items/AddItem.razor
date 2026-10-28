@@ -136,7 +136,7 @@
     {
         Result<GetManyUomsDto> result =
             await UomService.GetManyUomsAsync(
-                query: query,
+                search: query,
                 pageNumber: pageNumber,
                 pageSize: pageSize,
                 cancellationToken: cancellationToken);
