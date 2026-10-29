@@ -73,13 +73,9 @@ public class SupplierService : ISupplierService
         
         await _dataContext.Suppliers.AddAsync(newSupplier, cancellationToken);
 
-        if (await _dataContext.SaveChangesAsync(cancellationToken) > 0)
-        {
-            return Result<GetSupplierDto>.Ok(SupplierMapper.ToDto(newSupplier));
-        }
-        
-        return Result<GetSupplierDto>.Fail()
-            .WithFailureType(FailureType.Exception);
+        return await _dataContext.SaveChangesAsync(cancellationToken) > 0
+            ? Result<GetSupplierDto>.Ok(SupplierMapper.ToDto(newSupplier))
+            : throw new InvalidOperationException("Supplier could not be persisted.");
     }
 
     public async Task<Result<GetSupplierDto>> GetSupplierByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -130,12 +126,8 @@ public class SupplierService : ISupplierService
         
         _dataContext.Suppliers.Remove(existingSupplier);
         
-        if (await _dataContext.SaveChangesAsync(cancellationToken) > 0)
-        {
-            return Result<GetSupplierDto>.Ok(SupplierMapper.ToDto(existingSupplier));
-        }
-        
-        return Result<GetSupplierDto>.Fail()
-            .WithFailureType(FailureType.Exception);
+        return await _dataContext.SaveChangesAsync(cancellationToken) > 0
+            ? Result<GetSupplierDto>.Ok(SupplierMapper.ToDto(existingSupplier))
+            : throw new InvalidOperationException("Supplier could not be deleted.");
     }
 }

@@ -54,7 +54,7 @@
     {
         Result<GetManyItemsDto> result =
             await InventoryService.GetManyItemsAsync(
-                query: query,
+                search: query,
                 pageNumber: pageNumber,
                 pageSize: pageSize,
                 cancellationToken: cancellationToken);

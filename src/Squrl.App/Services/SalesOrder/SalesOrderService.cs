@@ -1,11 +1,9 @@
 ﻿using FluentValidation;
 using FluentValidation.Results;
 using MediatR;
-using NodaTime;
 using Squrl.App.Common;
 using Squrl.App.Enums;
 using Squrl.App.Features.Items.DTOs;
-using Squrl.App.Features.Items.Queries;
 using Squrl.App.Features.SalesOrderDetails.Commands;
 using Squrl.App.Features.SalesOrderDetails.DTOs;
 using Squrl.App.Features.SalesOrderDetails.Queries;
@@ -123,8 +121,9 @@ public partial class SalesOrderService : ISalesOrderService
                         return null;
                     }
                     
-                    Item? item = await _mediator
-                        .Send(new GetItemByIdQuery(soDetailResult.Item.Id), ct);
+                    GetItemDto? item = (await _inventoryService
+                            .GetItemByIdAsync(soDetailResult.Item.Id, ct))
+                        .Value;
 
                     if (item is null)
                     {

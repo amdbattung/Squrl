@@ -1,7 +1,9 @@
 ﻿using MediatR;
+using Microsoft.EntityFrameworkCore;
+using NodaTime;
 using Squrl.App.Common;
+using Squrl.App.Data;
 using Squrl.App.Enums;
-using Squrl.App.Features.Items.Queries;
 using Squrl.App.Models;
 using AlertObject = Squrl.App.Common.Alert;
 
@@ -21,9 +23,17 @@ public class AlertService : IAlertService
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         using IServiceScope scope = _scopeFactory.CreateScope();
-        IMediator mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        DataContext dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
         
-        IReadOnlyList<Item> items = await mediator.Send(new GetLowQuantityItemsQuery(), cancellationToken);
+        // IReadOnlyList<Item> items = await mediator.Send(new GetLowQuantityItemsQuery(), cancellationToken);
+        
+        IReadOnlyList<Item> items = await dataContext.Items
+            .AsNoTracking()
+            .Include(i => i.Uom)
+            .Where(i => i.Quantity <= i.LowQuantityAlertThreshold)
+            .OrderBy(i => EF.Property<Instant>(i, "DateCreated"))
+            .ThenBy(i => i.Name)
+            .ToListAsync(cancellationToken);
 
         _activeAlerts = items.ToDictionary(
             i => i.Id,

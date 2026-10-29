@@ -1,7 +1,6 @@
 ﻿using Squrl.App.Common;
 using Squrl.App.Enums;
 using Squrl.App.Features.Items.DTOs;
-using Squrl.App.Features.Items.Queries;
 using Squrl.App.Features.PurchaseOrderDetails.Queries;
 using Squrl.App.Features.PurchaseOrders.Commands;
 using Squrl.App.Features.PurchaseOrders.DTOs;
@@ -163,8 +162,8 @@ public partial class PurchaseOrderService
             {
                 foreach (PurchaseOrderDetail poDetail in poDetailsResult.Value)
                 {
-                    Item? item = await _mediator
-                        .Send(new GetItemByIdQuery(poDetail.Item.Id), ct);
+                    GetItemDto? item = (await _inventoryService.GetItemByIdAsync(poDetail.Item.Id, ct))
+                        .Value;
 
                     if (item is null)
                     {
@@ -257,8 +256,8 @@ public partial class PurchaseOrderService
             {
                 foreach (PurchaseOrderDetail poDetail in poDetailsResult.Value)
                 {
-                    Item? item = await _mediator
-                        .Send(new GetItemByIdQuery(poDetail.Item.Id), ct);
+                    GetItemDto? item = (await _inventoryService.GetItemByIdAsync(poDetail.Item.Id, ct))
+                        .Value;
 
                     if (item is null)
                     {

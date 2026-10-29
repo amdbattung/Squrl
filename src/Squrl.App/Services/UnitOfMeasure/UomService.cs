@@ -77,13 +77,9 @@ public class UomService : IUomService
         
         await _dataContext.UnitOfMeasures.AddAsync(newUom, cancellationToken);
         
-        if (await _dataContext.SaveChangesAsync(cancellationToken) > 0)
-        {
-            return Result<GetUomDto>.Ok(UomMapper.ToDto(newUom));
-        }
-        
-        return Result<GetUomDto>.Fail()
-            .WithFailureType(FailureType.Exception);
+        return await _dataContext.SaveChangesAsync(cancellationToken) > 0
+            ? Result<GetUomDto>.Ok(UomMapper.ToDto(newUom))
+            : throw new InvalidOperationException("UOM could not be persisted.");
     }
 
     public async Task<Result<GetUomDto>> GetUomByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -135,12 +131,8 @@ public class UomService : IUomService
         
         _dataContext.UnitOfMeasures.Remove(existingUom);
         
-        if (await _dataContext.SaveChangesAsync(cancellationToken) > 0)
-        {
-            return Result<GetUomDto>.Ok(UomMapper.ToDto(existingUom));
-        }
-        
-        return Result<GetUomDto>.Fail()
-            .WithFailureType(FailureType.Exception);
+        return await _dataContext.SaveChangesAsync(cancellationToken) > 0
+            ? Result<GetUomDto>.Ok(UomMapper.ToDto(existingUom))
+            : throw new InvalidOperationException("Item could not be deleted.");
     }
 }

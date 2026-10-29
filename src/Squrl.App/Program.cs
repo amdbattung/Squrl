@@ -129,8 +129,10 @@ try
 
     // Custom services.
     builder.Services.AddScoped<IInventoryService, InventoryService>();
+    builder.Services.Decorate<IInventoryService, InventoryPreprocessingDecorator>();
     builder.Services.Decorate<IInventoryService, InventoryAlertDecorator>();
     builder.Services.Decorate<IInventoryService, InventoryLoggingDecorator>();
+    builder.Services.Decorate<IInventoryService, InventoryErrorHandlingDecorator>();
     
     builder.Services.AddScoped<ISalesOrderService, SalesOrderService>();
     builder.Services.Decorate<ISalesOrderService, SalesOrderLoggingDecorator>();

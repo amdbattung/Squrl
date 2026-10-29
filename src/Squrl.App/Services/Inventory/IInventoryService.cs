@@ -7,9 +7,9 @@ namespace Squrl.App.Services.Inventory;
 public interface IInventoryService
 {
     Task<Result<GetManyItemsDto>> GetManyItemsAsync(
-        string? query = null,
-        int? pageNumber = null,
-        int? pageSize = null,
+        string? search = null,
+        int pageNumber = 1,
+        int pageSize = 10,
         SortDirection orderDirection = SortDirection.Ascending,
         CancellationToken cancellationToken = default);
     Task<Result<GetItemDto>> CreateItemAsync(CreateItemDto item, Stream? photo = null, CancellationToken cancellationToken = default);
