@@ -121,7 +121,7 @@ public class Result<T>
             return this;
         }
         
-        public FailureBuilder<TValue> WithException(Exception e)
+        public FailureBuilder<TValue> WithException(Exception? e)
         {
             _result = new Result<TValue>(
                 _result.IsSuccess,
@@ -134,7 +134,7 @@ public class Result<T>
             return this;
         }
 
-        public FailureBuilder<TValue> WithFailureType(FailureType failureType)
+        public FailureBuilder<TValue> WithFailureType(FailureType? failureType)
         {
             _result = new Result<TValue>(
                 _result.IsSuccess,

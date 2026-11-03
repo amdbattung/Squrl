@@ -1,6 +1,4 @@
-﻿using FluentValidation;
-using MediatR;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using Squrl.App.Common;
 using Squrl.App.Data;
@@ -445,7 +443,8 @@ public class InventoryService : IInventoryService
                 return await RemoveStocksAsync(itemId, value, cancellationToken);
             
             case '×' or '*' or 'x' or 'X':
-                if (!decimal.TryParse(quantity.AsSpan(1), out value) || value <= 0m)
+                if (!decimal.TryParse(quantity.AsSpan(1), out value)
+                    || value <= 0m)
                 {
                     return Result<GetItemDto>.Fail("Invalid quantity.")
                         .WithFailureType(FailureType.Validation);

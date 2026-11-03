@@ -1,16 +1,11 @@
-﻿using FluentValidation;
-using FluentValidation.Results;
-using MediatR;
+﻿using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using Squrl.App.Common;
+using Squrl.App.Data;
 using Squrl.App.Enums;
-using Squrl.App.Features.PurchaseOrderDetails.Commands;
 using Squrl.App.Features.PurchaseOrderDetails.DTOs;
-using Squrl.App.Features.PurchaseOrderDetails.Queries;
-using Squrl.App.Features.PurchaseOrders.Commands;
 using Squrl.App.Features.PurchaseOrders.DTOs;
 using Squrl.App.Features.PurchaseOrders.Mapping;
-using Squrl.App.Features.PurchaseOrders.Queries;
 using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Models;
 using Squrl.App.Services.Inventory;
@@ -19,311 +14,329 @@ namespace Squrl.App.Services.PurchaseOrder;
 
 public partial class PurchaseOrderService : IPurchaseOrderService
 {
-    private readonly IMediator _mediator;
+    private readonly DataContext _dataContext;
     private readonly ITransactionManager _transactionManager;
-    private readonly IValidator<CreatePurchaseOrderDto> _createPurchaseOrderValidator;
-    private readonly IValidator<UpdatePurchaseOrderDto> _updatePurchaseOrderValidator;
-    private readonly IValidator<CreatePoDetailDto> _createPoDetailValidator;
-    private readonly IValidator<UpdatePoDetailDto> _updatePoDetailValidator;
     private readonly IInventoryService _inventoryService;
     private readonly IClock _clock;
 
-    public PurchaseOrderService(IMediator mediator,
+    public PurchaseOrderService(DataContext dataContext,
         ITransactionManager transactionManager,
-        IValidator<CreatePurchaseOrderDto> createPurchaseOrderValidator,
-        IValidator<UpdatePurchaseOrderDto> updatePurchaseOrderValidator,
-        IValidator<CreatePoDetailDto> createPoDetailValidator,
-        IValidator<UpdatePoDetailDto> updatePoDetailValidator,
         IInventoryService inventoryService,
         IClock clock)
     {
-        _mediator = mediator;
+        _dataContext = dataContext;
         _transactionManager = transactionManager;
-        _createPurchaseOrderValidator = createPurchaseOrderValidator;
-        _updatePurchaseOrderValidator = updatePurchaseOrderValidator;
-        _createPoDetailValidator = createPoDetailValidator;
-        _updatePoDetailValidator = updatePoDetailValidator;
         _inventoryService = inventoryService;
         _clock = clock;
     }
 
     public async Task<Result<GetManyPurchaseOrdersDto>> GetManyPurchaseOrdersAsync(
-        string? query = null,
+        string? search = null,
         Guid? supplierId = null,
         bool isPending = false,
         bool isReceived = false,
         bool isCanceled = false,
         bool hasFailed = false,
         bool isReturned = false,
-        int? pageNumber = null,
-        int? pageSize = null,
+        int pageNumber = 1,
+        int pageSize = 10,
         SortDirection orderDirection = SortDirection.Ascending,
         CancellationToken cancellationToken = default)
     {
-        try
+        IQueryable<Models.PurchaseOrder> query = _dataContext.PurchaseOrders
+            .AsNoTracking()
+            .Include(p => p.Supplier);
+        
+        if (!string.IsNullOrWhiteSpace(search))
         {
-            pageNumber = pageNumber >= 1 ? pageNumber : 1;
-            pageSize = pageSize is >= 1 and <= 50 ? pageSize : 10;
-            
-            var result = await _mediator.Send(new GetManyPurchaseOrdersQuery(
-                query,
-                supplierId,
-                isPending,
-                isReceived,
-                isCanceled,
-                hasFailed,
-                isReturned,
-                pageNumber,
-                pageSize,
-                orderDirection), cancellationToken);
-            
-            GetManyPurchaseOrdersDto payload = new GetManyPurchaseOrdersDto(
-                result.PageNumber,
-                result.PageSize,
-                result.TotalCount,
-                result.Value.Select(PurchaseOrderMapper.ToDto).ToList());
-            
-            return Result<GetManyPurchaseOrdersDto>.Ok(payload);
+            string pattern = $"%{search}%";
+
+            query = query.Where(p =>
+                EF.Functions.Like(p.Id.ToString(), pattern) ||
+                EF.Functions.Like(p.InvoiceNumber, pattern));
         }
-        catch (OperationCanceledException)
+        
+        if (supplierId.HasValue)
         {
-            throw;
+            query = query.Where(p => p.Supplier != null && p.Supplier.Id == supplierId);
         }
-        catch (Exception e)
+
+        List<PurchaseOrderStatus> statuses = new();
+
+        if (isPending)
         {
-            return Result<GetManyPurchaseOrdersDto>.Fail("Failed to retrieve purchase orders.")
-                .WithException(e)
-                .WithFailureType(FailureType.Exception);
+            statuses.AddRange([
+                PurchaseOrderStatus.Pending,
+                PurchaseOrderStatus.ToOrder,
+                PurchaseOrderStatus.Ordered,
+                PurchaseOrderStatus.InTransit
+            ]);
         }
+
+        if (isReceived)
+        {
+            statuses.Add(PurchaseOrderStatus.Received);
+        }
+
+        if (isCanceled)
+        {
+            statuses.Add(PurchaseOrderStatus.Canceled);
+        }
+
+        if (hasFailed)
+        {
+            statuses.AddRange([
+                PurchaseOrderStatus.Failed,
+                PurchaseOrderStatus.Lost
+            ]);
+        }
+
+        if (isReturned)
+        {
+            statuses.Add(PurchaseOrderStatus.Returned);
+        }
+
+        if (statuses.Count >= 0)
+        {
+            query = query.Where(p => statuses.Contains(p.Status));
+        }
+
+        if (orderDirection == SortDirection.Descending)
+        {
+            query = query
+                .OrderByDescending(p => EF.Property<Instant>(p, "DateCreated"))
+                .ThenBy(p => p.Id);
+        }
+        else
+        {
+            query = query
+                .OrderBy(p => EF.Property<Instant>(p, "DateCreated"))
+                .ThenBy(p => p.Id);
+        }
+        
+        int totalCount = await query.CountAsync(cancellationToken);
+
+        IReadOnlyList<Models.PurchaseOrder> existingPurchaseOrders = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+        
+        GetManyPurchaseOrdersDto payload = new(
+            pageNumber,
+            pageSize,
+            totalCount,
+            existingPurchaseOrders.Select(PurchaseOrderMapper.ToDto).ToList());
+
+        return Result<GetManyPurchaseOrdersDto>.Ok(payload);
     }
 
     public async Task<Result<GetPurchaseOrderDto>> CreatePurchaseOrderAsync(CreatePurchaseOrderDto purchaseOrder, CancellationToken cancellationToken = default)
     {
-        try
+        Func<CancellationToken, Task<Result<GetPurchaseOrderDto>>> action = async ct =>
         {
-            purchaseOrder.Status ??= PurchaseOrderStatus.Pending;
-            
-            ValidationResult poValidationResult = await _createPurchaseOrderValidator.ValidateAsync(purchaseOrder, cancellationToken);
-            
-            if (!poValidationResult.IsValid)
+            Models.Supplier? supplier = await _dataContext.Suppliers
+                .FirstOrDefaultAsync(s => s.Id == purchaseOrder.SupplierId, ct);
+
+            if (supplier == null)
             {
-                return Result<GetPurchaseOrderDto>.Fail(poValidationResult.Errors
-                        .Select(e => e.ErrorMessage)
-                        .ToArray())
-                    .WithFailureType(FailureType.Validation);
+                return Result<GetPurchaseOrderDto>
+                    .Fail("Selected supplier not found.")
+                    .WithFailureType(FailureType.NotFound);
             }
-            
-            Models.PurchaseOrder? result = await _transactionManager.ExecuteAsync(async ct =>
+
+            Models.PurchaseOrder newPurchaseOrder = new()
             {
-                Models.PurchaseOrder? purchaseOrderResult = await _mediator.Send(
-                    new CreatePurchaseOrderCommand(purchaseOrder), ct);
-                
-                if (purchaseOrderResult is null)
+                Id = Guid.NewGuid(),
+                Supplier = supplier,
+                InvoiceNumber = purchaseOrder.InvoiceNumber,
+                Status = purchaseOrder.Status ?? default,
+                DateOrdered = purchaseOrder.DateOrdered ?? _clock.GetCurrentInstant(),
+                DateRequired = purchaseOrder.DateRequired,
+                DateShipped = purchaseOrder.DateShipped
+            };
+
+            await _dataContext.PurchaseOrders.AddAsync(newPurchaseOrder, ct);
+
+            foreach (CreatePoDetailDto poDetail in purchaseOrder.Details ?? [])
+            {
+                Item? item = await _dataContext.Items
+                    .FirstOrDefaultAsync(i => i.Id == poDetail.ItemId, ct);
+
+                if (item == null)
                 {
-                    return null;
+                    return Result<GetPurchaseOrderDto>
+                        .Fail($"Selected item for PO detail {poDetail.LineSequence} not found.")
+                        .WithFailureType(FailureType.NotFound);
                 }
 
-                foreach (CreatePoDetailDto poDetail in purchaseOrder.Details ?? [])
+                PurchaseOrderDetail newPoDetail = new()
                 {
-                    poDetail.PurchaseOrderId = purchaseOrderResult.Id;
-                    PurchaseOrderDetail? poDetailResult = await _mediator
-                        .Send(new CreatePoDetailCommand(poDetail), ct);
-                    
-                    if (poDetailResult is null)
-                    {
-                        return null;
-                    }
-                }
+                    Id = Guid.NewGuid(),
+                    PurchaseOrder = newPurchaseOrder,
+                    LineSequence = poDetail.LineSequence ?? 0,
+                    Item = item,
+                    UnitPrice = poDetail.UnitPrice ?? 0m,
+                    Quantity = poDetail.Quantity ?? 0m
+                };
 
-                return purchaseOrderResult;
-            }, cancellationToken);
-            
-            if (result == null)
-            {
-                return Result<GetPurchaseOrderDto>.Fail("Failed to create purchase order.")
-                    .WithFailureType(FailureType.BusinessLogic);
+                await _dataContext.PurchaseOrderDetails.AddAsync(newPoDetail, ct);
             }
-            
-            return Result<GetPurchaseOrderDto>.Ok(PurchaseOrderMapper.ToDto(result));
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            return Result<GetPurchaseOrderDto>.Fail("Failed to create purchase order.")
-                .WithException(e)
-                .WithFailureType(FailureType.Exception);
-        }
+
+            return Result<GetPurchaseOrderDto>.Ok(PurchaseOrderMapper.ToDto(newPurchaseOrder));
+        };
+        
+        return await _transactionManager.ExecuteAsync(action, cancellationToken);
     }
 
     public async Task<Result<GetPurchaseOrderDto>> GetPurchaseOrderByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        try
+        Models.PurchaseOrder? existingPurchaseOrder = await _dataContext.PurchaseOrders
+            .AsNoTracking()
+            .Include(p => p.Supplier)
+            .Where(p => p.Id == id)
+            .FirstOrDefaultAsync(cancellationToken);
+        
+        if (existingPurchaseOrder == null)
         {
-            if (id == Guid.Empty)
-            {
-                return Result<GetPurchaseOrderDto>.Fail("Null or invalid ID.")
-                    .WithFailureType(FailureType.Validation);
-            }
-            
-            Models.PurchaseOrder? result = await _mediator.Send(new GetPurchaseOrderByIdQuery(id), cancellationToken);
-            
-            if (result == null)
-            {
-                return Result<GetPurchaseOrderDto>.Fail("Purchase order not found.")
-                    .WithFailureType(FailureType.NotFound);
-            }
-            
-            return Result<GetPurchaseOrderDto>.Ok(PurchaseOrderMapper.ToDto(result));
+            return Result<GetPurchaseOrderDto>.Fail("Purchase order not found.")
+                .WithFailureType(FailureType.NotFound);
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            return Result<GetPurchaseOrderDto>.Fail("Failed to retrieve purchase order.")
-                .WithException(e)
-                .WithFailureType(FailureType.Exception);
-        }
+
+        return Result<GetPurchaseOrderDto>.Ok(PurchaseOrderMapper.ToDto(existingPurchaseOrder));
     }
 
-    public async Task<Result<GetPurchaseOrderDto>> UpdatePurchaseOrderAsync(Guid id,
+    public async Task<Result<GetPurchaseOrderDto>> UpdatePurchaseOrderAsync(
+        Guid id,
         UpdatePurchaseOrderDto purchaseOrder,
         CancellationToken cancellationToken = default)
     {
-        try
-        {
-            if (id == Guid.Empty)
+        Func<CancellationToken, Task<Result<GetPurchaseOrderDto>>> action = async ct =>
             {
-                return Result<GetPurchaseOrderDto>.Fail("Null or invalid ID.")
-                    .WithFailureType(FailureType.Validation);
-            }
-            
-            ValidationResult poValidationResult = await _updatePurchaseOrderValidator.ValidateAsync(purchaseOrder, cancellationToken);
-            
-            if (!poValidationResult.IsValid)
-            {
-                return Result<GetPurchaseOrderDto>.Fail(poValidationResult.Errors
-                        .Select(e => e.ErrorMessage)
-                        .ToArray())
-                    .WithFailureType(FailureType.Validation);
-            }
-            
-            Models.PurchaseOrder? result = await _transactionManager.ExecuteAsync(async ct =>
-            {
-                IReadOnlyList<PurchaseOrderDetail> existingPoDetails = (await _mediator
-                        .Send(new GetManyPoDetailsQuery(PurchaseOrderId: id, PageSize: null), ct))
-                    .Value;
-                
-                Models.PurchaseOrder? purchaseOrderResult = await _mediator
-                    .Send(new UpdatePurchaseOrderCommand(id, purchaseOrder), ct);
-                
-                if (purchaseOrderResult is null)
+                Models.PurchaseOrder? existingPurchaseOrder = await _dataContext.PurchaseOrders
+                    .Include(p => p.Supplier)
+                    .FirstOrDefaultAsync(p => p.Id == id, ct);
+        
+                if (existingPurchaseOrder == null)
                 {
-                    return null;
+                    return Result<GetPurchaseOrderDto>
+                        .Fail("Purchase order not found.")
+                        .WithFailureType(FailureType.NotFound);
                 }
+            
+                Models.Supplier? supplier = null;
+    
+                if (purchaseOrder.SupplierId != null
+                    && purchaseOrder.SupplierId != existingPurchaseOrder.Supplier?.Id)
+                {
+                    supplier = await _dataContext.Suppliers
+                        .FirstOrDefaultAsync(s => s.Id == purchaseOrder.SupplierId, ct);
+        
+                    if (supplier == null)
+                    {
+                        return Result<GetPurchaseOrderDto>.Fail("Selected supplier not found.")
+                            .WithFailureType(FailureType.NotFound);
+                    }
+                }
+                
+                existingPurchaseOrder.Supplier = supplier;
+                existingPurchaseOrder.InvoiceNumber = purchaseOrder.InvoiceNumber ?? existingPurchaseOrder.InvoiceNumber;
+                existingPurchaseOrder.Status = purchaseOrder.Status ?? existingPurchaseOrder.Status;
+                existingPurchaseOrder.DateOrdered = purchaseOrder.DateOrdered ?? existingPurchaseOrder.DateOrdered;
+                existingPurchaseOrder.DateRequired = purchaseOrder.DateRequired ?? existingPurchaseOrder.DateRequired;
+                existingPurchaseOrder.DateShipped = purchaseOrder.DateShipped ?? existingPurchaseOrder.DateShipped;
+                
+                IReadOnlyList<PurchaseOrderDetail> existingPoDetails = await _dataContext.PurchaseOrderDetails
+                    .Include(p => p.Item)
+                    .Where(p => p.PurchaseOrder.Id == id)
+                    .OrderBy(p => p.LineSequence)
+                    .ToListAsync(ct);
                 
                 foreach (UpdatePoDetailDto poDetail in purchaseOrder.Details ?? [])
                 {
-                    poDetail.PurchaseOrderId = null;
-                    
                     PurchaseOrderDetail? existingPoDetail = existingPoDetails
                         .FirstOrDefault(p => p.LineSequence == poDetail.LineSequence);
-
-                    PurchaseOrderDetail? poDetailResult;
-
+                    
                     if (existingPoDetail is not null)
                     {
-                        poDetailResult = await _mediator
-                            .Send(new UpdatePoDetailCommand(existingPoDetail.Id, poDetail), ct);
+                        Item? item = null;
+                        
+                        if (poDetail.ItemId != null
+                            && poDetail.ItemId != existingPoDetail.Item.Id)
+                        {
+                            item = await _dataContext.Items
+                                .FirstOrDefaultAsync(i => i.Id == poDetail.ItemId, ct);
+                            
+                            if (item == null)
+                            {
+                                return Result<GetPurchaseOrderDto>
+                                    .Fail($"Selected item for PO detail {poDetail.LineSequence} not found.")
+                                    .WithFailureType(FailureType.NotFound);
+                            }
+                        }
+                        
+                        existingPoDetail.Item = item ?? existingPoDetail.Item;
+                        existingPoDetail.UnitPrice = poDetail.UnitPrice ?? existingPoDetail.UnitPrice;
+                        existingPoDetail.Quantity = poDetail.Quantity ?? existingPoDetail.Quantity;
                     }
                     else
                     {
-                        poDetailResult = await _mediator
-                            .Send(new CreatePoDetailCommand(new CreatePoDetailDto
-                            {
-                                PurchaseOrderId = id,
-                                LineSequence = poDetail.LineSequence,
-                                ItemId = poDetail.ItemId,
-                                UnitPrice = poDetail.UnitPrice,
-                                Quantity = poDetail.Quantity
-                            }), ct);
-                    }
-                    
-                    if (poDetailResult is null)
-                    {
-                        return null;
+                        Item? item = await _dataContext.Items
+                            .FirstOrDefaultAsync(i => i.Id == poDetail.ItemId, ct);
+                        
+                        if (item == null)
+                        {
+                            return Result<GetPurchaseOrderDto>
+                                .Fail($"Selected item for PO detail {poDetail.LineSequence} not found.")
+                                .WithFailureType(FailureType.NotFound);
+                        }
+                        
+                        PurchaseOrderDetail newPoDetail = new()
+                        {
+                            Id = Guid.NewGuid(),
+                            PurchaseOrder = existingPurchaseOrder,
+                            LineSequence = poDetail.LineSequence ?? 0,
+                            Item = item,
+                            UnitPrice = poDetail.UnitPrice ?? 0m,
+                            Quantity = poDetail.Quantity ?? 0m
+                        };
+                        
+                        await _dataContext.PurchaseOrderDetails.AddAsync(newPoDetail, ct);
                     }
                 }
-
+                
+                // Delete existing PO details that are not in the request.
                 foreach (PurchaseOrderDetail poDetail in existingPoDetails
                              .Where(e => (purchaseOrder.Details ?? [])
                                  .All(u => u.LineSequence != e.LineSequence)))
                 {
-                    PurchaseOrderDetail? poDetailResult = await _mediator
-                        .Send(new DeletePoDetailCommand(poDetail.Id), ct);
-                    
-                    if (poDetailResult is null)
-                    {
-                        return null;
-                    }
+                    _dataContext.PurchaseOrderDetails.Remove(poDetail);
                 }
-
-                return purchaseOrderResult;
-            }, cancellationToken);
-            
-            if (result == null)
-            {
-                return Result<GetPurchaseOrderDto>.Fail("Failed to update purchase order.")
-                    .WithFailureType(FailureType.NotFound);
-            }
-            
-            return Result<GetPurchaseOrderDto>.Ok(PurchaseOrderMapper.ToDto(result));
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            return Result<GetPurchaseOrderDto>.Fail("Failed to update purchase order.")
-                .WithException(e)
-                .WithFailureType(FailureType.Exception);
-        }
+                
+                return Result<GetPurchaseOrderDto>.Ok(PurchaseOrderMapper.ToDto(existingPurchaseOrder));
+            };
+    
+        return await _transactionManager.ExecuteAsync(action, cancellationToken);
     }
 
     public async Task<Result<GetPurchaseOrderDto>> DeletePurchaseOrderAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        try
+        Func<CancellationToken, Task<Result<GetPurchaseOrderDto>>> action = async ct =>
         {
-            if (id == Guid.Empty)
-            {
-                return Result<GetPurchaseOrderDto>.Fail("Null or invalid ID.")
-                    .WithFailureType(FailureType.Validation);
-            }
+            Models.PurchaseOrder? existingPurchaseOrder = await _dataContext.PurchaseOrders
+                .Include(p => p.Supplier)
+                .FirstOrDefaultAsync(p => p.Id == id, ct);
 
-            Models.PurchaseOrder? result = await _mediator.Send(new DeletePurchaseOrderCommand(id), cancellationToken);
-            
-            if (result == null)
+            if (existingPurchaseOrder == null)
             {
                 return Result<GetPurchaseOrderDto>.Fail("Purchase order not found.")
                     .WithFailureType(FailureType.NotFound);
             }
-            
-            return Result<GetPurchaseOrderDto>.Ok(PurchaseOrderMapper.ToDto(result));
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            return Result<GetPurchaseOrderDto>.Fail("Failed to delete purchase order.")
-                .WithException(e)
-                .WithFailureType(FailureType.Exception);
-        }
+
+            _dataContext.PurchaseOrders.Remove(existingPurchaseOrder);
+
+            return Result<GetPurchaseOrderDto>.Ok(PurchaseOrderMapper.ToDto(existingPurchaseOrder));
+        };
+        
+        return await _transactionManager.ExecuteAsync(action, cancellationToken);
     }
 }

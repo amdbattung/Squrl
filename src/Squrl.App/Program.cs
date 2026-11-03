@@ -138,7 +138,9 @@ try
     builder.Services.Decorate<ISalesOrderService, SalesOrderLoggingDecorator>();
     
     builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
+    builder.Services.Decorate<IPurchaseOrderService, PurchaseOrderPreprocessingDecorator>();
     builder.Services.Decorate<IPurchaseOrderService, PurchaseOrderLoggingDecorator>();
+    builder.Services.Decorate<IPurchaseOrderService, PurchaseOrderErrorHandlingDecorator>();
     
     builder.Services.AddScoped<IUomService, UomService>();
     builder.Services.Decorate<IUomService, UomPreprocessingDecorator>();

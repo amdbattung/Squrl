@@ -140,7 +140,7 @@ public class SupplierLoggingDecorator : ISupplierService
             
             default:
                 _logger.LogError(result.Exception,
-                    "Get Supplier Request By ID: unhandled exception type {FailureType}.",
+                    "Get Supplier By ID Request: unhandled exception type {FailureType}.",
                     nameof(result.FailureType));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to retrieve supplier, something went wrong.");

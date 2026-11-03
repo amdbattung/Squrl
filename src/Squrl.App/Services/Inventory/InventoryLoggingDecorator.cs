@@ -149,7 +149,7 @@ public class InventoryLoggingDecorator : IInventoryService
             
             default:
                 _logger.LogError(result.Exception,
-                    "Get Item Request By ID: unhandled exception type {FailureType}.",
+                    "Get Item By ID Request: unhandled exception type {FailureType}.",
                     nameof(result.FailureType));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to retrieve item, something went wrong.");
