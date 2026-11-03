@@ -5,16 +5,20 @@ using Squrl.App.Data;
 using Squrl.App.Enums;
 using Squrl.App.Features.UnitOfMeasures.DTOs;
 using Squrl.App.Features.UnitOfMeasures.Mapping;
+using Squrl.App.Infrastructure.TransactionManager;
 
 namespace Squrl.App.Services.UnitOfMeasure;
 
 public class UomService : IUomService
 {
     private readonly DataContext _dataContext;
+    private readonly ITransactionManager _transactionManager;
 
-    public UomService(DataContext dataContext)
+    public UomService(DataContext dataContext,
+        ITransactionManager transactionManager)
     {
         _dataContext = dataContext;
+        _transactionManager = transactionManager;
     }
 
     public async Task<Result<GetManyUomsDto>> GetManyUomsAsync(
@@ -67,19 +71,21 @@ public class UomService : IUomService
 
     public async Task<Result<GetUomDto>> CreateUomAsync(CreateUomDto uom, CancellationToken cancellationToken = default)
     {
-        Models.UnitOfMeasure newUom = new()
-        {
-            Id = Guid.NewGuid(),
-            Name = uom.Name ?? "",
-            Code = uom.Code ?? "",
-            Description = uom.Description,
-        };
+        return await _transactionManager.ExecuteAsync(async ct =>
+               {
+                   Models.UnitOfMeasure newUom = new()
+                   {
+                       Id = Guid.NewGuid(),
+                       Name = uom.Name ?? "",
+                       Code = uom.Code ?? "",
+                       Description = uom.Description,
+                   };
         
-        await _dataContext.UnitOfMeasures.AddAsync(newUom, cancellationToken);
-        
-        return await _dataContext.SaveChangesAsync(cancellationToken) > 0
-            ? Result<GetUomDto>.Ok(UomMapper.ToDto(newUom))
-            : throw new InvalidOperationException("UOM could not be persisted.");
+                   await _dataContext.UnitOfMeasures.AddAsync(newUom, ct);
+
+                   return Result<GetUomDto>.Ok(UomMapper.ToDto(newUom));
+               }, cancellationToken)
+               ?? throw new InvalidOperationException("UOM could not be persisted.");
     }
 
     public async Task<Result<GetUomDto>> GetUomByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -100,39 +106,45 @@ public class UomService : IUomService
 
     public async Task<Result<GetUomDto>> UpdateUomAsync(Guid id, UpdateUomDto uom, CancellationToken cancellationToken = default)
     {
-        Models.UnitOfMeasure? existingUom = await _dataContext.UnitOfMeasures
-            .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
-        
-        if (existingUom == null)
+        Func<CancellationToken, Task<Result<GetUomDto>>> action = async ct =>
         {
-            return Result<GetUomDto>.Fail("UOM not found.")
-                .WithFailureType(FailureType.NotFound);
-        }
+            Models.UnitOfMeasure? existingUom = await _dataContext.UnitOfMeasures
+                .FirstOrDefaultAsync(u => u.Id == id, ct);
         
-        existingUom.Name = uom.Name ?? existingUom.Name;
-        existingUom.Code = uom.Code ?? existingUom.Code;
-        existingUom.Description = uom.Description ?? existingUom.Description;
+            if (existingUom == null)
+            {
+                return Result<GetUomDto>.Fail("UOM not found.")
+                    .WithFailureType(FailureType.NotFound);
+            }
         
-        await _dataContext.SaveChangesAsync(cancellationToken);
+            existingUom.Name = uom.Name ?? existingUom.Name;
+            existingUom.Code = uom.Code ?? existingUom.Code;
+            existingUom.Description = uom.Description ?? existingUom.Description;
         
-        return Result<GetUomDto>.Ok(UomMapper.ToDto(existingUom));
+            return Result<GetUomDto>.Ok(UomMapper.ToDto(existingUom));
+        };
+        
+        return await _transactionManager.ExecuteAsync(action, cancellationToken);
     }
 
     public async Task<Result<GetUomDto>> DeleteUomAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        Models.UnitOfMeasure? existingUom = await _dataContext.UnitOfMeasures
-            .FirstOrDefaultAsync(u => u.Id == id, cancellationToken);
-        
-        if (existingUom == null)
+        Func<CancellationToken, Task<Result<GetUomDto>>> action = async ct =>
         {
-            return Result<GetUomDto>.Fail("UOM not found.")
-                .WithFailureType(FailureType.NotFound);
-        }
+            Models.UnitOfMeasure? existingUom = await _dataContext.UnitOfMeasures
+                .FirstOrDefaultAsync(u => u.Id == id, ct);
         
-        _dataContext.UnitOfMeasures.Remove(existingUom);
+            if (existingUom == null)
+            {
+                return Result<GetUomDto>.Fail("UOM not found.")
+                    .WithFailureType(FailureType.NotFound);
+            }
         
-        return await _dataContext.SaveChangesAsync(cancellationToken) > 0
-            ? Result<GetUomDto>.Ok(UomMapper.ToDto(existingUom))
-            : throw new InvalidOperationException("Item could not be deleted.");
+            _dataContext.UnitOfMeasures.Remove(existingUom);
+
+            return Result<GetUomDto>.Ok(UomMapper.ToDto(existingUom));
+        };
+        
+        return await _transactionManager.ExecuteAsync(action, cancellationToken);
     }
 }

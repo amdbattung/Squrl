@@ -5,16 +5,20 @@ using Squrl.App.Data;
 using Squrl.App.Enums;
 using Squrl.App.Features.Suppliers.DTOs;
 using Squrl.App.Features.Suppliers.Mapping;
+using Squrl.App.Infrastructure.TransactionManager;
 
 namespace Squrl.App.Services.Supplier;
 
 public class SupplierService : ISupplierService
 {
     private readonly DataContext _dataContext;
+    private readonly ITransactionManager _transactionManager;
 
-    public SupplierService(DataContext dataContext)
+    public SupplierService(DataContext dataContext,
+        ITransactionManager transactionManager)
     {
         _dataContext = dataContext;
+        _transactionManager = transactionManager;
     }
 
     public async Task<Result<GetManySuppliersDto>> GetManySuppliersAsync(
@@ -64,18 +68,20 @@ public class SupplierService : ISupplierService
 
     public async Task<Result<GetSupplierDto>> CreateSupplierAsync(CreateSupplierDto supplier, CancellationToken cancellationToken = default)
     {
-        Models.Supplier newSupplier = new()
-        {
-            Id = Guid.NewGuid(),
-            Name = supplier.Name ?? "",
-            Description = supplier.Description,
-        };
+        return await _transactionManager.ExecuteAsync(async ct =>
+                      {
+                          Models.Supplier newSupplier = new()
+                          {
+                              Id = Guid.NewGuid(),
+                              Name = supplier.Name ?? "",
+                              Description = supplier.Description,
+                          };
         
-        await _dataContext.Suppliers.AddAsync(newSupplier, cancellationToken);
-
-        return await _dataContext.SaveChangesAsync(cancellationToken) > 0
-            ? Result<GetSupplierDto>.Ok(SupplierMapper.ToDto(newSupplier))
-            : throw new InvalidOperationException("Supplier could not be persisted.");
+                          await _dataContext.Suppliers.AddAsync(newSupplier, ct);
+            
+                          return Result<GetSupplierDto>.Ok(SupplierMapper.ToDto(newSupplier));
+                      }, cancellationToken)
+               ?? throw new InvalidOperationException("Supplier could not be persisted.");
     }
 
     public async Task<Result<GetSupplierDto>> GetSupplierByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -96,38 +102,44 @@ public class SupplierService : ISupplierService
 
     public async Task<Result<GetSupplierDto>> UpdateSupplierAsync(Guid id, UpdateSupplierDto supplier, CancellationToken cancellationToken = default)
     {
-        Models.Supplier? existingSupplier = await _dataContext.Suppliers
-            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
-        
-        if (existingSupplier == null)
+        Func<CancellationToken, Task<Result<GetSupplierDto>>> action = async ct =>
         {
-            return Result<GetSupplierDto>.Fail("Supplier not found.")
-                .WithFailureType(FailureType.NotFound);
-        }
+            Models.Supplier? existingSupplier = await _dataContext.Suppliers
+                .FirstOrDefaultAsync(s => s.Id == id, ct);
         
-        existingSupplier.Name = supplier.Name ?? existingSupplier.Name;
-        existingSupplier.Description = supplier.Description ?? existingSupplier.Description;
+            if (existingSupplier == null)
+            {
+                return Result<GetSupplierDto>.Fail("Supplier not found.")
+                    .WithFailureType(FailureType.NotFound);
+            }
         
-        await _dataContext.SaveChangesAsync(cancellationToken);
+            existingSupplier.Name = supplier.Name ?? existingSupplier.Name;
+            existingSupplier.Description = supplier.Description ?? existingSupplier.Description;
 
-        return Result<GetSupplierDto>.Ok(SupplierMapper.ToDto(existingSupplier));
+            return Result<GetSupplierDto>.Ok(SupplierMapper.ToDto(existingSupplier));
+        };
+        
+        return await _transactionManager.ExecuteAsync(action, cancellationToken);
     }
 
     public async Task<Result<GetSupplierDto>> DeleteSupplierAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        Models.Supplier? existingSupplier = await _dataContext.Suppliers
-            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
-        
-        if (existingSupplier == null)
+        Func<CancellationToken, Task<Result<GetSupplierDto>>> action = async ct =>
         {
-            return Result<GetSupplierDto>.Fail("Supplier not found.")
-                .WithFailureType(FailureType.NotFound);
-        }
-        
-        _dataContext.Suppliers.Remove(existingSupplier);
-        
-        return await _dataContext.SaveChangesAsync(cancellationToken) > 0
-            ? Result<GetSupplierDto>.Ok(SupplierMapper.ToDto(existingSupplier))
-            : throw new InvalidOperationException("Supplier could not be deleted.");
+            Models.Supplier? existingSupplier = await _dataContext.Suppliers
+                .FirstOrDefaultAsync(s => s.Id == id, ct);
+
+            if (existingSupplier == null)
+            {
+                return Result<GetSupplierDto>.Fail("Supplier not found.")
+                    .WithFailureType(FailureType.NotFound);
+            }
+
+            _dataContext.Suppliers.Remove(existingSupplier);
+
+            return Result<GetSupplierDto>.Ok(SupplierMapper.ToDto(existingSupplier));
+        };
+            
+        return await _transactionManager.ExecuteAsync(action, cancellationToken);
     }
 }

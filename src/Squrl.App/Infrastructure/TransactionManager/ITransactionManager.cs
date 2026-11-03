@@ -11,4 +11,8 @@ public interface ITransactionManager
     Task<T?> ExecuteAsync<T>(
         Func<CancellationToken, Task<T?>> action,
         CancellationToken cancellationToken);
+    
+    void OnRollback(Func<Task> callback);
+    
+    void OnCommit(Func<Task> callback);
 }

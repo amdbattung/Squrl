@@ -8,6 +8,7 @@ using Squrl.App.Features.Items.Mapping;
 using Squrl.App.Infrastructure.BackgroundTaskQueue;
 using Squrl.App.Infrastructure.ImageProcessor;
 using Squrl.App.Infrastructure.ImageStorage;
+using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Models;
 
 namespace Squrl.App.Services.Inventory;
@@ -15,17 +16,20 @@ namespace Squrl.App.Services.Inventory;
 public class InventoryService : IInventoryService
 {
     private readonly DataContext _dataContext;
+    private readonly ITransactionManager _transactionManager;
     private readonly IBackgroundTaskQueue _queue;
     private readonly IImageProcessor _imageProcessor;
     private readonly IImageStorage _imageStorage;
 
     public InventoryService(
         DataContext dataContext,
+        ITransactionManager transactionManager,
         IBackgroundTaskQueue queue,
         IImageProcessor imageProcessor,
         IImageStorage imageStorage)
     {
         _dataContext = dataContext;
+        _transactionManager = transactionManager;
         _queue = queue;
         _imageProcessor = imageProcessor;
         _imageStorage = imageStorage;
@@ -82,24 +86,33 @@ public class InventoryService : IInventoryService
         Stream? photo = null,
         CancellationToken cancellationToken = default)
     {
-        Models.UnitOfMeasure? uom = await _dataContext.UnitOfMeasures
-            .FirstOrDefaultAsync(u => u.Id == item.UomId, cancellationToken);
-        
-        if (uom == null)
+        Func<CancellationToken, Task<Result<GetItemDto>>> action = async ct =>
         {
-            return Result<GetItemDto>.Fail("Selected UOM not found.")
-                .WithFailureType(FailureType.NotFound);
-        }
-        
-        string? uploadedImage = null;
+            Models.UnitOfMeasure? uom = await _dataContext.UnitOfMeasures
+                .FirstOrDefaultAsync(u => u.Id == item.UomId, ct);
             
-        try
-        {
+            if (uom == null)
+            {
+                return Result<GetItemDto>.Fail("Selected UOM not found.")
+                    .WithFailureType(FailureType.NotFound);
+            }
+            
+            string? uploadedImage = null;
+            
             if (photo is not null)
             {
-                uploadedImage = await _imageProcessor.SaveAsync(photo, cancellationToken);
+                uploadedImage = await _imageProcessor.SaveAsync(photo, ct);
+
+                if (!string.IsNullOrWhiteSpace(uploadedImage))
+                {
+                    // If the transaction rolls back, delete the new image.
+                    _transactionManager.OnRollback(async () =>
+                    {
+                        await _imageStorage.DeleteAsync(uploadedImage, CancellationToken.None);
+                    });
+                }
             }
-        
+            
             Item newItem = new()
             {
                 Id = Guid.NewGuid(),
@@ -116,32 +129,13 @@ public class InventoryService : IInventoryService
                 LowQuantityAlertThreshold =  item.LowQuantityAlertThreshold,
                 Locations = item.Locations ?? new List<string>()
             };
+            
+            await _dataContext.Items.AddAsync(newItem, ct);
+            
+            return Result<GetItemDto>.Ok(ItemMapper.ToDto(newItem));
+        };
         
-            await _dataContext.Items.AddAsync(newItem, cancellationToken);
-            
-            return await _dataContext.SaveChangesAsync(cancellationToken) > 0
-                ? Result<GetItemDto>.Ok(ItemMapper.ToDto(newItem))
-                : throw new InvalidOperationException("Item could not be persisted.");
-        }
-        catch (Exception)
-        {
-            if (!string.IsNullOrWhiteSpace(uploadedImage))
-            {
-                try
-                {
-                    await _queue.QueueAsync(async ct =>
-                    {
-                        await _imageStorage.DeleteAsync(uploadedImage, ct);
-                    });
-                }
-                catch (Exception)
-                {
-                    // Ignore
-                }
-            }
-            
-            throw;
-        }
+        return await _transactionManager.ExecuteAsync(action, cancellationToken);
     }
     
     public async Task<Result<GetItemDto>> GetItemByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -167,50 +161,56 @@ public class InventoryService : IInventoryService
         Stream? photo = null,
         CancellationToken cancellationToken = default)
     {
-        Item? existingItem = await _dataContext.Items
-            .Include(i => i.Uom)
-            .FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
-        
-        if (existingItem == null)
+        Func<CancellationToken, Task<Result<GetItemDto>>> action = async ct =>
         {
-            return Result<GetItemDto>.Fail("Item not found.")
-                .WithFailureType(FailureType.NotFound);
-        }
-
-        Models.UnitOfMeasure? uom = null;
-
-        if (item.UomId != null
-            && item.UomId != existingItem.Uom.Id)
-        {
-            uom = await _dataContext.UnitOfMeasures
-                .FirstOrDefaultAsync(u => u.Id == item.UomId, cancellationToken);
-        
-            if (uom == null)
+            Item? existingItem = await _dataContext.Items
+                .Include(i => i.Uom)
+                .FirstOrDefaultAsync(i => i.Id == id, ct);
+            
+            if (existingItem == null)
             {
-                return Result<GetItemDto>.Fail("Selected UOM not found.")
+                return Result<GetItemDto>.Fail("Item not found.")
                     .WithFailureType(FailureType.NotFound);
             }
-        }
-        
-        string? uploadedImage = null;
-        string? oldImage = null;
+
+            Models.UnitOfMeasure? uom = null;
+
+            if (item.UomId != null
+                && item.UomId != existingItem.Uom.Id)
+            {
+                uom = await _dataContext.UnitOfMeasures
+                    .FirstOrDefaultAsync(u => u.Id == item.UomId, ct);
             
-        try
-        {
+                if (uom == null)
+                {
+                    return Result<GetItemDto>.Fail("Selected UOM not found.")
+                        .WithFailureType(FailureType.NotFound);
+                }
+            }
+            
+            string? uploadedImage = null;
+            string? oldImage = null;
+            
             if (photo is not null)
             {
-                uploadedImage = await _imageProcessor.SaveAsync(photo, cancellationToken);
+                uploadedImage = await _imageProcessor.SaveAsync(photo, ct);
                 
                 if (!string.IsNullOrWhiteSpace(uploadedImage))
                 {
                     oldImage = existingItem.Image;
+
+                    // If the transaction rolls back, delete the new image.
+                    _transactionManager.OnRollback(async () =>
+                    {
+                        await _imageStorage.DeleteAsync(uploadedImage, CancellationToken.None);
+                    });
                 }
                 else
                 {
                     uploadedImage = null;
                 }
             }
-        
+            
             existingItem.Name = item.Name ?? existingItem.Name;
             existingItem.Uom = uom ?? existingItem.Uom;
             existingItem.Description = item.Description ?? existingItem.Description;
@@ -221,165 +221,151 @@ public class InventoryService : IInventoryService
             existingItem.Quantity = item.Quantity ?? existingItem.Quantity;
             existingItem.LowQuantityAlertThreshold = item.LowQuantityAlertThreshold ?? existingItem.LowQuantityAlertThreshold;
             existingItem.Locations = item.Locations ?? existingItem.Locations;
-
-            await _dataContext.SaveChangesAsync(cancellationToken);
             
+            // If a replacement was uploaded, delete the old image.
             if (!string.IsNullOrWhiteSpace(oldImage))
             {
-                try
+                string imageToDelete = oldImage;
+
+                _transactionManager.OnCommit(async () =>
                 {
-                    await _queue.QueueAsync(async ct =>
+                    await _queue.QueueAsync(async c =>
                     {
-                        await _imageStorage.DeleteAsync(oldImage, ct);
+                        await _imageStorage.DeleteAsync(imageToDelete, c);
                     });
-                }
-                catch (Exception)
-                {
-                    // Ignore
-                }
+                });
             }
             
             return Result<GetItemDto>.Ok(ItemMapper.ToDto(existingItem));
-        }
-        catch (Exception)
-        {
-            if (!string.IsNullOrWhiteSpace(uploadedImage))
-            {
-                try
-                {
-                    await _queue.QueueAsync(async ct =>
-                    {
-                        await _imageStorage.DeleteAsync(uploadedImage, ct);
-                    });
-                }
-                catch (Exception)
-                {
-                    // Ignore
-                }
-            }
-            
-            throw;
-        }
+        };
+        
+        return await _transactionManager.ExecuteAsync(action, cancellationToken);
     }
     
     public async Task<Result<GetItemDto>> DeleteItemAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        Item? existingItem = await _dataContext.Items
-            .Include(i => i.Uom)
-            .FirstOrDefaultAsync(i => i.Id == id, cancellationToken);
-        
-        if (existingItem == null)
+        Func<CancellationToken, Task<Result<GetItemDto>>> action = async ct =>
         {
-            return Result<GetItemDto>.Fail("Item not found.")
-                .WithFailureType(FailureType.NotFound);
-        }
+            Item? existingItem = await _dataContext.Items
+                .Include(i => i.Uom)
+                .FirstOrDefaultAsync(i => i.Id == id, ct);
         
-        _dataContext.Items.Remove(existingItem);
+            if (existingItem == null)
+            {
+                return Result<GetItemDto>.Fail("Item not found.")
+                    .WithFailureType(FailureType.NotFound);
+            }
+        
+            _dataContext.Items.Remove(existingItem);
 
-        if (await _dataContext.SaveChangesAsync(cancellationToken) > 0)
-        {
             if (!string.IsNullOrWhiteSpace(existingItem.Image))
             {
-                try
+                _transactionManager.OnCommit(async () =>
                 {
-                    await _queue.QueueAsync(async ct =>
+                    await _queue.QueueAsync(async c =>
                     {
-                        await _imageStorage.DeleteAsync(existingItem.Image, ct);
+                        await _imageStorage.DeleteAsync(existingItem.Image, c);
                     });
-                }
-                catch (Exception)
-                {
-                    // Ignore
-                }
+                });
             }
             
             return Result<GetItemDto>.Ok(ItemMapper.ToDto(existingItem));
-        }
+        };
         
-        throw new InvalidOperationException("Item could not be deleted.");
+        return await _transactionManager.ExecuteAsync(action, cancellationToken);
     }
     
     #region Stock Control
     public async Task<Result<GetItemDto>> AddStocksAsync(Guid itemId, decimal quantity, CancellationToken cancellationToken = default)
     {
-        if (quantity <= 0m)
+        Func<CancellationToken, Task<Result<GetItemDto>>> action = async ct =>
         {
-            return Result<GetItemDto>.Fail("Invalid quantity.")
-                .WithFailureType(FailureType.Validation);
-        }
+            if (quantity <= 0m)
+            {
+                return Result<GetItemDto>.Fail("Invalid quantity.")
+                    .WithFailureType(FailureType.Validation);
+            }
 
-        int affected = await _dataContext.Database.ExecuteSqlInterpolatedAsync(
-            $"""
-             UPDATE Items
-             SET Quantity = Quantity + {quantity}
-             WHERE Id = {itemId}
-             """,
-            cancellationToken);
+            int affected = await _dataContext.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                 UPDATE Items
+                 SET Quantity = Quantity + {quantity}
+                 WHERE Id = {itemId}
+                 """,
+                ct);
 
-        if (affected <= 0)
-        {
-            return Result<GetItemDto>.Fail("Item not found.")
-                .WithFailureType(FailureType.NotFound);
-        }
-        
-        Item? existingItem = await _dataContext.Items
-            .AsNoTracking()
-            .Include(i => i.Uom)
-            .FirstOrDefaultAsync(i => i.Id == itemId, cancellationToken);
-        
-        if (existingItem == null)
-        {
-            return Result<GetItemDto>.Fail("Item not found.")
-                .WithFailureType(FailureType.NotFound);
-        }
-        
-        return Result<GetItemDto>.Ok(ItemMapper.ToDto(existingItem));
-    }
-    
-    public async Task<Result<GetItemDto>> RemoveStocksAsync(Guid itemId, decimal quantity, CancellationToken cancellationToken = default)
-    {
-        if (quantity <= 0m)
-        {
-            return Result<GetItemDto>.Fail("Invalid quantity.")
-                .WithFailureType(FailureType.Validation);
-        }
-
-        int affected = await _dataContext.Database.ExecuteSqlInterpolatedAsync(
-            $"""
-             UPDATE Items
-             SET Quantity = Quantity - {quantity}
-             WHERE Id = {itemId}
-                AND CAST(Quantity AS REAL) >= {quantity}
-             """,
-            cancellationToken);
-
-        if (affected <= 0)
-        {
-            bool itemExists = await _dataContext.Items
-                .AnyAsync(i => i.Id == itemId, cancellationToken);
-
-            if (!itemExists)
+            if (affected <= 0)
             {
                 return Result<GetItemDto>.Fail("Item not found.")
                     .WithFailureType(FailureType.NotFound);
             }
-
-            return Result<GetItemDto>.Fail("Quantity exceeds stocks on-hand.")
-                .WithFailureType(FailureType.BusinessLogic);
-        }
         
-        Item? existingItem = await _dataContext.Items
-            .AsNoTracking()
-            .Include(i => i.Uom)
-            .FirstOrDefaultAsync(i => i.Id == itemId, cancellationToken);
+            Item? existingItem = await _dataContext.Items
+                .AsNoTracking()
+                .Include(i => i.Uom)
+                .FirstOrDefaultAsync(i => i.Id == itemId, ct);
         
-        if (existingItem == null)
+            if (existingItem == null)
+            {
+                return Result<GetItemDto>.Fail("Item not found.")
+                    .WithFailureType(FailureType.NotFound);
+            }
+        
+            return Result<GetItemDto>.Ok(ItemMapper.ToDto(existingItem));
+        };
+        
+        return await _transactionManager.ExecuteAsync(action, cancellationToken);
+    }
+    
+    public async Task<Result<GetItemDto>> RemoveStocksAsync(Guid itemId, decimal quantity, CancellationToken cancellationToken = default)
+    {
+        Func<CancellationToken, Task<Result<GetItemDto>>> action = async ct =>
         {
-            return Result<GetItemDto>.Fail("Item not found.")
-                .WithFailureType(FailureType.NotFound);
-        }
+            if (quantity <= 0m)
+            {
+                return Result<GetItemDto>.Fail("Invalid quantity.")
+                    .WithFailureType(FailureType.Validation);
+            }
+
+            int affected = await _dataContext.Database.ExecuteSqlInterpolatedAsync(
+                $"""
+                 UPDATE Items
+                 SET Quantity = Quantity - {quantity}
+                 WHERE Id = {itemId}
+                    AND CAST(Quantity AS REAL) >= {quantity}
+                 """,
+                ct);
+
+            if (affected <= 0)
+            {
+                bool itemExists = await _dataContext.Items
+                    .AnyAsync(i => i.Id == itemId, ct);
+
+                if (!itemExists)
+                {
+                    return Result<GetItemDto>.Fail("Item not found.")
+                        .WithFailureType(FailureType.NotFound);
+                }
+
+                return Result<GetItemDto>.Fail("Quantity exceeds stocks on-hand.")
+                    .WithFailureType(FailureType.BusinessLogic);
+            }
         
-        return Result<GetItemDto>.Ok(ItemMapper.ToDto(existingItem));
+            Item? existingItem = await _dataContext.Items
+                .AsNoTracking()
+                .Include(i => i.Uom)
+                .FirstOrDefaultAsync(i => i.Id == itemId, ct);
+        
+            if (existingItem == null)
+            {
+                return Result<GetItemDto>.Fail("Item not found.")
+                    .WithFailureType(FailureType.NotFound);
+            }
+        
+            return Result<GetItemDto>.Ok(ItemMapper.ToDto(existingItem));
+        };
+        
+        return await _transactionManager.ExecuteAsync(action, cancellationToken);
     }
     
     public async Task<Result<GetItemDto>> DynamicStockUpdateAsync(Guid itemId, string quantity, CancellationToken cancellationToken = default)
@@ -390,96 +376,18 @@ public class InventoryService : IInventoryService
         // quantity. Dropping the operation symbol entirely will replace
         // the existing quantity with the new one.
         
-        quantity = quantity.Trim();
-        decimal value;
-        int affected;
-        
-        // Determine OPERATION and Extract QUANTITY.
-        // SHORTCUT: Check whether first character is a digit/numerical (which means no explicit operator).
-        if (char.IsDigit(quantity[0]))
+        Func<CancellationToken, Task<Result<GetItemDto>>> action = async ct =>
         {
-            // No explicit operator means we do a SET operation using the value.
-            if (!decimal.TryParse(quantity, out value))
+            quantity = quantity.Trim();
+            decimal value;
+            int affected;
+            
+            // Determine OPERATION and Extract QUANTITY.
+            // SHORTCUT: Check whether first character is a digit/numerical (which means no explicit operator).
+            if (char.IsDigit(quantity[0]))
             {
-                return Result<GetItemDto>.Fail("Invalid quantity.")
-                    .WithFailureType(FailureType.Validation);
-            }
-            
-            if (value < 0m)
-            {
-                return Result<GetItemDto>.Fail("Invalid negative quantity.")
-                    .WithFailureType(FailureType.Validation);
-            }
-                
-            affected = await _dataContext.Database.ExecuteSqlInterpolatedAsync(
-                $"""
-                 UPDATE Items
-                 SET Quantity = {value}
-                 WHERE Id = {itemId}
-                 """,
-                cancellationToken);
-        }
-        // MAIN LOGIC.
-        else switch (quantity[0])
-        {
-            // Validate and determine operation.
-            case '+':
-                // Extract quantity by excluding the first character (operator).
-                if (!decimal.TryParse(quantity.AsSpan(1), out value))
-                {
-                    return Result<GetItemDto>.Fail("Invalid quantity.")
-                        .WithFailureType(FailureType.Validation);
-                }
-                    
-                return await AddStocksAsync(itemId, value, cancellationToken);
-            
-            case '−' or '-':
-                if (!decimal.TryParse(quantity.AsSpan(1), out value))
-                {
-                    return Result<GetItemDto>.Fail("Invalid quantity.")
-                        .WithFailureType(FailureType.Validation);
-                }
-
-                return await RemoveStocksAsync(itemId, value, cancellationToken);
-            
-            case '×' or '*' or 'x' or 'X':
-                if (!decimal.TryParse(quantity.AsSpan(1), out value)
-                    || value <= 0m)
-                {
-                    return Result<GetItemDto>.Fail("Invalid quantity.")
-                        .WithFailureType(FailureType.Validation);
-                }
-                    
-                affected = await _dataContext.Database.ExecuteSqlInterpolatedAsync(
-                    $"""
-                     UPDATE Items
-                     SET Quantity = Quantity * {value}
-                     WHERE Id = {itemId}
-                     """,
-                    cancellationToken);
-
-                break;
-            
-            case '÷' or '/':
-                if (!decimal.TryParse(quantity.AsSpan(1), out value)
-                    || value <= 0m)
-                {
-                    return Result<GetItemDto>.Fail("Invalid quantity.")
-                        .WithFailureType(FailureType.Validation);
-                }
-                
-                affected = await _dataContext.Database.ExecuteSqlInterpolatedAsync(
-                    $"""
-                     UPDATE Items
-                     SET Quantity = Quantity / {value}
-                     WHERE Id = {itemId}
-                     """,
-                    cancellationToken);
-
-                break;
-            
-            case '=':
-                if (!decimal.TryParse(quantity.AsSpan(1), out value))
+                // No explicit operator means we do a SET operation using the value.
+                if (!decimal.TryParse(quantity, out value))
                 {
                     return Result<GetItemDto>.Fail("Invalid quantity.")
                         .WithFailureType(FailureType.Validation);
@@ -490,40 +398,123 @@ public class InventoryService : IInventoryService
                     return Result<GetItemDto>.Fail("Invalid negative quantity.")
                         .WithFailureType(FailureType.Validation);
                 }
-                
+                    
                 affected = await _dataContext.Database.ExecuteSqlInterpolatedAsync(
                     $"""
                      UPDATE Items
                      SET Quantity = {value}
                      WHERE Id = {itemId}
                      """,
-                    cancellationToken);
+                    ct);
+            }
+            // MAIN LOGIC.
+            else switch (quantity[0])
+            {
+                // Validate and determine operation.
+                case '+':
+                    // Extract quantity by excluding the first character (operator).
+                    if (!decimal.TryParse(quantity.AsSpan(1), out value))
+                    {
+                        return Result<GetItemDto>.Fail("Invalid quantity.")
+                            .WithFailureType(FailureType.Validation);
+                    }
+                        
+                    return await AddStocksAsync(itemId, value, ct);
                 
-                break;
+                case '−' or '-':
+                    if (!decimal.TryParse(quantity.AsSpan(1), out value))
+                    {
+                        return Result<GetItemDto>.Fail("Invalid quantity.")
+                            .WithFailureType(FailureType.Validation);
+                    }
+
+                    return await RemoveStocksAsync(itemId, value, ct);
+                
+                case '×' or '*' or 'x' or 'X':
+                    if (!decimal.TryParse(quantity.AsSpan(1), out value)
+                        || value <= 0m)
+                    {
+                        return Result<GetItemDto>.Fail("Invalid quantity.")
+                            .WithFailureType(FailureType.Validation);
+                    }
+                        
+                    affected = await _dataContext.Database.ExecuteSqlInterpolatedAsync(
+                        $"""
+                         UPDATE Items
+                         SET Quantity = Quantity * {value}
+                         WHERE Id = {itemId}
+                         """,
+                        ct);
+
+                    break;
+                
+                case '÷' or '/':
+                    if (!decimal.TryParse(quantity.AsSpan(1), out value)
+                        || value <= 0m)
+                    {
+                        return Result<GetItemDto>.Fail("Invalid quantity.")
+                            .WithFailureType(FailureType.Validation);
+                    }
+                    
+                    affected = await _dataContext.Database.ExecuteSqlInterpolatedAsync(
+                        $"""
+                         UPDATE Items
+                         SET Quantity = Quantity / {value}
+                         WHERE Id = {itemId}
+                         """,
+                        ct);
+
+                    break;
+                
+                case '=':
+                    if (!decimal.TryParse(quantity.AsSpan(1), out value))
+                    {
+                        return Result<GetItemDto>.Fail("Invalid quantity.")
+                            .WithFailureType(FailureType.Validation);
+                    }
+                    
+                    if (value < 0m)
+                    {
+                        return Result<GetItemDto>.Fail("Invalid negative quantity.")
+                            .WithFailureType(FailureType.Validation);
+                    }
+                    
+                    affected = await _dataContext.Database.ExecuteSqlInterpolatedAsync(
+                        $"""
+                         UPDATE Items
+                         SET Quantity = {value}
+                         WHERE Id = {itemId}
+                         """,
+                        ct);
+                    
+                    break;
+                
+                default:
+                    return Result<GetItemDto>.Fail("Invalid operator.")
+                        .WithFailureType(FailureType.Validation);
+            }
             
-            default:
-                return Result<GetItemDto>.Fail("Invalid operator.")
-                    .WithFailureType(FailureType.Validation);
-        }
+            if (affected <= 0)
+            {
+                return Result<GetItemDto>.Fail("Item not found.")
+                    .WithFailureType(FailureType.NotFound);
+            }
+            
+            Item? existingItem = await _dataContext.Items
+                .AsNoTracking()
+                .Include(i => i.Uom)
+                .FirstOrDefaultAsync(i => i.Id == itemId, ct);
+            
+            if (existingItem == null)
+            {
+                return Result<GetItemDto>.Fail("Item not found.")
+                    .WithFailureType(FailureType.NotFound);
+            }
+            
+            return Result<GetItemDto>.Ok(ItemMapper.ToDto(existingItem));
+        };
         
-        if (affected <= 0)
-        {
-            return Result<GetItemDto>.Fail("Item not found.")
-                .WithFailureType(FailureType.NotFound);
-        }
-        
-        Item? existingItem = await _dataContext.Items
-            .AsNoTracking()
-            .Include(i => i.Uom)
-            .FirstOrDefaultAsync(i => i.Id == itemId, cancellationToken);
-        
-        if (existingItem == null)
-        {
-            return Result<GetItemDto>.Fail("Item not found.")
-                .WithFailureType(FailureType.NotFound);
-        }
-        
-        return Result<GetItemDto>.Ok(ItemMapper.ToDto(existingItem));
+        return await _transactionManager.ExecuteAsync(action, cancellationToken);
     }
     #endregion
 }
