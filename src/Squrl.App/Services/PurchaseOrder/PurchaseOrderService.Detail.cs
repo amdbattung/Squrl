@@ -53,6 +53,7 @@ public partial class PurchaseOrderService
         Func<CancellationToken, Task<Result<GetPoDetailDto>>> action = async ct =>
         {
             Models.PurchaseOrder? purchaseOrder = await _dataContext.PurchaseOrders
+                .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == purchaseOrderId, ct);
 
             if (purchaseOrder == null)
@@ -63,6 +64,7 @@ public partial class PurchaseOrderService
             }
         
             Item? item = await _dataContext.Items
+                .AsNoTracking()
                 .FirstOrDefaultAsync(i => i.Id == poDetail.ItemId, ct);
 
             if (item == null)
@@ -141,6 +143,7 @@ public partial class PurchaseOrderService
                 && poDetail.PurchaseOrderId != existingPoDetail.PurchaseOrder.Id)
             {
                 purchaseOrder = await _dataContext.PurchaseOrders
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(p => p.Id == poDetail.PurchaseOrderId, ct);
             
                 if (purchaseOrder == null)
@@ -156,6 +159,7 @@ public partial class PurchaseOrderService
                 && poDetail.ItemId != existingPoDetail.Item.Id)
             {
                 item = await _dataContext.Items
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(i => i.Id == poDetail.ItemId, ct);
             
                 if (item == null)

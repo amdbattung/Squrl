@@ -103,6 +103,7 @@ public partial class SalesOrderService : ISalesOrderService
             foreach (CreateSoDetailDto soDetail in salesOrder.Details ?? [])
             {
                 Item? item = await _dataContext.Items
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(i => i.Id == soDetail.ItemId, ct);
 
                 if (item == null)
@@ -204,6 +205,7 @@ public partial class SalesOrderService : ISalesOrderService
                         && soDetail.ItemId != existingSoDetail.Item.Id)
                     {
                         item = await _dataContext.Items
+                            .AsNoTracking()
                             .FirstOrDefaultAsync(i => i.Id == soDetail.ItemId, ct);
                         
                         if (item == null)
@@ -221,6 +223,7 @@ public partial class SalesOrderService : ISalesOrderService
                 else
                 {
                     Item? item = await _dataContext.Items
+                        .AsNoTracking()
                         .FirstOrDefaultAsync(i => i.Id == soDetail.ItemId, ct);
                         
                     if (item == null)

@@ -89,6 +89,7 @@ public class InventoryService : IInventoryService
         Func<CancellationToken, Task<Result<GetItemDto>>> action = async ct =>
         {
             Models.UnitOfMeasure? uom = await _dataContext.UnitOfMeasures
+                .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Id == item.UomId, ct);
             
             if (uom == null)
@@ -179,6 +180,7 @@ public class InventoryService : IInventoryService
                 && item.UomId != existingItem.Uom.Id)
             {
                 uom = await _dataContext.UnitOfMeasures
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(u => u.Id == item.UomId, ct);
             
                 if (uom == null)
