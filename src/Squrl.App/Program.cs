@@ -135,7 +135,9 @@ try
     builder.Services.Decorate<IInventoryService, InventoryErrorHandlingDecorator>();
     
     builder.Services.AddScoped<ISalesOrderService, SalesOrderService>();
+    builder.Services.Decorate<ISalesOrderService, SalesOrderPreprocessingDecorator>();
     builder.Services.Decorate<ISalesOrderService, SalesOrderLoggingDecorator>();
+    builder.Services.Decorate<ISalesOrderService, SalesOrderErrorHandlingDecorator>();
     
     builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
     builder.Services.Decorate<IPurchaseOrderService, PurchaseOrderPreprocessingDecorator>();

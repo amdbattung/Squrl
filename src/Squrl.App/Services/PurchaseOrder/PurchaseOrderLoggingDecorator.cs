@@ -61,10 +61,10 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
         else
         {
             _logger.LogError(result.Exception,
-                "Get Many Suppliers Request: unhandled exception type {FailureType}.",
+                "Get Many Purchase Orders Request: unhandled exception type {FailureType}.",
                 nameof(result.FailureType));
             throw result.Exception
-                  ?? new Exception(result.Message ?? "Failed to retrieve suppliers, something went wrong.");
+                  ?? new Exception(result.Message ?? "Failed to retrieve purchase orders, something went wrong.");
         }
         
         return result;

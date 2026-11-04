@@ -126,7 +126,7 @@ public class PurchaseOrderErrorHandlingDecorator : IPurchaseOrderService
         catch (Exception)
         {
             return Result<GetPurchaseOrderDto>
-                .Fail("Failed to update purchase orders, something went wrong.")
+                .Fail("Failed to update purchase order, something went wrong.")
                 .WithFailureType(FailureType.Unexpected);
         }
     }

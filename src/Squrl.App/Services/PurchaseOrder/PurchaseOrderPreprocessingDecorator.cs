@@ -66,7 +66,8 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
     {
         purchaseOrder.Status ??= PurchaseOrderStatus.Pending;
             
-        ValidationResult poValidationResult = await _createPurchaseOrderValidator.ValidateAsync(purchaseOrder, cancellationToken);
+        ValidationResult poValidationResult = await _createPurchaseOrderValidator
+            .ValidateAsync(purchaseOrder, cancellationToken);
             
         if (!poValidationResult.IsValid)
         {
@@ -107,7 +108,8 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Validation);
         }
             
-        ValidationResult poValidationResult = await _updatePurchaseOrderValidator.ValidateAsync(purchaseOrder, cancellationToken);
+        ValidationResult poValidationResult = await _updatePurchaseOrderValidator
+            .ValidateAsync(purchaseOrder, cancellationToken);
             
         if (!poValidationResult.IsValid)
         {
@@ -162,7 +164,8 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        ValidationResult validationResult = await _createPoDetailValidator.ValidateAsync(poDetail, cancellationToken);
+        ValidationResult validationResult = await _createPoDetailValidator
+            .ValidateAsync(poDetail, cancellationToken);
             
         if (!validationResult.IsValid)
         {
@@ -200,7 +203,8 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        ValidationResult validationResult = await _updatePoDetailValidator.ValidateAsync(poDetail, cancellationToken);
+        ValidationResult validationResult = await _updatePoDetailValidator
+            .ValidateAsync(poDetail, cancellationToken);
             
         if (!validationResult.IsValid)
         {

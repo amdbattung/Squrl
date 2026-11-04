@@ -1,5 +1,4 @@
-﻿using MediatR;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using Squrl.App.Common;
 using Squrl.App.Data;
@@ -25,11 +24,8 @@ public class AlertService : IAlertService
         using IServiceScope scope = _scopeFactory.CreateScope();
         DataContext dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
         
-        // IReadOnlyList<Item> items = await mediator.Send(new GetLowQuantityItemsQuery(), cancellationToken);
-        
         IReadOnlyList<Item> items = await dataContext.Items
             .AsNoTracking()
-            .Include(i => i.Uom)
             .Where(i => i.Quantity <= i.LowQuantityAlertThreshold)
             .OrderBy(i => EF.Property<Instant>(i, "DateCreated"))
             .ThenBy(i => i.Name)
@@ -46,7 +42,9 @@ public class AlertService : IAlertService
             });
     }
 
-    public async Task<Result<AlertObject>> SetAlertAsync(Guid itemId, string message = "", CancellationToken cancellationToken = default)
+    public async Task<Result<AlertObject>> SetAlertAsync(
+        Guid itemId, string message = "",
+        CancellationToken cancellationToken = default)
     {
         AlertObject alert = new AlertObject
         {
@@ -87,6 +85,7 @@ public class AlertService : IAlertService
     public Task<Result<IReadOnlyCollection<AlertObject>>> GetAlertsAsync(CancellationToken cancellationToken = default)
     {
         IReadOnlyCollection<AlertObject> alerts = _activeAlerts.Values.ToList().AsReadOnly();
-        return Task.FromResult<Result<IReadOnlyCollection<AlertObject>>>(Result<IReadOnlyCollection<AlertObject>>.Ok(alerts));
+        return Task.FromResult<Result<IReadOnlyCollection<AlertObject>>>(
+            Result<IReadOnlyCollection<AlertObject>>.Ok(alerts));
     }
 }

@@ -165,10 +165,27 @@ public partial class PurchaseOrderService
                 }
             }
 
-            if (poDetail.LineSequence != null || poDetail.LineSequence != existingPoDetail.LineSequence)
+            if (purchaseOrder == null)
             {
-                return Result<GetPoDetailDto>.Fail("Line sequence must be consecutive.")
-                    .WithFailureType(FailureType.NotFound);
+                if (poDetail.LineSequence != null || poDetail.LineSequence != existingPoDetail.LineSequence)
+                {
+                    return Result<GetPoDetailDto>.Fail("Line sequence must be consecutive.")
+                        .WithFailureType(FailureType.Validation);
+                }
+            }
+            else
+            {
+                int nextLineSequence = await _dataContext.PurchaseOrderDetails
+                    .AsNoTracking()
+                    .Where(p => p.PurchaseOrder.Id == poDetail.PurchaseOrderId)
+                    .CountAsync(ct) + 1;
+
+                if (poDetail.LineSequence != nextLineSequence)
+                {
+                    return Result<GetPoDetailDto>
+                        .Fail("Line sequence must be consecutive.")
+                        .WithFailureType(FailureType.Validation);
+                }
             }
             
             existingPoDetail.PurchaseOrder = purchaseOrder ?? existingPoDetail.PurchaseOrder;
