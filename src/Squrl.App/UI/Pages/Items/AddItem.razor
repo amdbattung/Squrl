@@ -129,16 +129,16 @@
     
     private async Task<InputSearchableSelect<GetUomDto, Guid?>.PagedResult<GetUomDto>>
         LoadUoms(
-            string? query,
+            string? search,
             int pageNumber,
             int pageSize,
             CancellationToken cancellationToken)
     {
         Result<GetManyUomsDto> result =
             await UomService.GetManyUomsAsync(
-                search: query,
-                pageNumber: pageNumber,
-                pageSize: pageSize,
+                search,
+                pageNumber,
+                pageSize,
                 cancellationToken: cancellationToken);
 
         if (!result.IsSuccess || result.Value?.Uoms is null)
