@@ -9,6 +9,7 @@ public class CreateSoDetailValidator : AbstractValidator<CreateSoDetailDto>
     {
         RuleFor(x => x.SalesOrderId)
             .NotEmpty()
+            .When((_, context) => !context.RootContextData.ContainsKey("SkipSalesOrderIdValidation"))
             .WithName("Sales Order")
             .WithMessage("{PropertyName} is required.");
 

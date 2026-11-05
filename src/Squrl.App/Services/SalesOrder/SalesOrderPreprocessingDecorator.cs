@@ -147,8 +147,16 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        ValidationResult validationResult = await _createSoDetailValidator
-            .ValidateAsync(soDetail, cancellationToken);
+        ValidationContext<CreateSoDetailDto> validationContext = new(soDetail)
+        {
+            RootContextData =
+            {
+                ["SkipSalesOrderIdValidation"] = true
+            }
+        };
+
+        ValidationResult validationResult =
+            await _createSoDetailValidator.ValidateAsync(validationContext, cancellationToken);
             
         if (!validationResult.IsValid)
         {

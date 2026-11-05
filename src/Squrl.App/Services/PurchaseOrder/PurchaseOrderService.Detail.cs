@@ -52,11 +52,10 @@ public partial class PurchaseOrderService
     {
         Func<CancellationToken, Task<Result<GetPoDetailDto>>> action = async ct =>
         {
-            Models.PurchaseOrder? purchaseOrder = await _dataContext.PurchaseOrders
-                .AsNoTracking()
+            Models.PurchaseOrder? existingPurchaseOrder = await _dataContext.PurchaseOrders
                 .FirstOrDefaultAsync(p => p.Id == purchaseOrderId, ct);
 
-            if (purchaseOrder == null)
+            if (existingPurchaseOrder == null)
             {
                 return Result<GetPoDetailDto>
                     .Fail("Purchase order not found.")
@@ -64,7 +63,6 @@ public partial class PurchaseOrderService
             }
         
             Item? item = await _dataContext.Items
-                .AsNoTracking()
                 .FirstOrDefaultAsync(i => i.Id == poDetail.ItemId, ct);
 
             if (item == null)
@@ -89,7 +87,7 @@ public partial class PurchaseOrderService
             PurchaseOrderDetail newPoDetail = new()
             {
                 Id = Guid.NewGuid(),
-                PurchaseOrder = purchaseOrder,
+                PurchaseOrder = existingPurchaseOrder,
                 LineSequence = poDetail.LineSequence ?? 0,
                 Item = item,
                 UnitPrice = poDetail.UnitPrice ?? 0m,
@@ -143,12 +141,11 @@ public partial class PurchaseOrderService
                 && poDetail.PurchaseOrderId != existingPoDetail.PurchaseOrder.Id)
             {
                 purchaseOrder = await _dataContext.PurchaseOrders
-                    .AsNoTracking()
                     .FirstOrDefaultAsync(p => p.Id == poDetail.PurchaseOrderId, ct);
             
                 if (purchaseOrder == null)
                 {
-                    return Result<GetPoDetailDto>.Fail("Selected purchase order not found.")
+                    return Result<GetPoDetailDto>.Fail("Selected surchase order not found.")
                         .WithFailureType(FailureType.NotFound);
                 }
             }
@@ -159,7 +156,6 @@ public partial class PurchaseOrderService
                 && poDetail.ItemId != existingPoDetail.Item.Id)
             {
                 item = await _dataContext.Items
-                    .AsNoTracking()
                     .FirstOrDefaultAsync(i => i.Id == poDetail.ItemId, ct);
             
                 if (item == null)

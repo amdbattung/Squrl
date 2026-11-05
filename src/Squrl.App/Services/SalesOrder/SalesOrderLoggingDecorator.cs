@@ -39,7 +39,7 @@ public class SalesOrderLoggingDecorator : ISalesOrderService
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Get Many Sales Orders Request: unhandled exception.");
+            _logger.LogError(e, "Get Many Sales Orders Request: Unhandled exception.");
             throw;
         }
         
@@ -48,13 +48,32 @@ public class SalesOrderLoggingDecorator : ISalesOrderService
             _logger.LogInformation("Get Many Sales Orders Request: {Count} sales orders successfully fetched.",
                 result.Value?.SalesOrders?.Count);
         }
-        else
+        else switch (result.FailureType)
         {
-            _logger.LogError(result.Exception,
-                "Get Many Sales Orders Request: unhandled exception type {FailureType}.",
-                nameof(result.FailureType));
-            throw result.Exception
-                  ?? new Exception(result.Message ?? "Failed to retrieve sales orders, something went wrong.");
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Get Many Sales Orders Request: {Message}",
+                    result.Message ?? "Failed to retrieve sales orders.");
+                break;
+
+            case FailureType.Exception:
+            
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Get Many Sales Orders Request: Unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve sales orders, something went wrong.");
+
+            default:
+                _logger.LogError(result.Exception,
+                    "Get Many Sales Orders Request: Unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve sales orders, something went wrong.");
         }
         
         return result;
@@ -70,38 +89,38 @@ public class SalesOrderLoggingDecorator : ISalesOrderService
         }
         catch (Exception e)
         {
-            _logger.LogError(e, "Create Sales Order Request: unhandled exception.");
+            _logger.LogError(e, "Create Sales Order Request: Unhandled exception.");
             throw;
         }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation("Create Sales Order Request: sales order {Id} successfully created.",
+            _logger.LogInformation("Create Sales Order Request: Sales order {Id} successfully created.",
                 result.Value?.Id);
         }
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Create Sales Order Request: failed to create sales order {Id}, invalid sales order.",
-                    result.Value?.Id);
-                break;
+            
+            case FailureType.NotFound:
             
             case FailureType.BusinessLogic:
-                _logger.LogError(result.Exception,
-                    "Create Sales Order Request: failed to create sales order.");
+                _logger.LogInformation(result.Exception,
+                    "Create Sales Order Request: {Message}",
+                    result.Message ?? "Failed to create sales order.");
                 break;
-            
+
             case FailureType.Exception:
+                
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
-                    "Create Sales Order Request: unhandled exception.");
+                    "Create Sales Order Request: Unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to create sales order, something went wrong.");
-            
             default:
                 _logger.LogError(result.Exception,
-                    "Create Sales Order Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Create Sales Order Request: Unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to create sales order, something went wrong.");
         }
@@ -131,25 +150,27 @@ public class SalesOrderLoggingDecorator : ISalesOrderService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Get Sales Order By ID Request: failed to fetch, invalid request.");
-                break;
             
             case FailureType.NotFound:
-                _logger.LogInformation(result.Exception,
-                    "Get Sales Order By ID Request: failed to fetch, sales order not found.");
-                break;
             
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Get Sales Order By ID Request: {Message}",
+                    result.Message ?? "Failed to retrieve sales order.");
+                break;
+
             case FailureType.Exception:
+            
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Get Sales Order By ID Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to retrieve sales order, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Get Sales Order By ID Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Get Sales Order By ID Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to retrieve sales order, something went wrong.");
         }
@@ -179,25 +200,27 @@ public class SalesOrderLoggingDecorator : ISalesOrderService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Update Sales Order Request: failed to update, invalid request.");
-                break;
             
             case FailureType.NotFound:
-                _logger.LogInformation(result.Exception,
-                    "Update Sales Order Request: failed to update, sales order not found.");
-                break;
             
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Update Sales Order Request: {Message}",
+                    result.Message ?? "Failed to update sales order.");
+                break;
+
             case FailureType.Exception:
+            
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Update Sales Order Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to update sales order, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Update Sales Order Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Update Sales Order Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to update sales order, something went wrong.");
         }
@@ -227,25 +250,27 @@ public class SalesOrderLoggingDecorator : ISalesOrderService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Delete Sales Order Request: failed to delete, invalid request.");
-                break;
             
             case FailureType.NotFound:
-                _logger.LogInformation(result.Exception,
-                    "Delete Sales Order Request: failed to update, sales order not found.");
-                break;
             
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Delete Sales Order Request: {Message}",
+                    result.Message ?? "Failed to delete sales order.");
+                break;
+
             case FailureType.Exception:
+            
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Delete Sales Order Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to delete sales order, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Delete Sales Order Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Delete Sales Order Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to delete sales order, something went wrong.");
         }
@@ -276,13 +301,32 @@ public class SalesOrderLoggingDecorator : ISalesOrderService
             _logger.LogInformation("Get Many SO Details Request: {Count} SO details successfully fetched.",
                 result.Value?.SoDetails?.Count);
         }
-        else
+        else switch (result.FailureType)
         {
-            _logger.LogError(result.Exception,
-                "Get Many SO Details Request: unhandled exception type {FailureType}.",
-                nameof(result.FailureType));
-            throw result.Exception
-                  ?? new Exception(result.Message ?? "Failed to retrieve SO details, something went wrong.");
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Get Many SO Details Request: {Message}",
+                    result.Message ?? "Failed to retrieve sales orders.");
+                break;
+
+            case FailureType.Exception:
+            
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Get Many SO Details Request: Unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve SO details, something went wrong.");
+
+            default:
+                _logger.LogError(result.Exception,
+                    "Get Many SO Details Request: Unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve SO details, something went wrong.");
         }
         
         return result;
@@ -310,25 +354,27 @@ public class SalesOrderLoggingDecorator : ISalesOrderService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation("Create SO Detail Request: failed to create SO detail {Id}, invalid SO detail.",
-                    result.Value?.Id);
-                break;
+            
+            case FailureType.NotFound:
             
             case FailureType.BusinessLogic:
-                _logger.LogError(result.Exception,
-                    "Create SO Detail Request: failed to create SO detail.");
+                _logger.LogInformation(result.Exception,
+                    "Create SO Detail Request: {Message}",
+                    result.Message ?? "Failed to create SO detail.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Create SO Detail Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to create SO detail, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Create SO Detail Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Create SO Detail Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to create SO detail, something went wrong.");
         }
@@ -358,25 +404,27 @@ public class SalesOrderLoggingDecorator : ISalesOrderService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Get SO Detail By ID Request: failed to fetch, invalid request.");
-                break;
             
             case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Get SO Detail By ID Request: failed to fetch, SO detail not found.");
+                    "Get SO Detail By ID Request: {Message}",
+                    result.Message ?? "Failed to retrieve SO detail.");
                 break;
             
             case FailureType.Exception:
+            
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Get SO Detail By ID Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to retrieve PO detail, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Get SO Detail By ID Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Get SO Detail By ID Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to retrieve SO detail, something went wrong.");
         }
@@ -406,25 +454,27 @@ public class SalesOrderLoggingDecorator : ISalesOrderService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Update SO Detail Request: failed to update, invalid request.");
-                break;
             
             case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Update SO Detail Request: failed to update, SO detail not found.");
+                    "Update SO Detail Request: {Message}",
+                    result.Message ?? "Failed to update SO detail.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Update SO Detail Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to update SO detail, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Update SO Detail Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Update SO Detail Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to update SO detail, something went wrong.");
         }
@@ -454,25 +504,27 @@ public class SalesOrderLoggingDecorator : ISalesOrderService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Delete SO Detail Request: failed to delete, invalid request.");
-                break;
             
             case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Delete SO Detail Request: failed to update, SO detail not found.");
+                    "Delete SO Detail Request: {Message}",
+                    result.Message ?? "Failed to delete SO detail.");
                 break;
             
             case FailureType.Exception:
+            
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Delete SO Detail Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to delete SO detail, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Delete SO Detail Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Delete SO Detail Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to delete SO detail, something went wrong.");
         }

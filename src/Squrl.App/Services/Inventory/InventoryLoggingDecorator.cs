@@ -46,13 +46,32 @@ public class InventoryLoggingDecorator : IInventoryService
             _logger.LogInformation("Get Many Items Request: {Count} items successfully fetched.",
                 result.Value?.Items?.Count);
         }
-        else
+        else switch (result.FailureType)
         {
-            _logger.LogError(result.Exception,
-                "Get Many Items Request: unhandled exception type {FailureType}.",
-                nameof(result.FailureType));
-            throw result.Exception
-                  ?? new Exception(result.Message ?? "Failed to retrieve items, something went wrong.");
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Get Many Items Request: {Message}",
+                    result.Message ?? "Failed to retrieve items.");
+                break;
+
+            case FailureType.Exception:
+            
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Get Many Items Request: Unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve items, something went wrong.");
+
+            default:
+                _logger.LogError(result.Exception,
+                    "Get Many Items Request: Unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve items, something went wrong.");
         }
         
         return result;
@@ -83,26 +102,27 @@ public class InventoryLoggingDecorator : IInventoryService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Create Item Request: failed to create item {Name}, invalid item.",
-                    result.Value?.Name);
-                break;
+            
+            case FailureType.NotFound:
             
             case FailureType.BusinessLogic:
-                _logger.LogError(result.Exception,
-                    "Create Item Request: failed to create item.");
+                _logger.LogInformation(result.Exception,
+                    "Create Item Request: {Message}",
+                    result.Message ?? "Failed to create item.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Create Item Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to create item, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Create Item Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Create Item Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to create item, something went wrong.");
         }
@@ -132,25 +152,27 @@ public class InventoryLoggingDecorator : IInventoryService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Get Item By ID Request: failed to fetch, invalid request.");
-                break;
             
             case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Get Item By ID Request: failed to fetch, item not found.");
+                    "Get Item By ID Request: {Message}",
+                    result.Message ?? "Failed to retrieve item.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Get Item By ID Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to retrieve item, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Get Item By ID Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Get Item By ID Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to retrieve item, something went wrong.");
         }
@@ -184,25 +206,27 @@ public class InventoryLoggingDecorator : IInventoryService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Update Item Request: failed to update, invalid request.");
-                break;
             
             case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Update Item Request: failed to update, item not found.");
+                    "Update Item Request: {Message}",
+                    result.Message ?? "Failed to update item.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Update Item Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to update item, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Update Item Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Update Item Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to update item, something went wrong.");
         }
@@ -232,25 +256,27 @@ public class InventoryLoggingDecorator : IInventoryService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Delete Item Request: failed to delete, invalid request.");
-                break;
             
             case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Delete Item Request: failed to update, item not found.");
+                    "Delete Item Request: {Message}",
+                    result.Message ?? "Failed to delete item.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Delete Item Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to delete item, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Delete Item Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Delete Item Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to delete item, something went wrong.");
         }
@@ -281,25 +307,27 @@ public class InventoryLoggingDecorator : IInventoryService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Add Stocks Request: failed to add stocks, invalid request.");
-                break;
             
             case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Add Stocks Request: failed to add stocks, item not found.");
+                    "Add Stocks Request: {Message}",
+                    result.Message ?? "Failed to add stocks.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Add Stocks Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to add stocks, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Add Stocks Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Add Stocks Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to add stocks, something went wrong.");
         }
@@ -330,30 +358,27 @@ public class InventoryLoggingDecorator : IInventoryService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Remove Stocks Request: failed to remove stocks, invalid request.");
-                break;
             
             case FailureType.NotFound:
-                _logger.LogInformation(result.Exception,
-                    "Remove Stocks Request: failed to remove stocks, item not found.");
-                break;
             
             case FailureType.BusinessLogic:
-                _logger.LogError(result.Exception,
-                    "Create Item Request: failed to create item.");
+                _logger.LogInformation(result.Exception,
+                    "Remove Stocks Request: {Message}",
+                    result.Message ?? "Failed to remove stocks.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Remove Stocks Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to remove stocks, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Remove Stocks Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Remove Stocks Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to remove stocks, something went wrong.");
         }
@@ -383,30 +408,27 @@ public class InventoryLoggingDecorator : IInventoryService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Update Stocks Request: failed to update stocks, invalid request.");
-                break;
             
             case FailureType.NotFound:
-                _logger.LogInformation(result.Exception,
-                    "Update Stocks Request: failed to update stocks, item not found.");
-                break;
             
             case FailureType.BusinessLogic:
-                _logger.LogError(result.Exception,
-                    "Create Item Request: failed to create item.");
+                _logger.LogInformation(result.Exception,
+                    "Update Stocks Request: {Message}",
+                    result.Message ?? "Failed to update stocks.");
                 break;
             
             case FailureType.Exception:
+            
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Update Stocks Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to update stocks, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Update Stocks Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Update Stocks Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to update stocks, something went wrong.");
         }

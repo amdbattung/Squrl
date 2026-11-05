@@ -45,13 +45,32 @@ public class UomLoggingDecorator : IUomService
             _logger.LogInformation("Get Many UOMs Request: {Count} UOMs successfully fetched.",
                 result.Value?.Uoms?.Count);
         }
-        else
+        else switch (result.FailureType)
         {
-            _logger.LogError(result.Exception,
-                "Get Many UOMs Request: unhandled exception type {FailureType}.",
-                nameof(result.FailureType));
-            throw result.Exception
-                  ?? new Exception(result.Message ?? "Failed to retrieve UOMs, something went wrong.");
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Get Many UOMs Request: {Message}",
+                    result.Message ?? "Failed to retrieve UOMs.");
+                break;
+
+            case FailureType.Exception:
+            
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Get Many UOMs Request: Unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve UOMs, something went wrong.");
+
+            default:
+                _logger.LogError(result.Exception,
+                    "Get Many UOMs Request: Unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve UOMs, something went wrong.");
         }
         
         return result;
@@ -79,21 +98,27 @@ public class UomLoggingDecorator : IUomService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
+            
+            case FailureType.NotFound:
+                
+            case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Create UOM Request: failed to create UOM {Name}, invalid UOM.",
-                    result.Value?.Name);
+                    "Create UOM Request Request: {Message}",
+                    result.Message ?? "Failed to create UOM.");
                 break;
             
             case FailureType.Exception:
+            
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Create UOM Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to create UOM, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Create UOM Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Create UOM Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to create UOM, something went wrong.");
         }
@@ -123,25 +148,27 @@ public class UomLoggingDecorator : IUomService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Get UOM By ID Request: failed to fetch, invalid request.");
-                break;
             
             case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Get UOM By ID Request: failed to fetch, UOM not found.");
+                    "Get UOM By ID Request: {Message}",
+                    result.Message ?? "Failed to retrieve UOM.");
                 break;
             
             case FailureType.Exception:
+            
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Get UOM By ID Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to retrieve UOM, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Get UOM By ID Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Get UOM By ID Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to retrieve UOM, something went wrong.");
         }
@@ -171,25 +198,27 @@ public class UomLoggingDecorator : IUomService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Update UOM Request: failed to update, invalid request.");
-                break;
             
             case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Update UOM Request: failed to update, UOM not found.");
+                    "Update UOM Request: {Message}",
+                    result.Message ?? "Failed to update UOM.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Update UOM Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to update supplier, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Update UOM Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Update UOM Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to update UOM, something went wrong.");
         }
@@ -219,25 +248,27 @@ public class UomLoggingDecorator : IUomService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Delete UOM Request: failed to delete, invalid request.");
-                break;
             
             case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Delete UOM Request: failed to update, UOM not found.");
+                    "Delete UOM Request: {Message}",
+                    result.Message ?? "Failed to delete UOM.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Delete UOM Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to delete UOM, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Delete UOM Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Delete UOM Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to delete UOM, something went wrong.");
         }

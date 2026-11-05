@@ -180,7 +180,6 @@ public class InventoryService : IInventoryService
                 && item.UomId != existingItem.Uom.Id)
             {
                 uom = await _dataContext.UnitOfMeasures
-                    .AsNoTracking()
                     .FirstOrDefaultAsync(u => u.Id == item.UomId, ct);
             
                 if (uom == null)

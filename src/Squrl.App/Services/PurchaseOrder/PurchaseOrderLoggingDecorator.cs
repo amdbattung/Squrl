@@ -58,13 +58,32 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
             _logger.LogInformation("Get Many Purchase Orders Request: {Count} purchase orders successfully fetched.",
                 result.Value?.PurchaseOrders?.Count);
         }
-        else
+        else switch (result.FailureType)
         {
-            _logger.LogError(result.Exception,
-                "Get Many Purchase Orders Request: unhandled exception type {FailureType}.",
-                nameof(result.FailureType));
-            throw result.Exception
-                  ?? new Exception(result.Message ?? "Failed to retrieve purchase orders, something went wrong.");
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Get Many Purchase Orders Request: {Message}",
+                    result.Message ?? "Failed to retrieve purchase orders.");
+                break;
+
+            case FailureType.Exception:
+            
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Get Many Purchase Orders Request: Unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve purchase orders, something went wrong.");
+
+            default:
+                _logger.LogError(result.Exception,
+                    "Get Many Suppliers Request: Unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve purchase orders, something went wrong.");
         }
         
         return result;
@@ -92,26 +111,27 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Create Purchase Order Request: failed to create purchase order {Id}, invalid purchase order.",
-                    result.Value?.Id);
-                break;
+            
+            case FailureType.NotFound:
             
             case FailureType.BusinessLogic:
-                _logger.LogError(result.Exception,
-                    "Create Purchase Order Request: failed to create purchase order.");
+                _logger.LogInformation(result.Exception,
+                    "Create Purchase Order Request: {Message}",
+                    result.Message ?? "Failed to create purchase order.");
                 break;
             
             case FailureType.Exception:
+            
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Create Purchase Order Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to create purchase order, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Create Purchase Order Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Create Purchase Order Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to create purchase order, something went wrong.");
         }
@@ -141,25 +161,27 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Get Purchase Order By ID Request: failed to fetch, invalid request.");
-                break;
             
             case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Get Purchase Order By ID Request: failed to fetch, purchase order not found.");
+                    "Get Purchase Order By ID Request: {Message}",
+                    result.Message ?? "Failed to retrieve purchase order.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Get Purchase Order By ID Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to retrieve purchase order, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Get Purchase Order By ID Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Get Purchase Order By ID Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to retrieve purchase order, something went wrong.");
         }
@@ -190,25 +212,27 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Update Purchase Order Request: failed to update, invalid request.");
-                break;
             
             case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Update Purchase Order Request: failed to update, purchase order not found.");
+                    "Update Purchase Order Request: {Message}",
+                    result.Message ?? "Failed to update purchase order.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Update Purchase Order Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to update purchase order, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Update Purchase Order Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Update Purchase Order Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to update purchase order, something went wrong.");
         }
@@ -238,25 +262,27 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Delete Purchase Order Request: failed to delete, invalid request.");
-                break;
             
             case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Delete Purchase Order Request: failed to update, purchase order not found.");
+                    "Delete Purchase Order Request: {Message}",
+                    result.Message ?? "Failed to delete purchase order.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Delete Purchase Order Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to delete purchase order, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Delete Purchase Order Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Delete Purchase Order Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to delete purchase order, something went wrong.");
         }
@@ -289,13 +315,32 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
             _logger.LogInformation("Get Many PO Details Request: {Count} PO details successfully fetched.",
                 result.Value?.PoDetails?.Count);
         }
-        else
+        else switch (result.FailureType)
         {
-            _logger.LogError(result.Exception,
-                "Get Many PO Details Request: unhandled exception type {FailureType}.",
-                nameof(result.FailureType));
-            throw result.Exception
-                  ?? new Exception(result.Message ?? "Failed to retrieve PO details, something went wrong.");
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Get Many PO Details Request: {Message}",
+                    result.Message ?? "Failed to retrieve PO details.");
+                break;
+
+            case FailureType.Exception:
+            
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Get Many PO Details Request: Unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve PO details, something went wrong.");
+
+            default:
+                _logger.LogError(result.Exception,
+                    "Get Many PO Details Request: Unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve PO details, something went wrong.");
         }
         
         return result;
@@ -323,26 +368,27 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Create PO Detail Request: failed to create PO detail {Id}, invalid PO detail.",
-                    result.Value?.Id);
-                break;
+            
+            case FailureType.NotFound:
             
             case FailureType.BusinessLogic:
-                _logger.LogError(result.Exception,
-                    "Create PO Detail Request: failed to create PO detail.");
+                _logger.LogInformation(result.Exception,
+                    "Create PO Detail Request: {Message}",
+                    result.Message ?? "Failed to create PO detail.");
                 break;
             
             case FailureType.Exception:
+            
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Create PO Detail Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to create PO detail, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Create PO Detail Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Create PO Detail Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to create PO detail, something went wrong.");
         }
@@ -372,25 +418,27 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Get PO Detail By ID Request: failed to fetch, invalid request.");
-                break;
             
             case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Get PO Detail By ID Request: failed to fetch, PO detail not found.");
+                    "Get PO Detail By ID Request: {Message}",
+                    result.Message ?? "Failed to retrieve PO detail.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Get PO Detail By ID Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to retrieve PO detail, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Get PO Detail By ID Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Get PO Detail By ID Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to retrieve PO detail, something went wrong.");
         }
@@ -420,25 +468,27 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Update PO Detail Request: failed to update, invalid request.");
-                break;
             
             case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Update PO Detail Request: failed to update, PO detail not found.");
+                    "Update PO Detail Request: {Message}",
+                    result.Message ?? "Failed to update PO detail.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Update PO Detail Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to update PO detail, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Update PO Detail Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Update PO Detail Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to update PO detail, something went wrong.");
         }
@@ -468,25 +518,27 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation(result.Exception,
-                    "Delete PO Detail Request: failed to delete, invalid request.");
-                break;
             
             case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Delete PO Detail Request: failed to update, PO detail not found.");
+                    "Delete PO Detail Request: {Message}",
+                    result.Message ?? "Failed to delete PO detail.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Delete PO Detail Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to delete PO detail, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Delete PO Detail Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Delete PO Detail Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to delete PO detail, something went wrong.");
         }
@@ -515,26 +567,28 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
         }
         else switch (result.FailureType)
         {
+            case FailureType.Validation:
+            
             case FailureType.NotFound:
-                _logger.LogInformation(result.Exception,
-                    "Receive Purchase Order Request: failed to receive, purchase order not found.");
-                break;
             
             case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Receive Purchase Order Request: failed to receive purchase order.");
+                    "Receive Purchase Order Request: {Message}",
+                    result.Message ?? "Failed to receive purchase order.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Receive Purchase Order Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to receive purchase order, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Receive Purchase Order Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Receive Purchase Order Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to receive purchase order, something went wrong.");
         }
@@ -563,26 +617,28 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
         }
         else switch (result.FailureType)
         {
+            case FailureType.Validation:
+            
             case FailureType.NotFound:
-                _logger.LogInformation(result.Exception,
-                    "Cancel Purchase Order Request: failed to cancel, purchase order not found.");
-                break;
             
             case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Cancel Purchase Order Request: failed to cancel purchase order.");
+                    "Cancel Purchase Order Request: {Message}",
+                    result.Message ?? "Failed to cancel purchase order.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Cancel Purchase Order Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to cancel purchase order, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Cancel Purchase Order Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Cancel Purchase Order Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to cancel purchase order, something went wrong.");
         }
@@ -611,26 +667,28 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
         }
         else switch (result.FailureType)
         {
+            case FailureType.Validation:
+            
             case FailureType.NotFound:
-                _logger.LogInformation(result.Exception,
-                    "Return Purchase Order Request: failed to return, purchase order not found.");
-                break;
             
             case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Return Purchase Order Request: failed to return purchase order.");
+                    "Return Purchase Order Request: {Message}",
+                    result.Message ?? "Failed to return purchase order.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Return Purchase Order Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to return purchase order, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Return Purchase Order Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Return Purchase Order Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to return purchase order, something went wrong.");
         }
@@ -654,16 +712,35 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation("Update Purchase Order Status: purchase order {Id} successfully updated.",
+            _logger.LogInformation("Update Purchase Order Status Request: purchase order {Id} successfully updated.",
                 result.Value?.Id);
         }
-        else
+        else switch (result.FailureType)
         {
-            _logger.LogError(result.Exception,
-                "Update Purchase Order Status: unhandled exception type {FailureType}.",
-                nameof(result.FailureType));
-            throw result.Exception
-                  ?? new Exception(result.Message ?? "Failed to update purchase order, something went wrong.");
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Update Purchase Order Status Request: {Message}",
+                    result.Message ?? "Failed to update purchase order.");
+                break;
+            
+            case FailureType.Exception:
+
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Update Purchase Order Status Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to update purchase order, something went wrong.");
+                
+            default:
+                _logger.LogError(result.Exception,
+                    "Update Purchase Order Status Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to update purchase order, something went wrong.");
         }
         
         return result;
@@ -691,26 +768,28 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
         }
         else switch (result.FailureType)
         {
+            case FailureType.Validation:
+            
             case FailureType.NotFound:
-                _logger.LogInformation(result.Exception,
-                    "Revert Received Purchase Order Request: failed to revert purchase order, not found.");
-                break;
             
             case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Revert Received Purchase Order Request: failed to revert purchase order.");
+                    "Revert Received Purchase Order Request: {Message}",
+                    result.Message ?? "Failed to revert purchase order.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Revert Received Purchase Order Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to revert purchase order, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Revert Received Purchase Order Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Revert Received Purchase Order Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to revert purchase order, something went wrong.");
         }
@@ -738,26 +817,28 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
         }
         else switch (result.FailureType)
         {
+            case FailureType.Validation:
+            
             case FailureType.NotFound:
-                _logger.LogInformation(result.Exception,
-                    "Uncancel Purchase Order Request: failed to uncancel, purchase order not found.");
-                break;
             
             case FailureType.BusinessLogic:
                 _logger.LogInformation(result.Exception,
-                    "Uncancel Purchase Order Request: failed to uncancel purchase order.");
+                    "Uncancel Purchase Order Request: {Message}",
+                    result.Message ?? "Failed to uncancel purchase order.");
                 break;
             
             case FailureType.Exception:
+
+            case FailureType.Unexpected:
                 _logger.LogError(result.Exception,
                     "Uncancel Purchase Order Request: unhandled exception.");
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to uncancel purchase order, something went wrong.");
-            
+                
             default:
                 _logger.LogError(result.Exception,
-                    "Uncancel Purchase Order Request: unhandled exception type {FailureType}.",
-                    nameof(result.FailureType));
+                    "Uncancel Purchase Order Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to uncancel purchase order, something went wrong.");
         }

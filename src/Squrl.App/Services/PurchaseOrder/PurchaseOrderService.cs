@@ -135,7 +135,6 @@ public partial class PurchaseOrderService : IPurchaseOrderService
         Func<CancellationToken, Task<Result<GetPurchaseOrderDto>>> action = async ct =>
         {
             Models.Supplier? supplier = await _dataContext.Suppliers
-                .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.Id == purchaseOrder.SupplierId, ct);
 
             if (supplier == null)
@@ -161,7 +160,6 @@ public partial class PurchaseOrderService : IPurchaseOrderService
             foreach (CreatePoDetailDto poDetail in purchaseOrder.Details ?? [])
             {
                 Item? item = await _dataContext.Items
-                    .AsNoTracking()
                     .FirstOrDefaultAsync(i => i.Id == poDetail.ItemId, ct);
 
                 if (item == null)
@@ -231,7 +229,6 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                     && purchaseOrder.SupplierId != existingPurchaseOrder.Supplier?.Id)
                 {
                     supplier = await _dataContext.Suppliers
-                        .AsNoTracking()
                         .FirstOrDefaultAsync(s => s.Id == purchaseOrder.SupplierId, ct);
         
                     if (supplier == null)
@@ -267,7 +264,6 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                             && poDetail.ItemId != existingPoDetail.Item.Id)
                         {
                             item = await _dataContext.Items
-                                .AsNoTracking()
                                 .FirstOrDefaultAsync(i => i.Id == poDetail.ItemId, ct);
                             
                             if (item == null)
@@ -285,7 +281,6 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                     else
                     {
                         Item? item = await _dataContext.Items
-                            .AsNoTracking()
                             .FirstOrDefaultAsync(i => i.Id == poDetail.ItemId, ct);
                         
                         if (item == null)

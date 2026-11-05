@@ -152,7 +152,7 @@ public sealed class AddSoDetailTests : IntegrationTest
         Assert.False(actual.IsSuccess);
         Assert.Null(actual.Value);
         // TODO: Change Error Message
-        Assert.Contains("Failed to create SO detail.", actual.Errors);
+        Assert.Contains("Selected sales order not found.", actual.Errors);
         Assert.Null(actual.Exception);
         Assert.Equal(FailureType.BusinessLogic, actual.FailureType);
     }

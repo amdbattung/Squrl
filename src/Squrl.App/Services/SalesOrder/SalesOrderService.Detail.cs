@@ -53,7 +53,6 @@ public partial class SalesOrderService
         Func<CancellationToken, Task<Result<GetSoDetailDto>>> action = async ct =>
         {
             Models.SalesOrder? salesOrder = await _dataContext.SalesOrders
-                .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.Id == salesOrderId, ct);
 
             if (salesOrder == null)
@@ -64,7 +63,6 @@ public partial class SalesOrderService
             }
         
             Item? item = await _dataContext.Items
-                .AsNoTracking()
                 .FirstOrDefaultAsync(i => i.Id == soDetail.ItemId, ct);
 
             if (item == null)
@@ -143,7 +141,6 @@ public partial class SalesOrderService
                 && soDetail.SalesOrderId != existingSoDetail.SalesOrder.Id)
             {
                 salesOrder = await _dataContext.SalesOrders
-                    .AsNoTracking()
                     .FirstOrDefaultAsync(s => s.Id == soDetail.SalesOrderId, ct);
             
                 if (salesOrder == null)
@@ -159,7 +156,6 @@ public partial class SalesOrderService
                 && soDetail.ItemId != existingSoDetail.Item.Id)
             {
                 item = await _dataContext.Items
-                    .AsNoTracking()
                     .FirstOrDefaultAsync(i => i.Id == soDetail.ItemId, ct);
             
                 if (item == null)
