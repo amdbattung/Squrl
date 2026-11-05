@@ -113,8 +113,6 @@ try
             options.MaximumReceiveMessageSize = 1 * 1024L * 1024L; // 1 MB
         });
 
-    builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
-
     builder.Services.AddDataContext(builder.Configuration);
     
     builder.Services.AddScoped<ITransactionManager, EfTransactionManager>();
