@@ -19,14 +19,14 @@ public class InventoryAlertDecorator : IInventoryService
     }
     
     public Task<Result<GetManyItemsDto>> GetManyItemsAsync(
-        string? query = null,
-        int? pageNumber = null,
-        int? pageSize = null,
+        string? search = null,
+        int pageNumber = 1,
+        int pageSize = 10,
         SortDirection orderDirection = SortDirection.Ascending,
         CancellationToken cancellationToken = default)
     {
         return _inventoryService.GetManyItemsAsync(
-            query,
+            search,
             pageNumber,
             pageSize,
             orderDirection,

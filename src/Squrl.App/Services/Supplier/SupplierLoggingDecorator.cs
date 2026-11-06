@@ -17,34 +17,60 @@ public class SupplierLoggingDecorator : ISupplierService
     }
     
     public async Task<Result<GetManySuppliersDto>> GetManySuppliersAsync(
-        string? query = null,
-        int? pageNumber = null,
-        int? pageSize = null,
+        string? search = null,
+        int pageNumber = 1,
+        int pageSize = 10,
         SortDirection orderDirection = SortDirection.Ascending,
         CancellationToken cancellationToken = default)
     {
-        Result<GetManySuppliersDto> result = await _supplierService.GetManySuppliersAsync(
-            query,
-            pageNumber,
-            pageSize,
-            orderDirection,
-            cancellationToken);
+        Result<GetManySuppliersDto> result;
+        
+        try
+        {
+            result = await _supplierService.GetManySuppliersAsync(
+                search,
+                pageNumber,
+                pageSize,
+                orderDirection,
+                cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Get Many Suppliers Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Get Many Suppliers Request: {result.Value?.Suppliers?.Count} suppliers successfully fetched.");
+            _logger.LogInformation("Get Many Suppliers Request: {Count} suppliers successfully fetched.",
+                result.Value?.Suppliers?.Count);
         }
-        else if (result.FailureType == FailureType.Exception)
+        else switch (result.FailureType)
         {
-            _logger.LogError(result.Exception, "Get Many Suppliers Request: unhandled exception.");
-            return Result<GetManySuppliersDto>.Fail(result.Message ?? "Failed to retrieve suppliers.")
-                .WithFailureType(FailureType.Unexpected);
-        }
-        else
-        {
-            _logger.LogError(result.Exception, "Get Many Suppliers Request: failed to fetch suppliers.");
-            return Result<GetManySuppliersDto>.Fail(result.Message ?? "Failed to retrieve suppliers.")
-                .WithFailureType(FailureType.Unexpected);
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Get Many Suppliers Request: {Message}",
+                    result.Message ?? "Failed to retrieve suppliers.");
+                break;
+
+            case FailureType.Exception:
+            
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Get Many Suppliers Request: Unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve suppliers, something went wrong.");
+
+            default:
+                _logger.LogError(result.Exception,
+                    "Get Many Suppliers Request: Unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve suppliers, something went wrong.");
         }
         
         return result;
@@ -52,31 +78,49 @@ public class SupplierLoggingDecorator : ISupplierService
 
     public async Task<Result<GetSupplierDto>> CreateSupplierAsync(CreateSupplierDto supplier, CancellationToken cancellationToken = default)
     {
-        Result<GetSupplierDto> result = await _supplierService.CreateSupplierAsync(supplier, cancellationToken);
+        Result<GetSupplierDto> result;
+
+        try
+        {
+            result = await _supplierService.CreateSupplierAsync(supplier, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Create Supplier Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Create Supplier Request: supplier {result.Value?.Name} successfully created.");
+            _logger.LogInformation("Create Supplier Request: supplier {Name} successfully created.",
+                result.Value?.Name);
         }
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation($"Create Supplier Request: failed to create supplier {result.Value?.Name}, invalid supplier.");
-                break;
             
+            case FailureType.NotFound:
+                
             case FailureType.BusinessLogic:
-                _logger.LogError(result.Exception, "Create Supplier Request: failed to create supplier.");
+                _logger.LogInformation(result.Exception,
+                    "Create Supplier Request: {Message}",
+                    result.Message ?? "Failed to create supplier.");
                 break;
-            
+
             case FailureType.Exception:
-                _logger.LogError(result.Exception, "Create Supplier Request: unhandled exception.");
-                return Result<GetSupplierDto>.Fail(result.Message ?? "Failed to create supplier.")
-                    .WithFailureType(FailureType.Unexpected);
-            
+
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Create Supplier Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to create supplier, something went wrong.");
+                
             default:
-                _logger.LogError(result.Exception, "Create Supplier Request: failed to create supplier.");
-                return Result<GetSupplierDto>.Fail(result.Message ?? "Failed to create supplier.")
-                    .WithFailureType(FailureType.Unexpected);
+                _logger.LogError(result.Exception,
+                    "Create Supplier Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to create supplier, something went wrong.");
         }
     
         return result;
@@ -84,31 +128,49 @@ public class SupplierLoggingDecorator : ISupplierService
 
     public async Task<Result<GetSupplierDto>> GetSupplierByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        Result<GetSupplierDto> result = await _supplierService.GetSupplierByIdAsync(id, cancellationToken);
+        Result<GetSupplierDto> result;
+
+        try
+        {
+            result = await _supplierService.GetSupplierByIdAsync(id, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Get Supplier By ID Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Get Supplier By ID Request: supplier {result.Value?.Name} successfully fetched.");
+            _logger.LogInformation("Get Supplier By ID Request: supplier {Name} successfully fetched.",
+                result.Value?.Name);
         }
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation("Get Supplier By ID Request: failed to fetch, invalid request.");
-                break;
             
             case FailureType.NotFound:
-                _logger.LogInformation("Get Supplier By ID Request: failed to fetch, supplier not found.");
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Get Supplier By ID Request: {Message}",
+                    result.Message ?? "Failed to retrieve supplier.");
                 break;
             
             case FailureType.Exception:
-                _logger.LogError(result.Exception, "Get Supplier By ID Request: unhandled exception.");
-                return Result<GetSupplierDto>.Fail(result.Message ?? "Failed to retrieve supplier.")
-                    .WithFailureType(FailureType.Unexpected);
+                
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Get Supplier By ID Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve supplier, something went wrong.");
             
             default:
-                _logger.LogError(result.Exception, "Get Supplier By ID Request: failed to fetch supplier.");
-                return Result<GetSupplierDto>.Fail(result.Message ?? "Failed to retrieve supplier.")
-                    .WithFailureType(FailureType.Unexpected);
+                _logger.LogError(result.Exception,
+                    "Get Supplier By ID Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve supplier, something went wrong.");
         }
         
         return result;
@@ -116,31 +178,47 @@ public class SupplierLoggingDecorator : ISupplierService
 
     public async Task<Result<GetSupplierDto>> UpdateSupplierAsync(Guid id, UpdateSupplierDto supplier, CancellationToken cancellationToken = default)
     {
-        Result<GetSupplierDto> result = await _supplierService.UpdateSupplierAsync(id, supplier, cancellationToken);
+        Result<GetSupplierDto> result;
+
+        try
+        { 
+            result = await _supplierService.UpdateSupplierAsync(id, supplier, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Update Supplier Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Update Supplier Request: supplier {result.Value?.Name} successfully updated.");
+            _logger.LogInformation("Update Supplier Request: supplier {Name} successfully updated.",
+                result.Value?.Name);
         }
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation("Update Supplier Request: failed to update, invalid request.");
-                break;
             
             case FailureType.NotFound:
-                _logger.LogInformation("Update Supplier Request: failed to update, supplier not found.");
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Update Supplier Request: {Message}",
+                    result.Message ?? "Failed to update supplier.");
                 break;
             
             case FailureType.Exception:
-                _logger.LogError(result.Exception, "Update Supplier Request: unhandled exception.");
-                return Result<GetSupplierDto>.Fail(result.Message ?? "Failed to update supplier.")
-                    .WithFailureType(FailureType.Unexpected);
+                _logger.LogError(result.Exception,
+                    "Update Supplier Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to update supplier, something went wrong.");
             
             default:
-                _logger.LogError(result.Exception, "Update Supplier Request: failed to update supplier.");
-                return Result<GetSupplierDto>.Fail(result.Message ?? "Failed to update supplier.")
-                    .WithFailureType(FailureType.Unexpected);
+                _logger.LogError(result.Exception,
+                    "Update Supplier Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to update supplier, something went wrong.");
         }
         
         return result;
@@ -148,31 +226,49 @@ public class SupplierLoggingDecorator : ISupplierService
 
     public async Task<Result<GetSupplierDto>> DeleteSupplierAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        Result<GetSupplierDto> result = await _supplierService.DeleteSupplierAsync(id, cancellationToken);
+        Result<GetSupplierDto> result;
+
+        try
+        {
+            result = await _supplierService.DeleteSupplierAsync(id, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Delete Supplier Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Delete Supplier Request: supplier {result.Value?.Name} successfully deleted.");
+            _logger.LogInformation("Delete Supplier Request: supplier {Name} successfully deleted.",
+                result.Value?.Name);
         }
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation("Delete Supplier Request: failed to delete, invalid request.");
-                break;
             
             case FailureType.NotFound:
-                _logger.LogInformation("Delete Supplier Request: failed to update, supplier not found.");
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Delete Supplier Request: {Message}",
+                    result.Message ?? "Failed to delete supplier.");
                 break;
             
             case FailureType.Exception:
-                _logger.LogError(result.Exception, "Delete Supplier Request: unhandled exception.");
-                return Result<GetSupplierDto>.Fail(result.Message ?? "Failed to delete supplier.")
-                    .WithFailureType(FailureType.Unexpected);
             
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Delete Supplier Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to delete supplier, something went wrong.");
+                
             default:
-                _logger.LogError(result.Exception, "Delete Supplier Request: failed to update supplier.");
-                return Result<GetSupplierDto>.Fail(result.Message ?? "Failed to delete supplier.")
-                    .WithFailureType(FailureType.Unexpected);
+                _logger.LogError(result.Exception,
+                    "Delete Supplier Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to delete supplier, something went wrong.");
         }
         
         return result;

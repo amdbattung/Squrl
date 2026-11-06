@@ -134,16 +134,16 @@
     
     private async Task<InputSearchableSelect<GetItemDto, Guid?>.PagedResult<GetItemDto>>
         LoadItems(
-            string? query,
+            string? search,
             int pageNumber,
             int pageSize,
             CancellationToken cancellationToken)
     {
         Result<GetManyItemsDto> result =
             await InventoryService.GetManyItemsAsync(
-                query: query,
-                pageNumber: pageNumber,
-                pageSize: pageSize,
+                search,
+                pageNumber,
+                pageSize,
                 cancellationToken: cancellationToken);
 
         if (!result.IsSuccess || result.Value?.Items is null)

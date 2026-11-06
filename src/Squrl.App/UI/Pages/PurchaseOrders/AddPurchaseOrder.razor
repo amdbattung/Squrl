@@ -182,16 +182,16 @@
     
     private async Task<InputSearchableSelect<GetSupplierDto, Guid?>.PagedResult<GetSupplierDto>>
         LoadSuppliers(
-            string? query,
+            string? search,
             int pageNumber,
             int pageSize,
             CancellationToken cancellationToken)
     {
         Result<GetManySuppliersDto> result =
             await SupplierService.GetManySuppliersAsync(
-                query: query,
-                pageNumber: pageNumber,
-                pageSize: pageSize,
+                search,
+                pageNumber,
+                pageSize,
                 cancellationToken: cancellationToken);
 
         if (!result.IsSuccess || result.Value?.Suppliers is null)
@@ -216,16 +216,16 @@
     
     private async Task<InputSearchableSelect<GetItemDto, Guid?>.PagedResult<GetItemDto>>
         LoadItems(
-            string? query,
+            string? search,
             int pageNumber,
             int pageSize,
             CancellationToken cancellationToken)
     {
         Result<GetManyItemsDto> result =
             await InventoryService.GetManyItemsAsync(
-                query: query,
-                pageNumber: pageNumber,
-                pageSize: pageSize,
+                search,
+                pageNumber,
+                pageSize,
                 cancellationToken: cancellationToken);
 
         if (!result.IsSuccess || result.Value?.Items is null)

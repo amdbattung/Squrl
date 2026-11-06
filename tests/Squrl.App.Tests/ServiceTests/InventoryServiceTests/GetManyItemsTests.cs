@@ -181,7 +181,7 @@ public sealed class GetManyItemsTests : IntegrationTest
         
         // Act
         // Returns: Test Item 1, Test Item 10, Test Item 11 ... Test Item 15
-        Result<GetManyItemsDto> actual = await service.GetManyItemsAsync(query: "Test Item 1");
+        Result<GetManyItemsDto> actual = await service.GetManyItemsAsync(search: "Test Item 1");
         
         // Assert
         Assert.True(actual.IsSuccess);

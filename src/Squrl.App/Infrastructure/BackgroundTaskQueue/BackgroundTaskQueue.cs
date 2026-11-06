@@ -17,12 +17,16 @@ public class BackgroundTaskQueue: IBackgroundTaskQueue
     
     public async ValueTask QueueAsync(Func<CancellationToken, ValueTask> workItem)
     {
-        if (workItem == null)
-        {
-            throw new ArgumentNullException(nameof(workItem));
-        }
+        ArgumentNullException.ThrowIfNull(workItem);
 
-        await _queue.Writer.WriteAsync(workItem);
+        try
+        {
+            await _queue.Writer.WriteAsync(workItem);
+        }
+        catch (Exception)
+        {
+            // Ignore enqueueing errors.
+        }
     }
 
     public async ValueTask<Func<CancellationToken, ValueTask>> DequeueAsync(CancellationToken cancellationToken)

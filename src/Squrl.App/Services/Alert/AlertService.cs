@@ -1,7 +1,8 @@
-﻿using MediatR;
+﻿using Microsoft.EntityFrameworkCore;
+using NodaTime;
 using Squrl.App.Common;
+using Squrl.App.Data;
 using Squrl.App.Enums;
-using Squrl.App.Features.Items.Queries;
 using Squrl.App.Models;
 using AlertObject = Squrl.App.Common.Alert;
 
@@ -21,9 +22,14 @@ public class AlertService : IAlertService
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
         using IServiceScope scope = _scopeFactory.CreateScope();
-        IMediator mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
+        DataContext dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
         
-        IReadOnlyList<Item> items = await mediator.Send(new GetLowQuantityItemsQuery(), cancellationToken);
+        IReadOnlyList<Item> items = await dataContext.Items
+            .AsNoTracking()
+            .Where(i => i.Quantity <= i.LowQuantityAlertThreshold)
+            .OrderBy(i => EF.Property<Instant>(i, "DateCreated"))
+            .ThenBy(i => i.Name)
+            .ToListAsync(cancellationToken);
 
         _activeAlerts = items.ToDictionary(
             i => i.Id,
@@ -36,7 +42,9 @@ public class AlertService : IAlertService
             });
     }
 
-    public async Task<Result<AlertObject>> SetAlertAsync(Guid itemId, string message = "", CancellationToken cancellationToken = default)
+    public async Task<Result<AlertObject>> SetAlertAsync(
+        Guid itemId, string message = "",
+        CancellationToken cancellationToken = default)
     {
         AlertObject alert = new AlertObject
         {
@@ -77,6 +85,7 @@ public class AlertService : IAlertService
     public Task<Result<IReadOnlyCollection<AlertObject>>> GetAlertsAsync(CancellationToken cancellationToken = default)
     {
         IReadOnlyCollection<AlertObject> alerts = _activeAlerts.Values.ToList().AsReadOnly();
-        return Task.FromResult<Result<IReadOnlyCollection<AlertObject>>>(Result<IReadOnlyCollection<AlertObject>>.Ok(alerts));
+        return Task.FromResult<Result<IReadOnlyCollection<AlertObject>>>(
+            Result<IReadOnlyCollection<AlertObject>>.Ok(alerts));
     }
 }

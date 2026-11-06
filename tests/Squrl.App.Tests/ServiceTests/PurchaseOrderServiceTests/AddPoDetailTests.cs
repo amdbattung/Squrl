@@ -125,10 +125,9 @@ public sealed class AddPoDetailTests : IntegrationTest
         // Assert
         Assert.False(actual.IsSuccess);
         Assert.Null(actual.Value);
-        // TODO: Change Error Message
-        Assert.Contains("Failed to create PO detail.", actual.Errors);
+        Assert.Contains("Null or invalid ID.", actual.Errors);
         Assert.Null(actual.Exception);
-        Assert.Equal(FailureType.BusinessLogic, actual.FailureType);
+        Assert.Equal(FailureType.Validation, actual.FailureType);
     }
 
     [Fact]
@@ -153,10 +152,9 @@ public sealed class AddPoDetailTests : IntegrationTest
         // Assert
         Assert.False(actual.IsSuccess);
         Assert.Null(actual.Value);
-        // TODO: Change Error Message
-        Assert.Contains("Failed to create PO detail.", actual.Errors);
+        Assert.Contains("Purchase order not found.", actual.Errors);
         Assert.Null(actual.Exception);
-        Assert.Equal(FailureType.BusinessLogic, actual.FailureType);
+        Assert.Equal(FailureType.NotFound, actual.FailureType);
     }
 
     [Fact]

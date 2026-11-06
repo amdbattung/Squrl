@@ -18,46 +18,72 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
     }
     
     public async Task<Result<GetManyPurchaseOrdersDto>> GetManyPurchaseOrdersAsync(
-        string? query = null,
+        string? search = null,
         Guid? supplierId = null,
         bool isPending = false,
         bool isReceived = false,
         bool isCanceled = false,
         bool hasFailed = false,
         bool isReturned = false,
-        int? pageNumber = null,
-        int? pageSize = null,
+        int pageNumber = 1,
+        int pageSize = 10,
         SortDirection orderDirection = SortDirection.Ascending,
         CancellationToken cancellationToken = default)
     {
-        Result<GetManyPurchaseOrdersDto> result = await _purchaseOrderService.GetManyPurchaseOrdersAsync(
-            query,
-            supplierId,
-            isPending,
-            isReceived,
-            isCanceled,
-            hasFailed,
-            isReturned,
-            pageNumber,
-            pageSize,
-            orderDirection,
-            cancellationToken);
+        Result<GetManyPurchaseOrdersDto> result;
+
+        try
+        {
+            result = await _purchaseOrderService.GetManyPurchaseOrdersAsync(
+                search,
+                supplierId,
+                isPending,
+                isReceived,
+                isCanceled,
+                hasFailed,
+                isReturned,
+                pageNumber,
+                pageSize,
+                orderDirection,
+                cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Get Many Purchase Orders Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Get Many Purchase Orders Request: {result.Value?.PurchaseOrders?.Count} purchase orders successfully fetched.");
+            _logger.LogInformation("Get Many Purchase Orders Request: {Count} purchase orders successfully fetched.",
+                result.Value?.PurchaseOrders?.Count);
         }
-        else if (result.FailureType == FailureType.Exception)
+        else switch (result.FailureType)
         {
-            _logger.LogError(result.Exception, "Get Many Purchase Orders Request: unhandled exception.");
-            return Result<GetManyPurchaseOrdersDto>.Fail(result.Message ?? "Failed to retrieve purchase orders.")
-                .WithFailureType(FailureType.Unexpected);
-        }
-        else
-        {
-            _logger.LogError(result.Exception, "Get Many Purchase Orders Request: failed to fetch purchase orders.");
-            return Result<GetManyPurchaseOrdersDto>.Fail(result.Message ?? "Failed to retrieve purchase orders.")
-                .WithFailureType(FailureType.Unexpected);
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Get Many Purchase Orders Request: {Message}",
+                    result.Message ?? "Failed to retrieve purchase orders.");
+                break;
+
+            case FailureType.Exception:
+            
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Get Many Purchase Orders Request: Unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve purchase orders, something went wrong.");
+
+            default:
+                _logger.LogError(result.Exception,
+                    "Get Many Suppliers Request: Unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve purchase orders, something went wrong.");
         }
         
         return result;
@@ -65,31 +91,49 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
 
     public async Task<Result<GetPurchaseOrderDto>> CreatePurchaseOrderAsync(CreatePurchaseOrderDto purchaseOrder, CancellationToken cancellationToken = default)
     {
-        Result<GetPurchaseOrderDto> result = await _purchaseOrderService.CreatePurchaseOrderAsync(purchaseOrder, cancellationToken);
+        Result<GetPurchaseOrderDto> result;
+
+        try
+        {
+            result = await _purchaseOrderService.CreatePurchaseOrderAsync(purchaseOrder, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Create Purchase Order Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Create Purchase Order Request: purchase order {result.Value?.Id} successfully created.");
+            _logger.LogInformation("Create Purchase Order Request: purchase order {Id} successfully created.",
+                result.Value?.Id);
         }
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation($"Create Purchase Order Request: failed to create purchase order {result.Value?.Id}, invalid purchase order.");
-                break;
+            
+            case FailureType.NotFound:
             
             case FailureType.BusinessLogic:
-                _logger.LogError(result.Exception, "Create Purchase Order Request: failed to create purchase order.");
+                _logger.LogInformation(result.Exception,
+                    "Create Purchase Order Request: {Message}",
+                    result.Message ?? "Failed to create purchase order.");
                 break;
             
             case FailureType.Exception:
-                _logger.LogError(result.Exception, "Create Purchase Order Request: unhandled exception.");
-                return Result<GetPurchaseOrderDto>.Fail(result.Message ?? "Failed to create purchase order.")
-                    .WithFailureType(FailureType.Unexpected);
             
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Create Purchase Order Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to create purchase order, something went wrong.");
+                
             default:
-                _logger.LogError(result.Exception, "Create Purchase Order Request: failed to create purchase order.");
-                return Result<GetPurchaseOrderDto>.Fail(result.Message ?? "Failed to create purchase order.")
-                    .WithFailureType(FailureType.Unexpected);
+                _logger.LogError(result.Exception,
+                    "Create Purchase Order Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to create purchase order, something went wrong.");
         }
     
         return result;
@@ -97,31 +141,49 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
 
     public async Task<Result<GetPurchaseOrderDto>> GetPurchaseOrderByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        Result<GetPurchaseOrderDto> result = await _purchaseOrderService.GetPurchaseOrderByIdAsync(id, cancellationToken);
+        Result<GetPurchaseOrderDto> result;
+
+        try
+        {
+            result = await _purchaseOrderService.GetPurchaseOrderByIdAsync(id, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Get Purchase Order By ID Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Get Purchase Order By ID Request: purchase order {result.Value?.Id} successfully fetched.");
+            _logger.LogInformation("Get Purchase Order By ID Request: purchase order {Id} successfully fetched.",
+                result.Value?.Id);
         }
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation("Get Purchase Order By ID Request: failed to fetch, invalid request.");
-                break;
             
             case FailureType.NotFound:
-                _logger.LogInformation("Get Purchase Order By ID Request: failed to fetch, purchase order not found.");
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Get Purchase Order By ID Request: {Message}",
+                    result.Message ?? "Failed to retrieve purchase order.");
                 break;
             
             case FailureType.Exception:
-                _logger.LogError(result.Exception, "Get Purchase Order By ID Request: unhandled exception.");
-                return Result<GetPurchaseOrderDto>.Fail(result.Message ?? "Failed to retrieve purchase order.")
-                    .WithFailureType(FailureType.Unexpected);
-            
+
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Get Purchase Order By ID Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve purchase order, something went wrong.");
+                
             default:
-                _logger.LogError(result.Exception, "Get Purchase Order By ID Request: failed to fetch purchase order.");
-                return Result<GetPurchaseOrderDto>.Fail(result.Message ?? "Failed to retrieve purchase order.")
-                    .WithFailureType(FailureType.Unexpected);
+                _logger.LogError(result.Exception,
+                    "Get Purchase Order By ID Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve purchase order, something went wrong.");
         }
         
         return result;
@@ -130,31 +192,49 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
     public async Task<Result<GetPurchaseOrderDto>> UpdatePurchaseOrderAsync(Guid id, UpdatePurchaseOrderDto purchaseOrder,
         CancellationToken cancellationToken = default)
     {
-        Result<GetPurchaseOrderDto> result = await _purchaseOrderService.UpdatePurchaseOrderAsync(id, purchaseOrder, cancellationToken);
+        Result<GetPurchaseOrderDto> result;
+
+        try
+        {
+            result = await _purchaseOrderService.UpdatePurchaseOrderAsync(id, purchaseOrder, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Update Purchase Order Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Update Purchase Order Request: purchase order {result.Value?.Id} successfully updated.");
+            _logger.LogInformation("Update Purchase Order Request: purchase order {Id} successfully updated.",
+                result.Value?.Id);
         }
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation("Update Purchase Order Request: failed to update, invalid request.");
-                break;
             
             case FailureType.NotFound:
-                _logger.LogInformation("Update Purchase Order Request: failed to update, purchase order not found.");
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Update Purchase Order Request: {Message}",
+                    result.Message ?? "Failed to update purchase order.");
                 break;
             
             case FailureType.Exception:
-                _logger.LogError(result.Exception, "Update Purchase Order Request: unhandled exception.");
-                return Result<GetPurchaseOrderDto>.Fail(result.Message ?? "Failed to update purchase order.")
-                    .WithFailureType(FailureType.Unexpected);
-            
+
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Update Purchase Order Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to update purchase order, something went wrong.");
+                
             default:
-                _logger.LogError(result.Exception, "Update Purchase Order Request: failed to update purchase order.");
-                return Result<GetPurchaseOrderDto>.Fail(result.Message ?? "Failed to update purchase order.")
-                    .WithFailureType(FailureType.Unexpected);
+                _logger.LogError(result.Exception,
+                    "Update Purchase Order Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to update purchase order, something went wrong.");
         }
         
         return result;
@@ -162,59 +242,105 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
 
     public async Task<Result<GetPurchaseOrderDto>> DeletePurchaseOrderAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        Result<GetPurchaseOrderDto> result = await _purchaseOrderService.DeletePurchaseOrderAsync(id, cancellationToken);
+        Result<GetPurchaseOrderDto> result;
+
+        try
+        {
+            result = await _purchaseOrderService.DeletePurchaseOrderAsync(id, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Delete Purchase Order Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Delete Purchase Order Request: purchase order {result.Value?.Id} successfully deleted.");
+            _logger.LogInformation("Delete Purchase Order Request: purchase order {Id} successfully deleted.",
+                result.Value?.Id);
         }
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation("Delete Purchase Order Request: failed to delete, invalid request.");
-                break;
             
             case FailureType.NotFound:
-                _logger.LogInformation("Delete Purchase Order Request: failed to update, purchase order not found.");
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Delete Purchase Order Request: {Message}",
+                    result.Message ?? "Failed to delete purchase order.");
                 break;
             
             case FailureType.Exception:
-                _logger.LogError(result.Exception, "Delete Purchase Order Request: unhandled exception.");
-                return Result<GetPurchaseOrderDto>.Fail(result.Message ?? "Failed to delete purchase order.")
-                    .WithFailureType(FailureType.Unexpected);
-            
+
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Delete Purchase Order Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to delete purchase order, something went wrong.");
+                
             default:
-                _logger.LogError(result.Exception, "Delete Purchase Order Request: failed to update purchase order.");
-                return Result<GetPurchaseOrderDto>.Fail(result.Message ?? "Failed to delete purchase order.")
-                    .WithFailureType(FailureType.Unexpected);
+                _logger.LogError(result.Exception,
+                    "Delete Purchase Order Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to delete purchase order, something went wrong.");
         }
         
         return result;
     }
 
-    public async Task<Result<GetManyPoDetailsDto>> GetPoDetailsAsync(Guid purchaseOrderId, SortDirection orderDirection = SortDirection.Ascending,
+    public async Task<Result<GetManyPoDetailsDto>> GetPoDetailsAsync(
+        Guid purchaseOrderId,
+        SortDirection orderDirection = SortDirection.Ascending,
         CancellationToken cancellationToken = default)
     {
-        Result<GetManyPoDetailsDto> result = await _purchaseOrderService.GetPoDetailsAsync(
-            purchaseOrderId,
-            orderDirection,
-            cancellationToken);
+        Result<GetManyPoDetailsDto> result;
+
+        try
+        {
+            result = await _purchaseOrderService.GetPoDetailsAsync(
+                purchaseOrderId,
+                orderDirection,
+                cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Get Many PO Details Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Get Many PO Details Request: {result.Value?.PoDetails?.Count} PO details successfully fetched.");
+            _logger.LogInformation("Get Many PO Details Request: {Count} PO details successfully fetched.",
+                result.Value?.PoDetails?.Count);
         }
-        else if (result.FailureType == FailureType.Exception)
+        else switch (result.FailureType)
         {
-            _logger.LogError(result.Exception, "Get Many PO Details Request: unhandled exception.");
-            return Result<GetManyPoDetailsDto>.Fail(result.Message ?? "Failed to retrieve PO details.")
-                .WithFailureType(FailureType.Unexpected);
-        }
-        else
-        {
-            _logger.LogError(result.Exception, "Get Many PO Details Request: failed to fetch PO details.");
-            return Result<GetManyPoDetailsDto>.Fail(result.Message ?? "Failed to retrieve PO details.")
-                .WithFailureType(FailureType.Unexpected);
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Get Many PO Details Request: {Message}",
+                    result.Message ?? "Failed to retrieve PO details.");
+                break;
+
+            case FailureType.Exception:
+            
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Get Many PO Details Request: Unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve PO details, something went wrong.");
+
+            default:
+                _logger.LogError(result.Exception,
+                    "Get Many PO Details Request: Unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve PO details, something went wrong.");
         }
         
         return result;
@@ -222,31 +348,49 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
 
     public async Task<Result<GetPoDetailDto>> AddPoDetailAsync(Guid purchaseOrderId, CreatePoDetailDto poDetail, CancellationToken cancellationToken = default)
     {
-        Result<GetPoDetailDto> result = await _purchaseOrderService.AddPoDetailAsync(purchaseOrderId, poDetail, cancellationToken);
+        Result<GetPoDetailDto> result;
+
+        try
+        {
+            result = await _purchaseOrderService.AddPoDetailAsync(purchaseOrderId, poDetail, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Create PO Detail Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Create PO Detail Request: PO detail {result.Value?.Id} successfully created.");
+            _logger.LogInformation("Create PO Detail Request: PO detail {Id} successfully created.",
+                result.Value?.Id);
         }
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation($"Create PO Detail Request: failed to create PO detail {result.Value?.Id}, invalid PO detail.");
-                break;
+            
+            case FailureType.NotFound:
             
             case FailureType.BusinessLogic:
-                _logger.LogError(result.Exception, "Create PO Detail Request: failed to create PO detail.");
+                _logger.LogInformation(result.Exception,
+                    "Create PO Detail Request: {Message}",
+                    result.Message ?? "Failed to create PO detail.");
                 break;
             
             case FailureType.Exception:
-                _logger.LogError(result.Exception, "Create PO Detail Request: unhandled exception.");
-                return Result<GetPoDetailDto>.Fail(result.Message ?? "Failed to create PO detail.")
-                    .WithFailureType(FailureType.Unexpected);
             
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Create PO Detail Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to create PO detail, something went wrong.");
+                
             default:
-                _logger.LogError(result.Exception, "Create PO Detail Request: failed to create PO detail.");
-                return Result<GetPoDetailDto>.Fail(result.Message ?? "Failed to create PO detail.")
-                    .WithFailureType(FailureType.Unexpected);
+                _logger.LogError(result.Exception,
+                    "Create PO Detail Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to create PO detail, something went wrong.");
         }
     
         return result;
@@ -254,31 +398,49 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
 
     public async Task<Result<GetPoDetailDto>> GetPoDetailByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        Result<GetPoDetailDto> result = await _purchaseOrderService.GetPoDetailByIdAsync(id, cancellationToken);
+        Result<GetPoDetailDto> result;
+
+        try
+        {
+            result = await _purchaseOrderService.GetPoDetailByIdAsync(id, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Get PO Detail By ID Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Get PO Detail By ID Request: PO detail {result.Value?.Id} successfully fetched.");
+            _logger.LogInformation("Get PO Detail By ID Request: PO detail {Id} successfully fetched.",
+                result.Value?.Id);
         }
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation("Get PO Detail By ID Request: failed to fetch, invalid request.");
-                break;
             
             case FailureType.NotFound:
-                _logger.LogInformation("Get PO Detail By ID Request: failed to fetch, PO detail not found.");
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Get PO Detail By ID Request: {Message}",
+                    result.Message ?? "Failed to retrieve PO detail.");
                 break;
             
             case FailureType.Exception:
-                _logger.LogError(result.Exception, "Get PO Detail By ID Request: unhandled exception.");
-                return Result<GetPoDetailDto>.Fail(result.Message ?? "Failed to retrieve PO detail.")
-                    .WithFailureType(FailureType.Unexpected);
-            
+
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Get PO Detail By ID Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve PO detail, something went wrong.");
+                
             default:
-                _logger.LogError(result.Exception, "Get PO Detail By ID Request: failed to fetch PO detail.");
-                return Result<GetPoDetailDto>.Fail(result.Message ?? "Failed to retrieve PO detail.")
-                    .WithFailureType(FailureType.Unexpected);
+                _logger.LogError(result.Exception,
+                    "Get PO Detail By ID Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to retrieve PO detail, something went wrong.");
         }
         
         return result;
@@ -286,31 +448,49 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
 
     public async Task<Result<GetPoDetailDto>> UpdatePoDetailAsync(Guid id, UpdatePoDetailDto poDetail, CancellationToken cancellationToken = default)
     {
-        Result<GetPoDetailDto> result = await _purchaseOrderService.UpdatePoDetailAsync(id, poDetail, cancellationToken);
+        Result<GetPoDetailDto> result;
+
+        try
+        {
+            result = await _purchaseOrderService.UpdatePoDetailAsync(id, poDetail, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Update PO Detail Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Update PO Detail Request: PO detail {result.Value?.Id} successfully updated.");
+            _logger.LogInformation("Update PO Detail Request: PO detail {Id} successfully updated.",
+                result.Value?.Id);
         }
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation("Update PO Detail Request: failed to update, invalid request.");
-                break;
             
             case FailureType.NotFound:
-                _logger.LogInformation("Update PO Detail Request: failed to update, PO detail not found.");
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Update PO Detail Request: {Message}",
+                    result.Message ?? "Failed to update PO detail.");
                 break;
             
             case FailureType.Exception:
-                _logger.LogError(result.Exception, "Update PO Detail Request: unhandled exception.");
-                return Result<GetPoDetailDto>.Fail(result.Message ?? "Failed to update PO detail.")
-                    .WithFailureType(FailureType.Unexpected);
-            
+
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Update PO Detail Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to update PO detail, something went wrong.");
+                
             default:
-                _logger.LogError(result.Exception, "Update PO Detail Request: failed to update PO detail.");
-                return Result<GetPoDetailDto>.Fail(result.Message ?? "Failed to update PO detail.")
-                    .WithFailureType(FailureType.Unexpected);
+                _logger.LogError(result.Exception,
+                    "Update PO Detail Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to update PO detail, something went wrong.");
         }
         
         return result;
@@ -318,31 +498,49 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
 
     public async Task<Result<GetPoDetailDto>> RemovePoDetailAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        Result<GetPoDetailDto> result = await _purchaseOrderService.RemovePoDetailAsync(id, cancellationToken);
+        Result<GetPoDetailDto> result;
+
+        try
+        {
+            result = await _purchaseOrderService.RemovePoDetailAsync(id, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Delete PO Detail Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Delete PO Detail Request: PO detail {result.Value?.Id} successfully deleted.");
+            _logger.LogInformation("Delete PO Detail Request: PO detail {Id} successfully deleted.",
+                result.Value?.Id);
         }
         else switch (result.FailureType)
         {
             case FailureType.Validation:
-                _logger.LogInformation("Delete PO Detail Request: failed to delete, invalid request.");
-                break;
             
             case FailureType.NotFound:
-                _logger.LogInformation("Delete PO Detail Request: failed to update, PO detail not found.");
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Delete PO Detail Request: {Message}",
+                    result.Message ?? "Failed to delete PO detail.");
                 break;
             
             case FailureType.Exception:
-                _logger.LogError(result.Exception, "Delete PO Detail Request: unhandled exception.");
-                return Result<GetPoDetailDto>.Fail(result.Message ?? "Failed to delete PO detail.")
-                    .WithFailureType(FailureType.Unexpected);
-            
+
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Delete PO Detail Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to delete PO detail, something went wrong.");
+                
             default:
-                _logger.LogError(result.Exception, "Delete PO Detail Request: failed to update PO detail.");
-                return Result<GetPoDetailDto>.Fail(result.Message ?? "Failed to delete PO detail.")
-                    .WithFailureType(FailureType.Unexpected);
+                _logger.LogError(result.Exception,
+                    "Delete PO Detail Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to delete PO detail, something went wrong.");
         }
         
         return result;
@@ -350,31 +548,49 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
 
     public async Task<Result<GetPurchaseOrderDto>> ReceivePurchaseOrderAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        Result<GetPurchaseOrderDto> result = await _purchaseOrderService.ReceivePurchaseOrderAsync(id, cancellationToken);
+        Result<GetPurchaseOrderDto> result;
+
+        try
+        {
+            result = await _purchaseOrderService.ReceivePurchaseOrderAsync(id, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Receive Purchase Order Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Receive Purchase Order Request: purchase order {result.Value?.Id} successfully received.");
+            _logger.LogInformation("Receive Purchase Order Request: purchase order {Id} successfully received.",
+                result.Value?.Id);
         }
         else switch (result.FailureType)
         {
+            case FailureType.Validation:
+            
             case FailureType.NotFound:
-                _logger.LogInformation("Receive Purchase Order Request: failed to receive, purchase order not found.");
-                break;
             
             case FailureType.BusinessLogic:
-                _logger.LogInformation("Receive Purchase Order Request: failed to receive purchase order.");
+                _logger.LogInformation(result.Exception,
+                    "Receive Purchase Order Request: {Message}",
+                    result.Message ?? "Failed to receive purchase order.");
                 break;
             
             case FailureType.Exception:
-                _logger.LogError(result.Exception, "Receive Purchase Order Request: unhandled exception.");
-                return Result<GetPurchaseOrderDto>.Fail(result.Message ?? "Failed to receive purchase order.")
-                    .WithFailureType(FailureType.Unexpected);
-            
+
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Receive Purchase Order Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to receive purchase order, something went wrong.");
+                
             default:
-                _logger.LogError(result.Exception, "Receive Purchase Order Request: failed to receive purchase order.");
-                return Result<GetPurchaseOrderDto>.Fail(result.Message ?? "Failed to receive purchase order.")
-                    .WithFailureType(FailureType.Unexpected);
+                _logger.LogError(result.Exception,
+                    "Receive Purchase Order Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to receive purchase order, something went wrong.");
         }
         
         return result;
@@ -382,31 +598,49 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
 
     public async Task<Result<GetPurchaseOrderDto>> CancelPurchaseOrderAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        Result<GetPurchaseOrderDto> result = await _purchaseOrderService.CancelPurchaseOrderAsync(id, cancellationToken);
+        Result<GetPurchaseOrderDto> result;
+
+        try
+        {
+            result = await _purchaseOrderService.CancelPurchaseOrderAsync(id, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Cancel Purchase Order Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Cancel Purchase Order Request: purchase order {result.Value?.Id} successfully canceled.");
+            _logger.LogInformation("Cancel Purchase Order Request: purchase order {Id} successfully canceled.",
+                result.Value?.Id);
         }
         else switch (result.FailureType)
         {
+            case FailureType.Validation:
+            
             case FailureType.NotFound:
-                _logger.LogInformation("Cancel Purchase Order Request: failed to cancel, purchase order not found.");
-                break;
             
             case FailureType.BusinessLogic:
-                _logger.LogInformation("Cancel Purchase Order Request: failed to cancel purchase order.");
+                _logger.LogInformation(result.Exception,
+                    "Cancel Purchase Order Request: {Message}",
+                    result.Message ?? "Failed to cancel purchase order.");
                 break;
             
             case FailureType.Exception:
-                _logger.LogError(result.Exception, "Cancel Purchase Order Request: unhandled exception.");
-                return Result<GetPurchaseOrderDto>.Fail(result.Message ?? "Failed to cancel purchase order.")
-                    .WithFailureType(FailureType.Unexpected);
-            
+
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Cancel Purchase Order Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to cancel purchase order, something went wrong.");
+                
             default:
-                _logger.LogError(result.Exception, "Cancel Purchase Order Request: failed to cancel purchase order.");
-                return Result<GetPurchaseOrderDto>.Fail(result.Message ?? "Failed to cancel purchase order.")
-                    .WithFailureType(FailureType.Unexpected);
+                _logger.LogError(result.Exception,
+                    "Cancel Purchase Order Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to cancel purchase order, something went wrong.");
         }
         
         return result;
@@ -414,31 +648,49 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
 
     public async Task<Result<GetPurchaseOrderDto>> ReturnPurchaseOrderAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        Result<GetPurchaseOrderDto> result = await _purchaseOrderService.ReturnPurchaseOrderAsync(id, cancellationToken);
+        Result<GetPurchaseOrderDto> result;
+
+        try
+        {
+            result = await _purchaseOrderService.ReturnPurchaseOrderAsync(id, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Cancel Purchase Order Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Return Purchase Order Request: purchase order {result.Value?.Id} successfully returned.");
+            _logger.LogInformation("Return Purchase Order Request: purchase order {Id} successfully returned.",
+                result.Value?.Id);
         }
         else switch (result.FailureType)
         {
+            case FailureType.Validation:
+            
             case FailureType.NotFound:
-                _logger.LogInformation("Return Purchase Order Request: failed to return, purchase order not found.");
-                break;
             
             case FailureType.BusinessLogic:
-                _logger.LogInformation("Return Purchase Order Request: failed to return purchase order.");
+                _logger.LogInformation(result.Exception,
+                    "Return Purchase Order Request: {Message}",
+                    result.Message ?? "Failed to return purchase order.");
                 break;
             
             case FailureType.Exception:
-                _logger.LogError(result.Exception, "Return Purchase Order Request: unhandled exception.");
-                return Result<GetPurchaseOrderDto>.Fail(result.Message ?? "Failed to return purchase order.")
-                    .WithFailureType(FailureType.Unexpected);
-            
+
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Return Purchase Order Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to return purchase order, something went wrong.");
+                
             default:
-                _logger.LogError(result.Exception, "Return Purchase Order Request: failed to return purchase order.");
-                return Result<GetPurchaseOrderDto>.Fail(result.Message ?? "Failed to return purchase order.")
-                    .WithFailureType(FailureType.Unexpected);
+                _logger.LogError(result.Exception,
+                    "Return Purchase Order Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to return purchase order, something went wrong.");
         }
         
         return result;
@@ -446,15 +698,49 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
 
     public async Task<Result<GetPurchaseOrderDto>> UpdatePurchaseOrderStatusAsync(Guid id, PurchaseOrderStatus status, CancellationToken cancellationToken = default)
     {
-        Result<GetPurchaseOrderDto> result = await _purchaseOrderService.UpdatePurchaseOrderStatusAsync(id, status, cancellationToken);
+        Result<GetPurchaseOrderDto> result;
+
+        try
+        {
+            result = await _purchaseOrderService.UpdatePurchaseOrderStatusAsync(id, status, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Update Purchase Order Status Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Update Purchase Order Request: purchase order {result.Value?.Id} successfully updated.");
+            _logger.LogInformation("Update Purchase Order Status Request: purchase order {Id} successfully updated.",
+                result.Value?.Id);
         }
-        else
+        else switch (result.FailureType)
         {
-            _logger.LogInformation("Update Purchase Order Request: failed to update purchase order.");
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Update Purchase Order Status Request: {Message}",
+                    result.Message ?? "Failed to update purchase order.");
+                break;
+            
+            case FailureType.Exception:
+
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Update Purchase Order Status Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to update purchase order, something went wrong.");
+                
+            default:
+                _logger.LogError(result.Exception,
+                    "Update Purchase Order Status Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to update purchase order, something went wrong.");
         }
         
         return result;
@@ -462,31 +748,50 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
 
     public async Task<Result<GetPurchaseOrderDto>> RevertReceivedPurchaseOrderToPendingAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        Result<GetPurchaseOrderDto> result = await _purchaseOrderService.RevertReceivedPurchaseOrderToPendingAsync(id, cancellationToken);
+        Result<GetPurchaseOrderDto> result;
+
+        try
+        {
+            result = await _purchaseOrderService.RevertReceivedPurchaseOrderToPendingAsync(id, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Revert Received Purchase Order Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Revert Received Purchase Order Request: purchase order {result.Value?.Id} successfully reverted to pending.");
+            _logger.LogInformation("Revert Received Purchase Order Request: " +
+                                   "purchase order {Id} successfully reverted to pending.",
+                result.Value?.Id);
         }
         else switch (result.FailureType)
         {
+            case FailureType.Validation:
+            
             case FailureType.NotFound:
-                _logger.LogInformation("Revert Received Purchase Order Request: failed to revert purchase order, not found.");
-                break;
             
             case FailureType.BusinessLogic:
-                _logger.LogInformation("Revert Received Purchase Order Request: failed to revert purchase order.");
+                _logger.LogInformation(result.Exception,
+                    "Revert Received Purchase Order Request: {Message}",
+                    result.Message ?? "Failed to revert purchase order.");
                 break;
             
             case FailureType.Exception:
-                _logger.LogError(result.Exception, "Revert Received Purchase Order Request: unhandled exception.");
-                return Result<GetPurchaseOrderDto>.Fail(result.Message ?? "Failed to revert purchase order.")
-                    .WithFailureType(FailureType.Unexpected);
-            
+
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Revert Received Purchase Order Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to revert purchase order, something went wrong.");
+                
             default:
-                _logger.LogError(result.Exception, "Revert Received Purchase Order Request: failed to evert purchase order.");
-                return Result<GetPurchaseOrderDto>.Fail(result.Message ?? "Failed to revert purchase order.")
-                    .WithFailureType(FailureType.Unexpected);
+                _logger.LogError(result.Exception,
+                    "Revert Received Purchase Order Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to revert purchase order, something went wrong.");
         }
         
         return result;
@@ -494,31 +799,48 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
 
     public async Task<Result<GetPurchaseOrderDto>> UncancelPurchaseOrderAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        Result<GetPurchaseOrderDto> result = await _purchaseOrderService.UncancelPurchaseOrderAsync(id, cancellationToken);
+        Result<GetPurchaseOrderDto> result;
+
+        try
+        {
+            result = await _purchaseOrderService.UncancelPurchaseOrderAsync(id, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Uncancel Purchase Order Request: unhandled exception.");
+            throw;
+        }
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation($"Uncancel Purchase Order Request: purchase order {result.Value?.Id} successfully uncanceled.");
+            _logger.LogInformation("Uncancel Purchase Order Request: purchase order {Id} successfully uncanceled.", result.Value?.Id);
         }
         else switch (result.FailureType)
         {
+            case FailureType.Validation:
+            
             case FailureType.NotFound:
-                _logger.LogInformation("Uncancel Purchase Order Request: failed to uncancel, purchase order not found.");
-                break;
             
             case FailureType.BusinessLogic:
-                _logger.LogInformation("Uncancel Purchase Order Request: failed to uncancel purchase order.");
+                _logger.LogInformation(result.Exception,
+                    "Uncancel Purchase Order Request: {Message}",
+                    result.Message ?? "Failed to uncancel purchase order.");
                 break;
             
             case FailureType.Exception:
-                _logger.LogError(result.Exception, "Uncancel Purchase Order Request: unhandled exception.");
-                return Result<GetPurchaseOrderDto>.Fail(result.Message ?? "Failed to uncancel purchase order.")
-                    .WithFailureType(FailureType.Unexpected);
-            
+
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Uncancel Purchase Order Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to uncancel purchase order, something went wrong.");
+                
             default:
-                _logger.LogError(result.Exception, "Uncancel Purchase Order Request: failed to uncancel purchase order.");
-                return Result<GetPurchaseOrderDto>.Fail(result.Message ?? "Failed to uncancel purchase order.")
-                    .WithFailureType(FailureType.Unexpected);
+                _logger.LogError(result.Exception,
+                    "Uncancel Purchase Order Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to uncancel purchase order, something went wrong.");
         }
         
         return result;

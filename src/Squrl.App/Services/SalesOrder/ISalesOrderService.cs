@@ -8,10 +8,10 @@ namespace Squrl.App.Services.SalesOrder;
 public interface ISalesOrderService
 {
     Task<Result<GetManySalesOrdersDto>> GetManySalesOrdersAsync(
-        string? query = null,
+        string? search = null,
         string? customer = null,
-        int? pageNumber = null,
-        int? pageSize = null,
+        int pageNumber = 1,
+        int pageSize = 10,
         SortDirection orderDirection = SortDirection.Ascending,
         CancellationToken cancellationToken = default);
     Task<Result<GetSalesOrderDto>> CreateSalesOrderAsync(CreateSalesOrderDto salesOrder, CancellationToken cancellationToken = default);

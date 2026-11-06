@@ -148,7 +148,7 @@ public sealed class GetManyUomsTests : IntegrationTest
         
         // Act
         // Returns: Test UOM 1, Test UOM 10, Test UOM 11 ... Test UOM 15
-        Result<GetManyUomsDto> actual = await service.GetManyUomsAsync(query: "Test UOM 1");
+        Result<GetManyUomsDto> actual = await service.GetManyUomsAsync(search: "Test UOM 1");
         
         // Assert
         Assert.True(actual.IsSuccess);
