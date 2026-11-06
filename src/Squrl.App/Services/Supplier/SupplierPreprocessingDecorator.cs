@@ -123,4 +123,19 @@ public class SupplierPreprocessingDecorator : ISupplierService
         
         return result;
     }
+
+    public async Task<Result<bool>> ExportSuppliersAsCsvAsync(Stream destination,
+        CancellationToken cancellationToken = default)
+    {
+        if (!destination.CanWrite)
+        {
+            return Result<bool>.Fail("Destination must be writable.")
+                .WithFailureType(FailureType.Validation);
+        }
+        
+        Result<bool> result = await _supplierService
+            .ExportSuppliersAsCsvAsync(destination, cancellationToken);
+        
+        return result;
+    }
 }

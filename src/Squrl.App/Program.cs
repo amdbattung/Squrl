@@ -6,6 +6,7 @@ using Serilog.Events;
 using Squrl.App.Data;
 using Squrl.App.Extensions;
 using Squrl.App.Infrastructure.BackgroundTaskQueue;
+using Squrl.App.Infrastructure.DataExporter;
 using Squrl.App.Infrastructure.ImageProcessor;
 using Squrl.App.Infrastructure.ImageStorage;
 using Squrl.App.Infrastructure.PlatformDialog;
@@ -124,6 +125,8 @@ try
     builder.Services.AddScoped<IImageProcessor, ImageProcessor>();
 
     builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+
+    builder.Services.AddCsvExportersFromAssembly(typeof(Program).Assembly);
 
     // Custom services.
     builder.Services.AddScoped<IInventoryService, InventoryService>();

@@ -4,14 +4,32 @@ using nietras.SeparatedValues;
 
 namespace Squrl.App.Infrastructure.DataExporter;
 
-public class CsvExporter<T> : ICsvExporter<T>
+public abstract class CsvExporter<T> : ICsvExporter<T>
 {
-    private readonly CsvColumn<T>[] _columns;
+    private readonly DataColumn<T>[] _columns;
 
-    public CsvExporter(params CsvColumn<T>[] columns)
+    protected CsvExporter(params DataColumn<T>[] columns)
     {
         ArgumentNullException.ThrowIfNull(columns);
-        _columns = columns;
+
+        if (columns.Length == 0)
+        {
+            throw new ArgumentException("At least one column must be specified.", nameof(columns));
+        }
+
+        if (columns.Any(column => string.IsNullOrWhiteSpace(column.Header)))
+        {
+            throw new ArgumentException("Column headers cannot be empty.", nameof(columns));
+        }
+
+        if (columns.Select(column => column.Header)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .Count() != columns.Length)
+        {
+            throw new ArgumentException("Column headers must be unique.", nameof(columns));
+        }
+
+        _columns = columns.ToArray();
     }
 
     public void Export(IEnumerable<T> data, Stream destination)
@@ -21,9 +39,7 @@ public class CsvExporter<T> : ICsvExporter<T>
         
         if (!destination.CanWrite)
         {
-            throw new ArgumentException(
-                "Destination must be writable.",
-                nameof(destination));
+            throw new ArgumentException("Destination must be writable.", nameof(destination));
         }
         
         using StreamWriter textWriter = new(
@@ -39,7 +55,7 @@ public class CsvExporter<T> : ICsvExporter<T>
             })
             .To(textWriter);
 
-        foreach (CsvColumn<T> column in _columns)
+        foreach (DataColumn<T> column in _columns)
         {
             writer.Header.Add(column.Header);
         }
@@ -48,7 +64,7 @@ public class CsvExporter<T> : ICsvExporter<T>
         {
             using SepWriter.Row row = writer.NewRow();
 
-            foreach (CsvColumn<T> column in _columns)
+            foreach (DataColumn<T> column in _columns)
             {
                 object? value = item is null
                     ? null
@@ -71,9 +87,7 @@ public class CsvExporter<T> : ICsvExporter<T>
         
         if (!destination.CanWrite)
         {
-            throw new ArgumentException(
-                "Destination must be writable.",
-                nameof(destination));
+            throw new ArgumentException("Destination must be writable.", nameof(destination));
         }
         
         cancellationToken.ThrowIfCancellationRequested();
@@ -91,7 +105,7 @@ public class CsvExporter<T> : ICsvExporter<T>
             })
             .To(textWriter);
 
-        foreach (CsvColumn<T> column in _columns)
+        foreach (DataColumn<T> column in _columns)
         {
             writer.Header.Add(column.Header);
         }
@@ -102,7 +116,7 @@ public class CsvExporter<T> : ICsvExporter<T>
             
             await using SepWriter.Row row = writer.NewRow();
 
-            foreach (CsvColumn<T> column in _columns)
+            foreach (DataColumn<T> column in _columns)
             {
                 object? value = item is null
                     ? null
@@ -118,5 +132,3 @@ public class CsvExporter<T> : ICsvExporter<T>
         await textWriter.FlushAsync(cancellationToken);
     }
 }
-
-public sealed record CsvColumn<T>(string Header, Func<T, object?> Value);
