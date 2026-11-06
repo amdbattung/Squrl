@@ -12,9 +12,9 @@
        value="@_searchInput"
        @oninput="OnSearchInput" />
 
-<button class="btn btn-secondary" @onclick="HandleExportSuppliersButtonClick">Export</button>
-
 <button class="btn btn-primary" @onclick="HandleAddSupplierButtonClick">+ Add Supplier</button>
+
+<button class="btn btn-secondary" @onclick="HandleExportSuppliersButtonClick">Export</button>
 
 <QuickGrid @ref="_grid"
            TGridItem="GetSupplierDto"

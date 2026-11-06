@@ -124,4 +124,18 @@ public class UomPreprocessingDecorator : IUomService
         
         return result;
     }
+
+    public async Task<Result<bool>> ExportUomAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
+    {
+        if (!destination.CanWrite)
+        {
+            return Result<bool>.Fail("Destination must be writable.")
+                .WithFailureType(FailureType.Validation);
+        }
+        
+        Result<bool> result = await _uomService
+            .ExportUomAsCsvAsync(destination, cancellationToken);
+        
+        return result;
+    }
 }

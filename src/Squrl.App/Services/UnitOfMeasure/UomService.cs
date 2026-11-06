@@ -5,20 +5,24 @@ using Squrl.App.Data;
 using Squrl.App.Enums;
 using Squrl.App.Features.UnitOfMeasures.DTOs;
 using Squrl.App.Features.UnitOfMeasures.Mapping;
+using Squrl.App.Infrastructure.DataExporter;
 using Squrl.App.Infrastructure.TransactionManager;
 
 namespace Squrl.App.Services.UnitOfMeasure;
 
-public class UomService : IUomService
+public partial class UomService : IUomService
 {
     private readonly DataContext _dataContext;
     private readonly ITransactionManager _transactionManager;
+    private readonly ICsvExporter<Models.UnitOfMeasure> _csvExporter;
 
     public UomService(DataContext dataContext,
-        ITransactionManager transactionManager)
+        ITransactionManager transactionManager,
+        ICsvExporter<Models.UnitOfMeasure> csvExporter)
     {
         _dataContext = dataContext;
         _transactionManager = transactionManager;
+        _csvExporter = csvExporter;
     }
 
     public async Task<Result<GetManyUomsDto>> GetManyUomsAsync(
