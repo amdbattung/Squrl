@@ -3,6 +3,7 @@
 @implements IDisposable
 @inject ISupplierService SupplierService
 @inject NavigationManager Navigation
+@inject IJSRuntime Js
 
 <h1>Suppliers</h1>
 
@@ -10,6 +11,8 @@
        placeholder="Search supplier..."
        value="@_searchInput"
        @oninput="OnSearchInput" />
+
+<button class="btn btn-secondary" @onclick="HandleExportSuppliersButtonClick">Export</button>
 
 <button class="btn btn-primary" @onclick="HandleAddSupplierButtonClick">+ Add Supplier</button>
 
@@ -198,6 +201,44 @@
         finally
         {
             _isDeleting = false;
+        }
+    }
+
+    private async Task HandleExportSuppliersButtonClick()
+    {
+        _errorMessages = [];
+
+        try
+        {
+            await using MemoryStream stream = new();
+
+            Result<bool> result = await SupplierService.ExportSuppliersAsCsvAsync(stream);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            stream.Position = 0;
+
+            using DotNetStreamReference streamReference = new(stream);
+            
+            string localDate = await Js.InvokeAsync<string>("getLocalDate");
+            
+            string fileName = $"suppliers-{localDate}" +
+                              $"-squrlexport+{Guid.NewGuid().ToString("N")[..8]}.csv";
+
+            await Js.InvokeVoidAsync(
+                "downloadFileFromStream",
+                fileName,
+                streamReference);
+        }
+        catch (Exception)
+        {
+            _errorMessages = [
+                "An unexpected error occurred while exporting suppliers."
+            ];
         }
     }
     
