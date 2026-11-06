@@ -96,7 +96,7 @@ public partial class PurchaseOrderService : IPurchaseOrderService
             statuses.Add(PurchaseOrderStatus.Returned);
         }
 
-        if (statuses.Count >= 0)
+        if (statuses.Count > 0)
         {
             query = query.Where(p => statuses.Contains(p.Status));
         }

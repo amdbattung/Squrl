@@ -17,6 +17,7 @@ public partial class PurchaseOrderService
     {
         IQueryable<PurchaseOrderDetail> query = _dataContext.PurchaseOrderDetails
             .AsNoTracking()
+            .Include(p => p.PurchaseOrder)
             .Include(p => p.Item);
         
         query = query.Where(p => p.PurchaseOrder.Id == purchaseOrderId);
@@ -167,7 +168,7 @@ public partial class PurchaseOrderService
 
             if (purchaseOrder == null)
             {
-                if (poDetail.LineSequence != null || poDetail.LineSequence != existingPoDetail.LineSequence)
+                if (poDetail.LineSequence != null && poDetail.LineSequence != existingPoDetail.LineSequence)
                 {
                     return Result<GetPoDetailDto>.Fail("Line sequence must be consecutive.")
                         .WithFailureType(FailureType.Validation);

@@ -155,8 +155,8 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
             }
         };
 
-        ValidationResult validationResult =
-            await _createSoDetailValidator.ValidateAsync(validationContext, cancellationToken);
+        ValidationResult validationResult = await _createSoDetailValidator
+            .ValidateAsync(validationContext, cancellationToken);
             
         if (!validationResult.IsValid)
         {

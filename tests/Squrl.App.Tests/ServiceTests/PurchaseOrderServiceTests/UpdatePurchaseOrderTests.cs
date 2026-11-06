@@ -268,8 +268,7 @@ public sealed class UpdatePurchaseOrderTests : IntegrationTest
         // Assert
         Assert.False(actual.IsSuccess);
         Assert.Null(actual.Value);
-        // TODO: Change Error Message
-        Assert.Contains("Failed to update purchase order.", actual.Errors);
+        Assert.Contains("Purchase order not found.", actual.Errors);
         Assert.Null(actual.Exception);
         Assert.Equal(FailureType.NotFound, actual.FailureType);
     }

@@ -164,8 +164,16 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
+        ValidationContext<CreatePoDetailDto> validationContext = new(poDetail)
+        {
+            RootContextData =
+            {
+                ["SkipPurchaseOrderIdValidation"] = true
+            }
+        };
+
         ValidationResult validationResult = await _createPoDetailValidator
-            .ValidateAsync(poDetail, cancellationToken);
+            .ValidateAsync(validationContext, cancellationToken);
             
         if (!validationResult.IsValid)
         {
