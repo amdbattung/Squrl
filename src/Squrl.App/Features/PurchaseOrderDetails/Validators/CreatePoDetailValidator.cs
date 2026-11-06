@@ -9,6 +9,7 @@ public class CreatePoDetailValidator : AbstractValidator<CreatePoDetailDto>
     {
         RuleFor(x => x.PurchaseOrderId)
             .NotEmpty()
+            .When((_, context) => !context.RootContextData.ContainsKey("SkipPurchaseOrderIdValidation"))
             .WithName("Purchase Order")
             .WithMessage("{PropertyName} is required.");
 

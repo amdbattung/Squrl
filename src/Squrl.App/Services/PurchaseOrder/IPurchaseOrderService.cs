@@ -8,15 +8,15 @@ namespace Squrl.App.Services.PurchaseOrder;
 public interface IPurchaseOrderService
 {
     Task<Result<GetManyPurchaseOrdersDto>> GetManyPurchaseOrdersAsync(
-        string? query = null,
+        string? search = null,
         Guid? supplierId = null,
         bool isPending = false,
         bool isReceived = false,
         bool isCanceled = false,
         bool hasFailed = false,
         bool isReturned = false,
-        int? pageNumber = null,
-        int? pageSize = null,
+        int pageNumber = 1,
+        int pageSize = 10,
         SortDirection orderDirection = SortDirection.Ascending,
         CancellationToken cancellationToken = default);
     Task<Result<GetPurchaseOrderDto>> CreatePurchaseOrderAsync(CreatePurchaseOrderDto purchaseOrder, CancellationToken cancellationToken = default);

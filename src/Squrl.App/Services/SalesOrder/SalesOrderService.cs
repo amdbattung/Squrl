@@ -1,18 +1,12 @@
-﻿using FluentValidation;
-using FluentValidation.Results;
-using MediatR;
+﻿using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using Squrl.App.Common;
+using Squrl.App.Data;
 using Squrl.App.Enums;
 using Squrl.App.Features.Items.DTOs;
-using Squrl.App.Features.Items.Queries;
-using Squrl.App.Features.SalesOrderDetails.Commands;
 using Squrl.App.Features.SalesOrderDetails.DTOs;
-using Squrl.App.Features.SalesOrderDetails.Queries;
-using Squrl.App.Features.SalesOrders.Commands;
 using Squrl.App.Features.SalesOrders.DTOs;
 using Squrl.App.Features.SalesOrders.Mapping;
-using Squrl.App.Features.SalesOrders.Queries;
 using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Models;
 using Squrl.App.Services.Inventory;
@@ -21,342 +15,289 @@ namespace Squrl.App.Services.SalesOrder;
 
 public partial class SalesOrderService : ISalesOrderService
 {
-    private readonly IMediator _mediator;
+    private readonly DataContext _dataContext;
     private readonly ITransactionManager _transactionManager;
-    private readonly IValidator<CreateSalesOrderDto> _createSalesOrderValidator;
-    private readonly IValidator<UpdateSalesOrderDto> _updateSalesOrderValidator;
-    private readonly IValidator<CreateSoDetailDto> _createSoDetailValidator;
-    private readonly IValidator<UpdateSoDetailDto> _updateSoDetailValidator;
     private readonly IInventoryService _inventoryService;
+    private readonly IClock _clock;
 
-    public SalesOrderService(IMediator mediator,
+    public SalesOrderService(DataContext dataContext,
         ITransactionManager transactionManager,
-        IValidator<CreateSalesOrderDto> createSalesOrderValidator,
-        IValidator<UpdateSalesOrderDto> updateSalesOrderValidator,
-        IValidator<CreateSoDetailDto> createSoDetailValidator,
-        IValidator<UpdateSoDetailDto> updateSoDetailValidator,
-        IInventoryService inventoryService)
+        IInventoryService inventoryService,
+        IClock clock)
     {
-        _mediator = mediator;
+        _dataContext = dataContext;
         _transactionManager = transactionManager;
-        _createSalesOrderValidator = createSalesOrderValidator;
-        _updateSalesOrderValidator = updateSalesOrderValidator;
-        _createSoDetailValidator = createSoDetailValidator;
-        _updateSoDetailValidator = updateSoDetailValidator;
         _inventoryService = inventoryService;
+        _clock = clock;
     }
     
-    public async Task<Result<GetManySalesOrdersDto>> GetManySalesOrdersAsync(string? query = null,
+    public async Task<Result<GetManySalesOrdersDto>> GetManySalesOrdersAsync(
+        string? search = null,
         string? customer = null,
-        int? pageNumber = null,
-        int? pageSize = null,
+        int pageNumber = 1,
+        int pageSize = 10,
         SortDirection orderDirection = SortDirection.Ascending,
         CancellationToken cancellationToken = default)
     {
-        try
+        IQueryable<Models.SalesOrder> query = _dataContext.SalesOrders
+            .AsNoTracking();
+        
+        if (!string.IsNullOrWhiteSpace(search))
         {
-            pageNumber = pageNumber >= 1 ? pageNumber : 1;
-            pageSize = pageSize is >= 1 and <= 50 ? pageSize : 10;
-            
-            var result = await _mediator.Send(new GetManySalesOrdersQuery(
-                query,
-                customer,
-                pageNumber,
-                pageSize,
-                orderDirection), cancellationToken);
-            
-            GetManySalesOrdersDto payload = new GetManySalesOrdersDto(
-                result.PageNumber,
-                result.PageSize,
-                result.TotalCount,
-                result.Value.Select(SalesOrderMapper.ToDto).ToList());
-            
-            return Result<GetManySalesOrdersDto>.Ok(payload);
+            string pattern = $"%{search}%";
+
+            query = query.Where(s =>
+                EF.Functions.Like(s.Id.ToString(), pattern) ||
+                EF.Functions.Like(s.InvoiceNumber, pattern) ||
+                EF.Functions.Like(s.Customer, pattern));
         }
-        catch (OperationCanceledException)
+        
+        if (!string.IsNullOrWhiteSpace(customer))
         {
-            throw;
+            query = query.Where(s => s.Customer == customer);
         }
-        catch (Exception e)
+        
+        if (orderDirection == SortDirection.Descending)
         {
-            return Result<GetManySalesOrdersDto>.Fail("Failed to retrieve sales orders.")
-                .WithException(e)
-                .WithFailureType(FailureType.Exception);
+            query = query
+                .OrderByDescending(s => EF.Property<Instant>(s, "DateCreated"))
+                .ThenBy(s => s.Id);
         }
+        else
+        {
+            query = query
+                .OrderBy(s => EF.Property<Instant>(s, "DateCreated"))
+                .ThenBy(s => s.Id);
+        }
+        
+        int totalCount = await query.CountAsync(cancellationToken);
+
+        IReadOnlyList<Models.SalesOrder> existingSalesOrders = await query
+            .Skip((pageNumber - 1) * pageSize)
+            .Take(pageSize)
+            .ToListAsync(cancellationToken);
+        
+        GetManySalesOrdersDto payload = new(
+            pageNumber,
+            pageSize,
+            totalCount,
+            existingSalesOrders.Select(SalesOrderMapper.ToDto).ToList());
+
+        return Result<GetManySalesOrdersDto>.Ok(payload);
     }
 
     public async Task<Result<GetSalesOrderDto>> CreateSalesOrderAsync(CreateSalesOrderDto salesOrder, CancellationToken cancellationToken = default)
     {
-        try
+        Func<CancellationToken, Task<Result<GetSalesOrderDto>>> action = async ct =>
         {
-            ValidationResult soValidationResult = await _createSalesOrderValidator.ValidateAsync(salesOrder, cancellationToken);
-            
-            if (!soValidationResult.IsValid)
+            Models.SalesOrder newSalesOrder = new()
             {
-                return Result<GetSalesOrderDto>.Fail(soValidationResult.Errors
-                        .Select(e => e.ErrorMessage)
-                        .ToArray())
-                    .WithFailureType(FailureType.Validation);
-            }
-            
-            var failure = Result<GetSalesOrderDto>.Fail("Failed to return sales order.")
-                .WithFailureType(FailureType.BusinessLogic);
-            
-            Models.SalesOrder? result = await _transactionManager.ExecuteAsync(async ct =>
+                Id = Guid.NewGuid(),
+                Customer = salesOrder.Customer,
+                InvoiceNumber = salesOrder.InvoiceNumber,
+                DateOrdered = salesOrder.DateOrdered ?? _clock.GetCurrentInstant(),
+            };
+
+            await _dataContext.SalesOrders.AddAsync(newSalesOrder, ct);
+
+            foreach (CreateSoDetailDto soDetail in salesOrder.Details ?? [])
             {
-                Models.SalesOrder? salesOrderResult = await _mediator.Send(
-                    new CreateSalesOrderCommand(salesOrder), ct);
+                Item? item = await _dataContext.Items
+                    .FirstOrDefaultAsync(i => i.Id == soDetail.ItemId, ct);
+
+                if (item == null)
+                {
+                    return Result<GetSalesOrderDto>
+                        .Fail($"Selected item for SO detail {soDetail.LineSequence} not found.")
+                        .WithFailureType(FailureType.NotFound);
+                }
+
+                SalesOrderDetail newSoDetail = new()
+                {
+                    Id = Guid.NewGuid(),
+                    SalesOrder = newSalesOrder,
+                    LineSequence = soDetail.LineSequence ?? 0,
+                    Item = item,
+                    UnitPrice = soDetail.UnitPrice ?? 0m,
+                    Quantity = soDetail.Quantity ?? 0m
+                };
+
+                await _dataContext.SalesOrderDetails.AddAsync(newSoDetail, ct);
                 
-                if (salesOrderResult is null)
+                if (item.Quantity < soDetail.Quantity)
                 {
-                    return null;
+                    return Result<GetSalesOrderDto>
+                        .Fail($"Failed to remove stocks in SO detail {soDetail.LineSequence}; " +
+                              $"Not enough stocks to remove from item {item.Name}.")
+                        .WithFailureType(FailureType.BusinessLogic);
                 }
-
-                foreach (CreateSoDetailDto soDetail in salesOrder.Details ?? [])
+                
+                Result<GetItemDto> removeStocksResult = await _inventoryService
+                    .RemoveStocksAsync(soDetail.ItemId ?? Guid.Empty, soDetail.Quantity ?? 0, ct);
+                
+                if (!removeStocksResult.IsSuccess)
                 {
-                    soDetail.SalesOrderId = salesOrderResult.Id;
-                    SalesOrderDetail? soDetailResult = await _mediator
-                        .Send(new CreateSoDetailCommand(soDetail), ct);
-                    
-                    if (soDetailResult is null)
-                    {
-                        return null;
-                    }
-                    
-                    Item? item = await _mediator
-                        .Send(new GetItemByIdQuery(soDetailResult.Item.Id), ct);
-
-                    if (item is null)
-                    {
-                        return null;
-                    }
-
-                    if (item.Quantity < soDetail.Quantity)
-                    {
-                        failure.WithMessage($"Not enough quantity to remove from item {item.Name}.");
-                        return null;
-                    }
-                    
-                    Result<GetItemDto> removeStocksResult = await _inventoryService
-                        .RemoveStocksAsync(soDetailResult.Item.Id, soDetailResult.Quantity, ct);
-
-                    if (!removeStocksResult.IsSuccess)
-                    {
-                        return null;
-                    }
+                    return Result<GetSalesOrderDto>
+                        .Fail($"Failed to remove stocks in SO detail {soDetail.LineSequence}; " +
+                              $"{removeStocksResult.Message}.")
+                        .WithException(removeStocksResult.Exception)
+                        .WithFailureType(removeStocksResult.FailureType);
                 }
-
-                return salesOrderResult;
-            }, cancellationToken);
-            
-            if (result == null)
-            {
-                return failure;
             }
-            
-            return Result<GetSalesOrderDto>.Ok(SalesOrderMapper.ToDto(result));
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            return Result<GetSalesOrderDto>.Fail("Failed to create sales order.")
-                .WithException(e)
-                .WithFailureType(FailureType.Exception);
-        }
+
+            return Result<GetSalesOrderDto>.Ok(SalesOrderMapper.ToDto(newSalesOrder));
+        };
+        
+        return await _transactionManager.ExecuteAsync(action, cancellationToken);
     }
 
     public async Task<Result<GetSalesOrderDto>> GetSalesOrderByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        try
+        Models.SalesOrder? existingSalesOrder = await _dataContext.SalesOrders
+            .AsNoTracking()
+            .Where(s => s.Id == id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (existingSalesOrder == null)
         {
-            if (id == Guid.Empty)
-            {
-                return Result<GetSalesOrderDto>.Fail("Null or invalid ID.")
-                    .WithFailureType(FailureType.Validation);
-            }
-            
-            Models.SalesOrder? result = await _mediator.Send(new GetSalesOrderByIdQuery(id), cancellationToken);
-            
-            if (result == null)
-            {
-                return Result<GetSalesOrderDto>.Fail("Sales order not found.")
-                    .WithFailureType(FailureType.NotFound);
-            }
-            
-            return Result<GetSalesOrderDto>.Ok(SalesOrderMapper.ToDto(result));
+            return Result<GetSalesOrderDto>.Fail("Sales order not found.")
+                .WithFailureType(FailureType.NotFound);
         }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            return Result<GetSalesOrderDto>.Fail("Failed to retrieve sales order.")
-                .WithException(e)
-                .WithFailureType(FailureType.Exception);
-        }
+
+        return Result<GetSalesOrderDto>.Ok(SalesOrderMapper.ToDto(existingSalesOrder));
     }
 
     public async Task<Result<GetSalesOrderDto>> UpdateSalesOrderAsync(Guid id, UpdateSalesOrderDto salesOrder, CancellationToken cancellationToken = default)
     {
-        try
+        Func<CancellationToken, Task<Result<GetSalesOrderDto>>> action = async ct =>
         {
-            if (id == Guid.Empty)
-            {
-                return Result<GetSalesOrderDto>.Fail("Null or invalid ID.")
-                    .WithFailureType(FailureType.Validation);
-            }
+            Models.SalesOrder? existingSalesOrder = await _dataContext.SalesOrders
+                .FirstOrDefaultAsync(p => p.Id == id, ct);
             
-            ValidationResult soValidationResult = await _updateSalesOrderValidator.ValidateAsync(salesOrder, cancellationToken);
-            
-            if (!soValidationResult.IsValid)
+            if (existingSalesOrder == null)
             {
-                return Result<GetSalesOrderDto>.Fail(soValidationResult.Errors
-                        .Select(e => e.ErrorMessage)
-                        .ToArray())
-                    .WithFailureType(FailureType.Validation);
-            }
-            
-            Models.SalesOrder? result = await _transactionManager.ExecuteAsync(async ct =>
-            {
-                IReadOnlyList<SalesOrderDetail> existingSoDetails = (await _mediator
-                        .Send(new GetManySoDetailsQuery(SalesOrderId: id, PageSize: null), ct))
-                    .Value;
-                
-                Models.SalesOrder? salesOrderResult = await _mediator
-                    .Send(new UpdateSalesOrderCommand(id, salesOrder), ct);
-                
-                if (salesOrderResult is null)
-                {
-                    return null;
-                }
-                
-                foreach (UpdateSoDetailDto soDetail in salesOrder.Details ?? [])
-                {
-                    soDetail.SalesOrderId = null;
-                    
-                    SalesOrderDetail? existingSoDetail = existingSoDetails
-                        .FirstOrDefault(s => s.LineSequence == soDetail.LineSequence);
-
-                    SalesOrderDetail? soDetailResult;
-
-                    if (existingSoDetail is not null)
-                    {
-                        soDetailResult = await _mediator
-                            .Send(new UpdateSoDetailCommand(existingSoDetail.Id, soDetail), ct);
-                    }
-                    else
-                    {
-                        soDetailResult = await _mediator
-                            .Send(new CreateSoDetailCommand(new CreateSoDetailDto
-                            {
-                                SalesOrderId = id,
-                                LineSequence = soDetail.LineSequence,
-                                ItemId = soDetail.ItemId,
-                                UnitPrice = soDetail.UnitPrice,
-                                Quantity = soDetail.Quantity
-                            }), ct);
-                    }
-                    
-                    if (soDetailResult is null)
-                    {
-                        return null;
-                    }
-                }
-
-                foreach (SalesOrderDetail soDetail in existingSoDetails
-                             .Where(e => (salesOrder.Details ?? [])
-                                 .All(u => u.LineSequence != e.LineSequence)))
-                {
-                    SalesOrderDetail? soDetailResult = await _mediator
-                        .Send(new DeleteSoDetailCommand(soDetail.Id), ct);
-                    
-                    if (soDetailResult is null)
-                    {
-                        return null;
-                    }
-                }
-
-                return salesOrderResult;
-            }, cancellationToken);
-            
-            if (result == null)
-            {
-                return Result<GetSalesOrderDto>.Fail("Failed to update sales order.")
+                return Result<GetSalesOrderDto>
+                    .Fail("Sales order not found.")
                     .WithFailureType(FailureType.NotFound);
             }
             
-            return Result<GetSalesOrderDto>.Ok(SalesOrderMapper.ToDto(result));
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            return Result<GetSalesOrderDto>.Fail("Failed to update sales order.")
-                .WithException(e)
-                .WithFailureType(FailureType.Exception);
-        }
+            existingSalesOrder.Customer = salesOrder.Customer;
+            existingSalesOrder.InvoiceNumber = salesOrder.InvoiceNumber ?? existingSalesOrder.InvoiceNumber;
+            existingSalesOrder.DateOrdered = salesOrder.DateOrdered ?? existingSalesOrder.DateOrdered;
+            
+            IReadOnlyList<SalesOrderDetail> existingSoDetails = await _dataContext.SalesOrderDetails
+                .Include(s => s.Item)
+                .Where(s => s.SalesOrder.Id == id)
+                .OrderBy(s => s.LineSequence)
+                .ToListAsync(ct);
+
+            foreach (UpdateSoDetailDto soDetail in salesOrder.Details ?? [])
+            {
+                SalesOrderDetail? existingSoDetail = existingSoDetails
+                    .FirstOrDefault(p => p.LineSequence == soDetail.LineSequence);
+
+                if (existingSoDetail is not null)
+                {
+                    Item? item = null;
+
+                    if (soDetail.ItemId != null
+                        && soDetail.ItemId != existingSoDetail.Item.Id)
+                    {
+                        item = await _dataContext.Items
+                            .FirstOrDefaultAsync(i => i.Id == soDetail.ItemId, ct);
+                        
+                        if (item == null)
+                        {
+                            return Result<GetSalesOrderDto>
+                                .Fail($"Selected item for SO detail {soDetail.LineSequence} not found.")
+                                .WithFailureType(FailureType.NotFound);
+                        }
+                    }
+                    
+                    existingSoDetail.Item = item ?? existingSoDetail.Item;
+                    existingSoDetail.UnitPrice = soDetail.UnitPrice ?? existingSoDetail.UnitPrice;
+                    existingSoDetail.Quantity = soDetail.Quantity ?? existingSoDetail.Quantity;
+                }
+                else
+                {
+                    Item? item = await _dataContext.Items
+                        .FirstOrDefaultAsync(i => i.Id == soDetail.ItemId, ct);
+                        
+                    if (item == null)
+                    {
+                        return Result<GetSalesOrderDto>
+                            .Fail($"Selected item for SO detail {soDetail.LineSequence} not found.")
+                            .WithFailureType(FailureType.NotFound);
+                    }
+                    
+                    SalesOrderDetail newSoDetail = new()
+                    {
+                        Id = Guid.NewGuid(),
+                        SalesOrder = existingSalesOrder,
+                        LineSequence = soDetail.LineSequence ?? 0,
+                        Item = item,
+                        UnitPrice = soDetail.UnitPrice ?? 0m,
+                        Quantity = soDetail.Quantity ?? 0m
+                    };
+                    
+                    await _dataContext.SalesOrderDetails.AddAsync(newSoDetail, ct);
+                }
+            }
+            
+            // Delete existing PO details that are not in the request.
+            foreach (SalesOrderDetail soDetail in existingSoDetails
+                         .Where(e => (salesOrder.Details ?? [])
+                             .All(u => u.LineSequence != e.LineSequence)))
+            {
+                _dataContext.SalesOrderDetails.Remove(soDetail);
+            }
+            
+            return Result<GetSalesOrderDto>.Ok(SalesOrderMapper.ToDto(existingSalesOrder));
+        };
+        
+        return await _transactionManager.ExecuteAsync(action, cancellationToken);
     }
 
     public async Task<Result<GetSalesOrderDto>> DeleteSalesOrderAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        try
+        Func<CancellationToken, Task<Result<GetSalesOrderDto>>> action = async ct =>
         {
-            if (id == Guid.Empty)
-            {
-                return Result<GetSalesOrderDto>.Fail("Null or invalid ID.")
-                    .WithFailureType(FailureType.Validation);
-            }
+            Models.SalesOrder? existingSalesOrder = await _dataContext.SalesOrders
+                .FirstOrDefaultAsync(s => s.Id == id, ct);
             
-            Models.SalesOrder? result = await _transactionManager.ExecuteAsync(async ct =>
-            {
-                var soDetails = (await _mediator
-                    .Send(new GetManySoDetailsQuery(SalesOrderId: id, PageSize: null), ct)).Value;
-                
-                foreach (SalesOrderDetail soDetail in soDetails)
-                {
-                    Result<GetItemDto> addStocksResult = await _inventoryService
-                        .AddStocksAsync(soDetail.Item.Id, soDetail.Quantity, ct);
-
-                    if (!addStocksResult.IsSuccess)
-                    {
-                        return null;
-                    }
-                }
-                
-                Models.SalesOrder? deleteSalesOrderResult = await _mediator
-                    .Send(new DeleteSalesOrderCommand(id), ct);
-
-                if (deleteSalesOrderResult is null)
-                {
-                    return null;
-                }
-
-                return deleteSalesOrderResult;
-            }, cancellationToken);
-            
-            if (result == null)
+            if (existingSalesOrder == null)
             {
                 return Result<GetSalesOrderDto>.Fail("Sales order not found.")
                     .WithFailureType(FailureType.NotFound);
             }
             
-            return Result<GetSalesOrderDto>.Ok(SalesOrderMapper.ToDto(result));
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (Exception e)
-        {
-            return Result<GetSalesOrderDto>.Fail("Failed to delete sales order.")
-                .WithException(e)
-                .WithFailureType(FailureType.Exception);
-        }
+            IReadOnlyList<SalesOrderDetail> existingSoDetails = await _dataContext.SalesOrderDetails
+                .AsNoTracking()
+                .Include(s => s.Item)
+                .Where(s => s.SalesOrder.Id == id)
+                .OrderBy(s => s.LineSequence)
+                .ToListAsync(ct);
+            
+            foreach (SalesOrderDetail existingSoDetail in existingSoDetails)
+            {
+                Result<GetItemDto> addStocksResult = await _inventoryService
+                    .AddStocksAsync(existingSoDetail.Item.Id, existingSoDetail.Quantity, ct);
+
+                if (!addStocksResult.IsSuccess)
+                {
+                    return Result<GetSalesOrderDto>
+                        .Fail($"Failed to add stocks in PO detail {existingSoDetail.LineSequence}; " +
+                              $"{addStocksResult.Message}.")
+                        .WithException(addStocksResult.Exception)
+                        .WithFailureType(addStocksResult.FailureType);
+                }
+            }
+
+            _dataContext.SalesOrders.Remove(existingSalesOrder);
+
+            return Result<GetSalesOrderDto>.Ok(SalesOrderMapper.ToDto(existingSalesOrder));
+        };
+        
+        return await _transactionManager.ExecuteAsync(action, cancellationToken);
     }
 }

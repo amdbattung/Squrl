@@ -187,9 +187,8 @@ public sealed class RemoveStocksTests : IntegrationTest
         // Assert
         Assert.False(actual.IsSuccess);
         Assert.Null(actual.Value);
-        // TODO: Change Error Message
-        Assert.Contains("Item not found.", actual.Errors);
+        Assert.Contains("Quantity exceeds stocks on-hand.", actual.Errors);
         Assert.Null(actual.Exception);
-        Assert.Equal(FailureType.NotFound, actual.FailureType);
+        Assert.Equal(FailureType.BusinessLogic, actual.FailureType);
     }
 }

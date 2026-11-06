@@ -243,8 +243,9 @@ public sealed class CreateSalesOrderTests : IntegrationTest
         // Assert
         Assert.False(actual.IsSuccess);
         Assert.Null(actual.Value);
-        // TODO: Change Error Message
-        Assert.Contains("Failed to return sales order.", actual.Errors);
+        Assert.Contains(
+            "Failed to remove stocks in SO detail 1; Not enough stocks to remove from item Test Item.",
+            actual.Errors);
         Assert.Null(actual.Exception);
         Assert.Equal(FailureType.BusinessLogic, actual.FailureType);
     }

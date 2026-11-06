@@ -145,7 +145,7 @@ public sealed class GetManySuppliersTests : IntegrationTest
         
         // Act
         // Returns: Test Supplier 1, Test Supplier 10, Test Supplier 11 ... Test Supplier 15
-        Result<GetManySuppliersDto> actual = await service.GetManySuppliersAsync(query: "Test Supplier 1");
+        Result<GetManySuppliersDto> actual = await service.GetManySuppliersAsync(search: "Test Supplier 1");
         
         // Assert
         Assert.True(actual.IsSuccess);

@@ -241,8 +241,7 @@ public class UpdateSalesOrderTests : IntegrationTest
         // Assert
         Assert.False(actual.IsSuccess);
         Assert.Null(actual.Value);
-        // TODO: Change Error Message
-        Assert.Contains("Failed to update sales order.", actual.Errors);
+        Assert.Contains("Sales order not found.", actual.Errors);
         Assert.Null(actual.Exception);
         Assert.Equal(FailureType.NotFound, actual.FailureType);
     }

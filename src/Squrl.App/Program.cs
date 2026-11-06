@@ -113,8 +113,6 @@ try
             options.MaximumReceiveMessageSize = 1 * 1024L * 1024L; // 1 MB
         });
 
-    builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
-
     builder.Services.AddDataContext(builder.Configuration);
     
     builder.Services.AddScoped<ITransactionManager, EfTransactionManager>();
@@ -129,16 +127,31 @@ try
 
     // Custom services.
     builder.Services.AddScoped<IInventoryService, InventoryService>();
+    builder.Services.Decorate<IInventoryService, InventoryPreprocessingDecorator>();
     builder.Services.Decorate<IInventoryService, InventoryAlertDecorator>();
     builder.Services.Decorate<IInventoryService, InventoryLoggingDecorator>();
+    builder.Services.Decorate<IInventoryService, InventoryErrorHandlingDecorator>();
+    
     builder.Services.AddScoped<ISalesOrderService, SalesOrderService>();
+    builder.Services.Decorate<ISalesOrderService, SalesOrderPreprocessingDecorator>();
     builder.Services.Decorate<ISalesOrderService, SalesOrderLoggingDecorator>();
+    builder.Services.Decorate<ISalesOrderService, SalesOrderErrorHandlingDecorator>();
+    
     builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
+    builder.Services.Decorate<IPurchaseOrderService, PurchaseOrderPreprocessingDecorator>();
     builder.Services.Decorate<IPurchaseOrderService, PurchaseOrderLoggingDecorator>();
+    builder.Services.Decorate<IPurchaseOrderService, PurchaseOrderErrorHandlingDecorator>();
+    
     builder.Services.AddScoped<IUomService, UomService>();
+    builder.Services.Decorate<IUomService, UomPreprocessingDecorator>();
     builder.Services.Decorate<IUomService, UomLoggingDecorator>();
+    builder.Services.Decorate<IUomService, UomErrorHandlingDecorator>();
+    
     builder.Services.AddScoped<ISupplierService, SupplierService>();
+    builder.Services.Decorate<ISupplierService, SupplierPreprocessingDecorator>();
     builder.Services.Decorate<ISupplierService, SupplierLoggingDecorator>();
+    builder.Services.Decorate<ISupplierService, SupplierErrorHandlingDecorator>();
+    
     builder.Services.AddSingleton<IAlertService, AlertService>();
 
     WebApplication app = builder.Build();

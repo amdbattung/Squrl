@@ -213,10 +213,9 @@ public sealed class RevertReceivedPurchaseOrderToPendingTests : IntegrationTest
         // Assert
         Assert.False(actual.IsSuccess);
         Assert.Null(actual.Value);
-        // TODO: Change Error Message
-        Assert.Contains("Purchase order not found.", actual.Errors);
+        Assert.Contains("Null or invalid ID.", actual.Errors);
         Assert.Null(actual.Exception);
-        Assert.Equal(FailureType.NotFound, actual.FailureType);
+        Assert.Equal(FailureType.Validation, actual.FailureType);
     }
 
     [Fact]
