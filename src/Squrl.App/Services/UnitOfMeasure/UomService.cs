@@ -10,7 +10,7 @@ using Squrl.App.Infrastructure.TransactionManager;
 
 namespace Squrl.App.Services.UnitOfMeasure;
 
-public partial class UomService : IUomService
+public partial class UomService
 {
     private readonly DataContext _dataContext;
     private readonly ITransactionManager _transactionManager;
