@@ -1,7 +1,9 @@
 ﻿using System.Reflection;
+using Microsoft.AspNetCore.Components;
 using Microsoft.EntityFrameworkCore;
 using Squrl.App.Data;
 using Squrl.App.Infrastructure.DataExporter;
+using Squrl.App.Infrastructure.NodaTimePersistentStateSerializer;
 
 namespace Squrl.App.Extensions;
 
@@ -59,6 +61,15 @@ public static class ServiceRegistrationExtensions
 
                 services.AddTransient(serviceType, implementationType);
             }
+
+            return services;
+        }
+
+        public IServiceCollection AddNodaTimePersistentState<T>()
+        {
+            services.AddSingleton<
+                PersistentComponentStateSerializer<T>,
+                NodaTimePersistentStateSerializer<T>>();
 
             return services;
         }

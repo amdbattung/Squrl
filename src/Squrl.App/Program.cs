@@ -5,8 +5,10 @@ using Serilog;
 using Serilog.Events;
 using Squrl.App.Data;
 using Squrl.App.Extensions;
+using Squrl.App.Features.Items.DTOs;
+using Squrl.App.Features.PurchaseOrders.DTOs;
+using Squrl.App.Features.SalesOrders.DTOs;
 using Squrl.App.Infrastructure.BackgroundTaskQueue;
-using Squrl.App.Infrastructure.DataExporter;
 using Squrl.App.Infrastructure.ImageProcessor;
 using Squrl.App.Infrastructure.ImageStorage;
 using Squrl.App.Infrastructure.PlatformDialog;
@@ -120,6 +122,11 @@ try
 
     builder.Services.AddSingleton<IClock>(SystemClock.Instance);
     builder.Services.AddSingleton<DataSaveChangesInterceptor>();
+
+    builder.Services
+        .AddNodaTimePersistentState<GetItemDto>()
+        .AddNodaTimePersistentState<GetSalesOrderDto>()
+        .AddNodaTimePersistentState<GetPurchaseOrderDto>();
     
     builder.Services.AddSingleton<IImageStorage, FileSystemImageStorage>();
     builder.Services.AddScoped<IImageProcessor, ImageProcessor>();
