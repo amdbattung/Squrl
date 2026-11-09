@@ -124,76 +124,6 @@ public class CreatePoDetailValidatorTests
     }
     
     [Fact]
-    public void UnitPrice_ShouldBeRequired()
-    {
-        CreatePoDetailDto poDetail = CreateValidPoDetail();
-        poDetail.UnitPrice = null;
-
-        ValidationResult? actual = _validator.Validate(poDetail);
-
-        Assert.False(actual.IsValid);
-        Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(CreatePoDetailDto.UnitPrice) &&
-            error.ErrorMessage == "Unit Price is required.");
-    }
-    
-    [Theory]
-    [InlineData(-5)]
-    [InlineData(-0.01)]
-    public void UnitPrice_ShouldRejectNegativeValues(decimal price)
-    {
-        CreatePoDetailDto poDetail = CreateValidPoDetail();
-        poDetail.UnitPrice = price;
-
-        ValidationResult? actual = _validator.Validate(poDetail);
-
-        Assert.False(actual.IsValid);
-        Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(CreatePoDetailDto.UnitPrice) &&
-            error.ErrorMessage == "Unit Price must not be negative.");
-    }
-    
-    [Fact]
-    public void RetailPrice_ShouldAllowZero()
-    {
-        CreatePoDetailDto poDetail = CreateValidPoDetail();
-        poDetail.UnitPrice = 0m;
-
-        ValidationResult? actual = _validator.Validate(poDetail);
-
-        Assert.True(actual.IsValid);
-        Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(CreatePoDetailDto.UnitPrice));
-    }
-    
-    [Fact]
-    public void UnitPrice_ShouldAllowDecimalMaxValue()
-    {
-        CreatePoDetailDto poDetail = CreateValidPoDetail();
-        poDetail.UnitPrice = decimal.MaxValue;
-
-        ValidationResult? actual = _validator.Validate(poDetail);
-
-        Assert.True(actual.IsValid);
-        Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(CreatePoDetailDto.UnitPrice));
-    }
-    
-    [Fact]
-    public void UnitPrice_ShouldRejectDecimalMinValue()
-    {
-        CreatePoDetailDto poDetail = CreateValidPoDetail();
-        poDetail.UnitPrice = decimal.MinValue;
-
-        ValidationResult? actual = _validator.Validate(poDetail);
-
-        Assert.False(actual.IsValid);
-        Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(CreatePoDetailDto.UnitPrice) &&
-            error.ErrorMessage == "Unit Price must not be negative.");
-    }
-    
-    [Fact]
     public void Quantity_ShouldBeRequired()
     {
         CreatePoDetailDto poDetail = CreateValidPoDetail();
@@ -264,6 +194,76 @@ public class CreatePoDetailValidatorTests
             error.ErrorMessage == "Quantity must not be zero or negative.");
     }
     
+    [Fact]
+    public void UnitPrice_ShouldBeRequired()
+    {
+        CreatePoDetailDto poDetail = CreateValidPoDetail();
+        poDetail.UnitPrice = null;
+
+        ValidationResult? actual = _validator.Validate(poDetail);
+
+        Assert.False(actual.IsValid);
+        Assert.Contains(actual.Errors, error =>
+            error.PropertyName == nameof(CreatePoDetailDto.UnitPrice) &&
+            error.ErrorMessage == "Unit Price is required.");
+    }
+    
+    [Theory]
+    [InlineData(-5)]
+    [InlineData(-0.01)]
+    public void UnitPrice_ShouldRejectNegativeValues(decimal price)
+    {
+        CreatePoDetailDto poDetail = CreateValidPoDetail();
+        poDetail.UnitPrice = price;
+
+        ValidationResult? actual = _validator.Validate(poDetail);
+
+        Assert.False(actual.IsValid);
+        Assert.Contains(actual.Errors, error =>
+            error.PropertyName == nameof(CreatePoDetailDto.UnitPrice) &&
+            error.ErrorMessage == "Unit Price must not be negative.");
+    }
+    
+    [Fact]
+    public void UnitPrice_ShouldAllowZero()
+    {
+        CreatePoDetailDto poDetail = CreateValidPoDetail();
+        poDetail.UnitPrice = 0m;
+
+        ValidationResult? actual = _validator.Validate(poDetail);
+
+        Assert.True(actual.IsValid);
+        Assert.DoesNotContain(actual.Errors, error =>
+            error.PropertyName == nameof(CreatePoDetailDto.UnitPrice));
+    }
+    
+    [Fact]
+    public void UnitPrice_ShouldAllowDecimalMaxValue()
+    {
+        CreatePoDetailDto poDetail = CreateValidPoDetail();
+        poDetail.UnitPrice = decimal.MaxValue;
+
+        ValidationResult? actual = _validator.Validate(poDetail);
+
+        Assert.True(actual.IsValid);
+        Assert.DoesNotContain(actual.Errors, error =>
+            error.PropertyName == nameof(CreatePoDetailDto.UnitPrice));
+    }
+    
+    [Fact]
+    public void UnitPrice_ShouldRejectDecimalMinValue()
+    {
+        CreatePoDetailDto poDetail = CreateValidPoDetail();
+        poDetail.UnitPrice = decimal.MinValue;
+
+        ValidationResult? actual = _validator.Validate(poDetail);
+
+        Assert.False(actual.IsValid);
+        Assert.Contains(actual.Errors, error =>
+            error.PropertyName == nameof(CreatePoDetailDto.UnitPrice) &&
+            error.ErrorMessage == "Unit Price must not be negative.");
+    }
+    
     private static CreatePoDetailDto CreateValidPoDetail()
     {
         return new CreatePoDetailDto
@@ -271,8 +271,8 @@ public class CreatePoDetailValidatorTests
             PurchaseOrderId = Guid.NewGuid(),
             LineSequence = 1,
             ItemId = Guid.NewGuid(),
-            UnitPrice = 600m,
-            Quantity = 10.05m
+            Quantity = 10.05m,
+            UnitPrice = 600m
         };
     }
 }

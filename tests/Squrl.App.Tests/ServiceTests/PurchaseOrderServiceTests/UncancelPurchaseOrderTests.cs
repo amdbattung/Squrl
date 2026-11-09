@@ -53,8 +53,8 @@ public sealed class UncancelPurchaseOrderTests : IntegrationTest
                 Quantity = 10m,
                 Locations = ["Shelf A", "Shelf B"]
             },
-            UnitPrice = 600m,
-            Quantity = 5m
+            Quantity = 5m,
+            UnitPrice = 600m
         };
 
         dataContext.PurchaseOrders.Add(seed);

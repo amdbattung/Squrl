@@ -65,15 +65,15 @@
                     </div>
                     
                     <div>
-                        <label>Unit Price</label>
-                        <InputNumber @bind-Value="detail.UnitPrice" />
-                        <ValidationMessage For="@(() => detail.UnitPrice)" />
-                    </div>
-
-                    <div>
                         <label>Quantity</label>
                         <InputNumber @bind-Value="detail.Quantity" />
                         <ValidationMessage For="@(() => detail.Quantity)" />
+                    </div>
+                    
+                    <div>
+                        <label>Unit Price</label>
+                        <InputNumber @bind-Value="detail.UnitPrice" />
+                        <ValidationMessage For="@(() => detail.UnitPrice)" />
                     </div>
 
                     @if (SalesOrder.Details.Count > 1)
@@ -166,8 +166,8 @@ else
                     SalesOrderId = Guid.Empty,
                     LineSequence =  soDetail.LineSequence,
                     ItemId = soDetail.ItemId,
-                    UnitPrice =  soDetail.UnitPrice,
-                    Quantity = soDetail.Quantity
+                    Quantity = soDetail.Quantity,
+                    UnitPrice =  soDetail.UnitPrice
                 });
                 
                 if (!_itemNameCache.ContainsKey(soDetail.ItemId ?? Guid.Empty))

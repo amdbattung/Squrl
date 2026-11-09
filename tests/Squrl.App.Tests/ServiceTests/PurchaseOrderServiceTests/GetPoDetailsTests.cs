@@ -58,8 +58,8 @@ public class GetPoDetailsTests : IntegrationTest
                 PurchaseOrder = purchaseOrderSeed,
                 LineSequence = i,
                 Item = itemSeed,
-                UnitPrice = 600m,
-                Quantity = 5m
+                Quantity = 5m,
+                UnitPrice = 600m
             })
             .ToList();
         
@@ -166,8 +166,8 @@ public class GetPoDetailsTests : IntegrationTest
                 PurchaseOrder = purchaseOrderSeed,
                 LineSequence = i,
                 Item = itemSeed,
-                UnitPrice = 600m,
-                Quantity = 5m
+                Quantity = 5m,
+                UnitPrice = 600m
             })
             .ToList();
         
@@ -248,8 +248,8 @@ public class GetPoDetailsTests : IntegrationTest
                 PurchaseOrder = purchaseOrderSeed,
                 LineSequence = i,
                 Item = itemSeed,
-                UnitPrice = 600m,
-                Quantity = 5m
+                Quantity = 5m,
+                UnitPrice = 600m
             })
             .ToList();
         

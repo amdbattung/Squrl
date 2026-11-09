@@ -175,8 +175,8 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                     PurchaseOrder = newPurchaseOrder,
                     LineSequence = poDetail.LineSequence ?? 0,
                     Item = item,
-                    UnitPrice = poDetail.UnitPrice ?? 0m,
-                    Quantity = poDetail.Quantity ?? 0m
+                    Quantity = poDetail.Quantity ?? 0m,
+                    UnitPrice = poDetail.UnitPrice ?? 0m
                 };
 
                 await _dataContext.PurchaseOrderDetails.AddAsync(newPoDetail, ct);
@@ -275,8 +275,8 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                         }
                         
                         existingPoDetail.Item = item ?? existingPoDetail.Item;
-                        existingPoDetail.UnitPrice = poDetail.UnitPrice ?? existingPoDetail.UnitPrice;
                         existingPoDetail.Quantity = poDetail.Quantity ?? existingPoDetail.Quantity;
+                        existingPoDetail.UnitPrice = poDetail.UnitPrice ?? existingPoDetail.UnitPrice;
                     }
                     else
                     {
@@ -296,8 +296,8 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                             PurchaseOrder = existingPurchaseOrder,
                             LineSequence = poDetail.LineSequence ?? 0,
                             Item = item,
-                            UnitPrice = poDetail.UnitPrice ?? 0m,
-                            Quantity = poDetail.Quantity ?? 0m
+                            Quantity = poDetail.Quantity ?? 0m,
+                            UnitPrice = poDetail.UnitPrice ?? 0m
                         };
                         
                         await _dataContext.PurchaseOrderDetails.AddAsync(newPoDetail, ct);

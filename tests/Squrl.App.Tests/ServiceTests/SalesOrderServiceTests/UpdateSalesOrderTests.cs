@@ -72,8 +72,8 @@ public class UpdateSalesOrderTests : IntegrationTest
                     Quantity = 10m,
                     Locations = ["Shelf A", "Shelf B"]
                 },
-                UnitPrice = 600m,
-                Quantity = 5m
+                Quantity = 5m,
+                UnitPrice = 600m
             },
             new()
             {
@@ -93,8 +93,8 @@ public class UpdateSalesOrderTests : IntegrationTest
                     Quantity = 10m,
                     Locations = ["Shelf A", "Shelf B"]
                 },
-                UnitPrice = 600m,
-                Quantity = 5m
+                Quantity = 5m,
+                UnitPrice = 600m
             }
         ];
 
@@ -112,16 +112,16 @@ public class UpdateSalesOrderTests : IntegrationTest
                     SalesOrderId = Guid.Empty,
                     LineSequence = 1,
                     ItemId = itemSeed.Id,
-                    UnitPrice = 700m,
-                    Quantity = 6m
+                    Quantity = 6m,
+                    UnitPrice = 700m
                 },
                 new()
                 {
                     SalesOrderId = Guid.Empty,
                     LineSequence = 2,
                     ItemId = itemSeed.Id,
-                    UnitPrice = 700m,
-                    Quantity = 6m
+                    Quantity = 6m,
+                    UnitPrice = 700m
                 }
             ],
             DateOrdered = Instant.FromUtc(2020, 2, 1, 0, 0)
@@ -173,8 +173,8 @@ public class UpdateSalesOrderTests : IntegrationTest
             Assert.Equal(actual.Value.Id, updatedSoDetail.SalesOrder.Id);
             Assert.Equal(dtoSoDetail.LineSequence, updatedSoDetail.LineSequence);
             Assert.Equal(dtoSoDetail.ItemId, updatedSoDetail.Item.Id);
-            Assert.Equal(dtoSoDetail.UnitPrice, updatedSoDetail.UnitPrice);
             Assert.Equal(dtoSoDetail.Quantity, updatedSoDetail.Quantity);
+            Assert.Equal(dtoSoDetail.UnitPrice, updatedSoDetail.UnitPrice);
         }
     }
 
@@ -194,8 +194,8 @@ public class UpdateSalesOrderTests : IntegrationTest
                     SalesOrderId = Guid.Empty,
                     LineSequence = 1,
                     ItemId = Guid.NewGuid(),
-                    UnitPrice = 600m,
-                    Quantity = 5m
+                    Quantity = 5m,
+                    UnitPrice = 600m
                 }
             ],
             DateOrdered = Instant.FromUtc(2020, 1, 1, 0, 0)
@@ -228,8 +228,8 @@ public class UpdateSalesOrderTests : IntegrationTest
                     SalesOrderId = Guid.Empty,
                     LineSequence = 1,
                     ItemId = Guid.NewGuid(),
-                    UnitPrice = 600m,
-                    Quantity = 5m
+                    Quantity = 5m,
+                    UnitPrice = 600m
                 }
             ],
             DateOrdered = Instant.FromUtc(2020, 1, 1, 0, 0)

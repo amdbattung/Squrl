@@ -124,76 +124,6 @@ public class UpdateSoDetailValidatorTests
     }
     
     [Fact]
-    public void UnitPrice_ShouldBeRequired()
-    {
-        UpdateSoDetailDto soDetail = CreateValidSoDetail();
-        soDetail.UnitPrice = null;
-
-        ValidationResult? actual = _validator.Validate(soDetail);
-
-        Assert.False(actual.IsValid);
-        Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateSoDetailDto.UnitPrice) &&
-            error.ErrorMessage == "Unit Price is required.");
-    }
-    
-    [Theory]
-    [InlineData(-5)]
-    [InlineData(-0.01)]
-    public void UnitPrice_ShouldRejectNegativeValues(decimal price)
-    {
-        UpdateSoDetailDto soDetail = CreateValidSoDetail();
-        soDetail.UnitPrice = price;
-
-        ValidationResult? actual = _validator.Validate(soDetail);
-
-        Assert.False(actual.IsValid);
-        Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateSoDetailDto.UnitPrice) &&
-            error.ErrorMessage == "Unit Price must not be negative.");
-    }
-    
-    [Fact]
-    public void RetailPrice_ShouldAllowZero()
-    {
-        UpdateSoDetailDto soDetail = CreateValidSoDetail();
-        soDetail.UnitPrice = 0m;
-
-        ValidationResult? actual = _validator.Validate(soDetail);
-
-        Assert.True(actual.IsValid);
-        Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateSoDetailDto.UnitPrice));
-    }
-    
-    [Fact]
-    public void UnitPrice_ShouldAllowDecimalMaxValue()
-    {
-        UpdateSoDetailDto soDetail = CreateValidSoDetail();
-        soDetail.UnitPrice = decimal.MaxValue;
-
-        ValidationResult? actual = _validator.Validate(soDetail);
-
-        Assert.True(actual.IsValid);
-        Assert.DoesNotContain(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateSoDetailDto.UnitPrice));
-    }
-    
-    [Fact]
-    public void UnitPrice_ShouldRejectDecimalMinValue()
-    {
-        UpdateSoDetailDto soDetail = CreateValidSoDetail();
-        soDetail.UnitPrice = decimal.MinValue;
-
-        ValidationResult? actual = _validator.Validate(soDetail);
-
-        Assert.False(actual.IsValid);
-        Assert.Contains(actual.Errors, error =>
-            error.PropertyName == nameof(UpdateSoDetailDto.UnitPrice) &&
-            error.ErrorMessage == "Unit Price must not be negative.");
-    }
-    
-    [Fact]
     public void Quantity_ShouldBeRequired()
     {
         UpdateSoDetailDto soDetail = CreateValidSoDetail();
@@ -264,6 +194,76 @@ public class UpdateSoDetailValidatorTests
             error.ErrorMessage == "Quantity must not be zero or negative.");
     }
     
+    [Fact]
+    public void UnitPrice_ShouldBeRequired()
+    {
+        UpdateSoDetailDto soDetail = CreateValidSoDetail();
+        soDetail.UnitPrice = null;
+
+        ValidationResult? actual = _validator.Validate(soDetail);
+
+        Assert.False(actual.IsValid);
+        Assert.Contains(actual.Errors, error =>
+            error.PropertyName == nameof(UpdateSoDetailDto.UnitPrice) &&
+            error.ErrorMessage == "Unit Price is required.");
+    }
+    
+    [Theory]
+    [InlineData(-5)]
+    [InlineData(-0.01)]
+    public void UnitPrice_ShouldRejectNegativeValues(decimal price)
+    {
+        UpdateSoDetailDto soDetail = CreateValidSoDetail();
+        soDetail.UnitPrice = price;
+
+        ValidationResult? actual = _validator.Validate(soDetail);
+
+        Assert.False(actual.IsValid);
+        Assert.Contains(actual.Errors, error =>
+            error.PropertyName == nameof(UpdateSoDetailDto.UnitPrice) &&
+            error.ErrorMessage == "Unit Price must not be negative.");
+    }
+    
+    [Fact]
+    public void UnitPrice_ShouldAllowZero()
+    {
+        UpdateSoDetailDto soDetail = CreateValidSoDetail();
+        soDetail.UnitPrice = 0m;
+
+        ValidationResult? actual = _validator.Validate(soDetail);
+
+        Assert.True(actual.IsValid);
+        Assert.DoesNotContain(actual.Errors, error =>
+            error.PropertyName == nameof(UpdateSoDetailDto.UnitPrice));
+    }
+    
+    [Fact]
+    public void UnitPrice_ShouldAllowDecimalMaxValue()
+    {
+        UpdateSoDetailDto soDetail = CreateValidSoDetail();
+        soDetail.UnitPrice = decimal.MaxValue;
+
+        ValidationResult? actual = _validator.Validate(soDetail);
+
+        Assert.True(actual.IsValid);
+        Assert.DoesNotContain(actual.Errors, error =>
+            error.PropertyName == nameof(UpdateSoDetailDto.UnitPrice));
+    }
+    
+    [Fact]
+    public void UnitPrice_ShouldRejectDecimalMinValue()
+    {
+        UpdateSoDetailDto soDetail = CreateValidSoDetail();
+        soDetail.UnitPrice = decimal.MinValue;
+
+        ValidationResult? actual = _validator.Validate(soDetail);
+
+        Assert.False(actual.IsValid);
+        Assert.Contains(actual.Errors, error =>
+            error.PropertyName == nameof(UpdateSoDetailDto.UnitPrice) &&
+            error.ErrorMessage == "Unit Price must not be negative.");
+    }
+    
     private static UpdateSoDetailDto CreateValidSoDetail()
     {
         return new UpdateSoDetailDto
@@ -271,8 +271,8 @@ public class UpdateSoDetailValidatorTests
             SalesOrderId = Guid.NewGuid(),
             LineSequence = 1,
             ItemId = Guid.NewGuid(),
-            UnitPrice = 600m,
-            Quantity = 10.05m
+            Quantity = 10.05m,
+            UnitPrice = 600m
         };
     }
 }

@@ -13,8 +13,8 @@ public class SoDetailMapper
             soDetail.SalesOrder.Id,
             soDetail.LineSequence,
             soDetail.Item.Id,
-            soDetail.UnitPrice,
-            soDetail.Quantity
+            soDetail.Quantity,
+            soDetail.UnitPrice
         );
     }
     
@@ -27,8 +27,8 @@ public class SoDetailMapper
                 soDetail.SalesOrder.Id,
                 soDetail.LineSequence,
                 soDetail.Item.Id,
-                soDetail.UnitPrice,
-                soDetail.Quantity
+                soDetail.Quantity,
+                soDetail.UnitPrice
             );
         }
     }

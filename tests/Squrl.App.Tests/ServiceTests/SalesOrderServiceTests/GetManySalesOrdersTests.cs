@@ -74,8 +74,8 @@ public sealed class GetManySalesOrdersTests : IntegrationTest
                         SalesOrder = order,
                         LineSequence = 1,
                         Item = itemSeedA,
-                        UnitPrice = 600m,
-                        Quantity = 5m
+                        Quantity = 5m,
+                        UnitPrice = 600m
                     },
                     new SalesOrderDetail
                     {
@@ -83,8 +83,8 @@ public sealed class GetManySalesOrdersTests : IntegrationTest
                         SalesOrder = order,
                         LineSequence = 2,
                         Item = itemSeedB,
-                        UnitPrice = 600m,
-                        Quantity = 5m
+                        Quantity = 5m,
+                        UnitPrice = 600m
                     }
                 })
             .ToList();
@@ -180,8 +180,8 @@ public sealed class GetManySalesOrdersTests : IntegrationTest
                         SalesOrder = order,
                         LineSequence = 1,
                         Item = itemSeed,
-                        UnitPrice = 600m,
-                        Quantity = 5m
+                        Quantity = 5m,
+                        UnitPrice = 600m
                     }
                 })
             .ToList();
@@ -252,8 +252,8 @@ public sealed class GetManySalesOrdersTests : IntegrationTest
                         SalesOrder = order,
                         LineSequence = 1,
                         Item = itemSeed,
-                        UnitPrice = 600m,
-                        Quantity = 5m
+                        Quantity = 5m,
+                        UnitPrice = 600m
                     }
                 })
             .ToList();
@@ -323,8 +323,8 @@ public sealed class GetManySalesOrdersTests : IntegrationTest
                         SalesOrder = order,
                         LineSequence = 1,
                         Item = itemSeed,
-                        UnitPrice = 600m,
-                        Quantity = 5m
+                        Quantity = 5m,
+                        UnitPrice = 600m
                     }
                 })
             .ToList();
@@ -416,8 +416,8 @@ public sealed class GetManySalesOrdersTests : IntegrationTest
                         SalesOrder = order,
                         LineSequence = 1,
                         Item = itemSeed,
-                        UnitPrice = 600m,
-                        Quantity = 5m
+                        Quantity = 5m,
+                        UnitPrice = 600m
                     }
                 })
             .ToList();

@@ -53,8 +53,8 @@ public sealed class RemovePoDetailTests : IntegrationTest
                 Quantity = 10m,
                 Locations = ["Shelf A", "Shelf B"]
             },
-            UnitPrice = 600m,
-            Quantity = 5m
+            Quantity = 5m,
+            UnitPrice = 600m
         };
 
         dataContext.PurchaseOrders.Add(purchaseOrderSeed);
@@ -75,8 +75,8 @@ public sealed class RemovePoDetailTests : IntegrationTest
         Assert.Equal(seed.PurchaseOrder.Id, actual.Value.PurchaseOrderId);
         Assert.Equal(seed.LineSequence, actual.Value.LineSequence);
         Assert.Equal(seed.Item.Id, actual.Value.ItemId);
-        Assert.Equal(seed.UnitPrice, actual.Value.UnitPrice);
         Assert.Equal(seed.Quantity, actual.Value.Quantity);
+        Assert.Equal(seed.UnitPrice, actual.Value.UnitPrice);
         
         bool exists = await dataContext.SalesOrderDetails
             .AnyAsync(s => s.Id == seed.Id);

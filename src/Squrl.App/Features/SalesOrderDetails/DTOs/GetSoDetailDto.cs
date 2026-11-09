@@ -6,21 +6,21 @@ public class GetSoDetailDto
     public Guid? SalesOrderId { get; }
     public int? LineSequence { get; }
     public Guid? ItemId { get; }
-    public decimal? UnitPrice { get; set; }
     public decimal? Quantity { get; }
+    public decimal? UnitPrice { get; set; }
 
     public GetSoDetailDto(Guid? id,
         Guid? salesOrderId,
         int? lineSequence,
         Guid? itemId,
-        decimal? unitPrice,
-        decimal? quantity)
+        decimal? quantity,
+        decimal? unitPrice)
     {
         Id = id;
         SalesOrderId = salesOrderId;
         LineSequence = lineSequence;
         ItemId = itemId;
-        UnitPrice = unitPrice;
         Quantity = quantity;
+        UnitPrice = unitPrice;
     }
 }

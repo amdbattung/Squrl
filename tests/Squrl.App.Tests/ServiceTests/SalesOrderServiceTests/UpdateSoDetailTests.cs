@@ -68,8 +68,8 @@ public sealed class UpdateSoDetailTests : IntegrationTest
                 Quantity = 10m,
                 Locations = ["Shelf A", "Shelf B"]
             },
-            UnitPrice = 600m,
-            Quantity = 5m
+            Quantity = 5m,
+            UnitPrice = 600m
         };
 
         dataContext.SalesOrders.Add(salesOrderSeed);
@@ -81,8 +81,8 @@ public sealed class UpdateSoDetailTests : IntegrationTest
             SalesOrderId = salesOrderSeed.Id,
             LineSequence = 1,
             ItemId = itemSeed.Id,
-            UnitPrice = 700m,
-            Quantity = 6m
+            Quantity = 6m,
+            UnitPrice = 700m
         };
         
         // Act
@@ -99,8 +99,8 @@ public sealed class UpdateSoDetailTests : IntegrationTest
         Assert.Equal(dto.SalesOrderId, actual.Value.SalesOrderId);
         Assert.Equal(dto.LineSequence, actual.Value.LineSequence);
         Assert.Equal(dto.ItemId, actual.Value.ItemId);
-        Assert.Equal(dto.UnitPrice, actual.Value.UnitPrice);
         Assert.Equal(dto.Quantity, actual.Value.Quantity);
+        Assert.Equal(dto.UnitPrice, actual.Value.UnitPrice);
         
         SalesOrderDetail? updated = await dataContext.SalesOrderDetails
             .AsNoTracking()
@@ -114,8 +114,8 @@ public sealed class UpdateSoDetailTests : IntegrationTest
         Assert.Equal(dto.SalesOrderId, updated.SalesOrder.Id);
         Assert.Equal(dto.LineSequence, updated.LineSequence);
         Assert.Equal(dto.ItemId, updated.Item.Id);
-        Assert.Equal(dto.UnitPrice, updated.UnitPrice);
         Assert.Equal(dto.Quantity, updated.Quantity);
+        Assert.Equal(dto.UnitPrice, updated.UnitPrice);
     }
 
     [Fact]
@@ -131,8 +131,8 @@ public sealed class UpdateSoDetailTests : IntegrationTest
             SalesOrderId = Guid.NewGuid(),
             LineSequence = 1,
             ItemId = Guid.NewGuid(),
-            UnitPrice = 600m,
-            Quantity = 5m
+            Quantity = 5m,
+            UnitPrice = 600m
         };
         
         // Act
@@ -159,8 +159,8 @@ public sealed class UpdateSoDetailTests : IntegrationTest
             SalesOrderId = Guid.NewGuid(),
             LineSequence = 1,
             ItemId = Guid.NewGuid(),
-            UnitPrice = 600m,
-            Quantity = 5m
+            Quantity = 5m,
+            UnitPrice = 600m
         };
         
         // Act
@@ -187,8 +187,8 @@ public sealed class UpdateSoDetailTests : IntegrationTest
             SalesOrderId = Guid.NewGuid(),
             LineSequence = 0,
             ItemId = Guid.NewGuid(),
-            UnitPrice = 600m,
-            Quantity = 5m
+            Quantity = 5m,
+            UnitPrice = 600m
         };
         
         // Act
@@ -217,8 +217,8 @@ public sealed class UpdateSoDetailTests : IntegrationTest
             SalesOrderId = Guid.NewGuid(),
             LineSequence = 0,
             ItemId = Guid.NewGuid(),
-            UnitPrice = 600m,
-            Quantity = 5m
+            Quantity = 5m,
+            UnitPrice = 600m
         };
         
         // Act

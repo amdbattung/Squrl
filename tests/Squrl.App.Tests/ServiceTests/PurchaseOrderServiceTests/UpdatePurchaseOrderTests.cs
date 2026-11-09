@@ -87,8 +87,8 @@ public sealed class UpdatePurchaseOrderTests : IntegrationTest
                     Quantity = 10m,
                     Locations = ["Shelf A", "Shelf B"]
                 },
-                UnitPrice = 600m,
-                Quantity = 5m
+                Quantity = 5m,
+                UnitPrice = 600m
             },
             new()
             {
@@ -108,8 +108,8 @@ public sealed class UpdatePurchaseOrderTests : IntegrationTest
                     Quantity = 10m,
                     Locations = ["Shelf A", "Shelf B"]
                 },
-                UnitPrice = 600m,
-                Quantity = 5m
+                Quantity = 5m,
+                UnitPrice = 600m
             }
         ];
         
@@ -128,16 +128,16 @@ public sealed class UpdatePurchaseOrderTests : IntegrationTest
                     PurchaseOrderId = Guid.Empty,
                     LineSequence = 1,
                     ItemId = itemSeed.Id,
-                    UnitPrice = 700m,
-                    Quantity = 6m
+                    Quantity = 6m,
+                    UnitPrice = 700m
                 },
                 new()
                 {
                     PurchaseOrderId = Guid.Empty,
                     LineSequence = 2,
                     ItemId = itemSeed.Id,
-                    UnitPrice = 700m,
-                    Quantity = 6m
+                    Quantity = 6m,
+                    UnitPrice = 700m
                 }
             ],
             DateOrdered = Instant.FromUtc(2020, 2, 1, 0, 0),
@@ -198,8 +198,8 @@ public sealed class UpdatePurchaseOrderTests : IntegrationTest
             Assert.Equal(actual.Value.Id, updatedPoDetail.PurchaseOrder.Id);
             Assert.Equal(dtoPoDetail.LineSequence, updatedPoDetail.LineSequence);
             Assert.Equal(dtoPoDetail.ItemId, updatedPoDetail.Item.Id);
-            Assert.Equal(dtoPoDetail.UnitPrice, updatedPoDetail.UnitPrice);
             Assert.Equal(dtoPoDetail.Quantity, updatedPoDetail.Quantity);
+            Assert.Equal(dtoPoDetail.UnitPrice, updatedPoDetail.UnitPrice);
         }
     }
 
@@ -220,8 +220,8 @@ public sealed class UpdatePurchaseOrderTests : IntegrationTest
                     PurchaseOrderId = Guid.Empty,
                     LineSequence = 1,
                     ItemId = Guid.NewGuid(),
-                    UnitPrice = 600m,
-                    Quantity = 5m
+                    Quantity = 5m,
+                    UnitPrice = 600m
                 }
             ],
             DateOrdered = Instant.FromUtc(2020, 1, 1, 0, 0)
@@ -255,8 +255,8 @@ public sealed class UpdatePurchaseOrderTests : IntegrationTest
                     PurchaseOrderId = Guid.Empty,
                     LineSequence = 1,
                     ItemId = Guid.NewGuid(),
-                    UnitPrice = 600m,
-                    Quantity = 5m
+                    Quantity = 5m,
+                    UnitPrice = 600m
                 }
             ],
             DateOrdered = Instant.FromUtc(2020, 1, 1, 0, 0)

@@ -92,15 +92,15 @@
             </div>
             
             <div>
-                <label>Unit Price</label>
-                <InputNumber @bind-Value="detail.UnitPrice" />
-                <ValidationMessage For="@(() => detail.UnitPrice)" />
-            </div>
-
-            <div>
                 <label>Quantity</label>
                 <InputNumber @bind-Value="detail.Quantity" />
                 <ValidationMessage For="@(() => detail.Quantity)" />
+            </div>
+            
+            <div>
+                <label>Unit Price</label>
+                <InputNumber @bind-Value="detail.UnitPrice" />
+                <ValidationMessage For="@(() => detail.UnitPrice)" />
             </div>
 
             @if (_purchaseOrder.Details.Count > 1)

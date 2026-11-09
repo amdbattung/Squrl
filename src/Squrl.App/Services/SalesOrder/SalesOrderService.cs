@@ -122,8 +122,8 @@ public partial class SalesOrderService : ISalesOrderService
                     SalesOrder = newSalesOrder,
                     LineSequence = soDetail.LineSequence ?? 0,
                     Item = item,
-                    UnitPrice = soDetail.UnitPrice ?? 0m,
-                    Quantity = soDetail.Quantity ?? 0m
+                    Quantity = soDetail.Quantity ?? 0m,
+                    UnitPrice = soDetail.UnitPrice ?? 0m
                 };
 
                 await _dataContext.SalesOrderDetails.AddAsync(newSoDetail, ct);
@@ -219,8 +219,8 @@ public partial class SalesOrderService : ISalesOrderService
                     }
                     
                     existingSoDetail.Item = item ?? existingSoDetail.Item;
-                    existingSoDetail.UnitPrice = soDetail.UnitPrice ?? existingSoDetail.UnitPrice;
                     existingSoDetail.Quantity = soDetail.Quantity ?? existingSoDetail.Quantity;
+                    existingSoDetail.UnitPrice = soDetail.UnitPrice ?? existingSoDetail.UnitPrice;
                 }
                 else
                 {
@@ -240,8 +240,8 @@ public partial class SalesOrderService : ISalesOrderService
                         SalesOrder = existingSalesOrder,
                         LineSequence = soDetail.LineSequence ?? 0,
                         Item = item,
-                        UnitPrice = soDetail.UnitPrice ?? 0m,
-                        Quantity = soDetail.Quantity ?? 0m
+                        Quantity = soDetail.Quantity ?? 0m,
+                        UnitPrice = soDetail.UnitPrice ?? 0m
                     };
                     
                     await _dataContext.SalesOrderDetails.AddAsync(newSoDetail, ct);

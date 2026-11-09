@@ -65,16 +65,16 @@ public sealed class CreatePurchaseOrderTests : IntegrationTest
                     PurchaseOrderId = Guid.Empty,
                     LineSequence = 1,
                     ItemId = itemSeed.Id,
-                    UnitPrice = 600m,
-                    Quantity = 5m
+                    Quantity = 5m,
+                    UnitPrice = 600m
                 },
                 new()
                 {
                     PurchaseOrderId = Guid.Empty,
                     LineSequence = 2,
                     ItemId = itemSeed.Id,
-                    UnitPrice = 600.05m,
-                    Quantity = 5m
+                    Quantity = 5m,
+                    UnitPrice = 600.05m
                 }
             ],
             DateOrdered = Instant.FromUtc(2020, 1, 1, 0, 0),
@@ -133,8 +133,8 @@ public sealed class CreatePurchaseOrderTests : IntegrationTest
             Assert.Equal(actual.Value.Id, createdPoDetail.PurchaseOrder.Id);
             Assert.Equal(dtoPoDetail.LineSequence, createdPoDetail.LineSequence);
             Assert.Equal(dtoPoDetail.ItemId, createdPoDetail.Item.Id);
-            Assert.Equal(dtoPoDetail.UnitPrice, createdPoDetail.UnitPrice);
             Assert.Equal(dtoPoDetail.Quantity, createdPoDetail.Quantity);
+            Assert.Equal(dtoPoDetail.UnitPrice, createdPoDetail.UnitPrice);
         }
     }
 

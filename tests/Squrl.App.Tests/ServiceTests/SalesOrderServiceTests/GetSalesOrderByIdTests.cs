@@ -53,8 +53,8 @@ public sealed class GetSalesOrderByIdTests : IntegrationTest
                 Quantity = 10m,
                 Locations = ["Shelf A", "Shelf B"]
             },
-            UnitPrice = 600m,
-            Quantity = 5m
+            Quantity = 5m,
+            UnitPrice = 600m
         };
 
         dataContext.SalesOrders.Add(seed);

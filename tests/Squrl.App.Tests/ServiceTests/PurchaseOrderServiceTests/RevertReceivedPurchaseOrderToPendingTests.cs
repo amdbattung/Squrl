@@ -54,8 +54,8 @@ public sealed class RevertReceivedPurchaseOrderToPendingTests : IntegrationTest
                 Quantity = 10m,
                 Locations = ["Shelf A", "Shelf B"]
             },
-            UnitPrice = 600m,
-            Quantity = 5m
+            Quantity = 5m,
+            UnitPrice = 600m
         };
 
         dataContext.PurchaseOrders.Add(seed);
@@ -145,8 +145,8 @@ public sealed class RevertReceivedPurchaseOrderToPendingTests : IntegrationTest
                 PurchaseOrder = seed,
                 LineSequence = 1,
                 Item = itemSeedA,
-                UnitPrice = 600m,
-                Quantity = 5m
+                Quantity = 5m,
+                UnitPrice = 600m
             },
             new()
             {
@@ -154,8 +154,8 @@ public sealed class RevertReceivedPurchaseOrderToPendingTests : IntegrationTest
                 PurchaseOrder = seed,
                 LineSequence = 2,
                 Item = itemSeedB,
-                UnitPrice = 600m,
-                Quantity = 10.5m
+                Quantity = 10.5m,
+                UnitPrice = 600m
             }
         ];
 
