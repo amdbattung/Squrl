@@ -3,6 +3,7 @@
 @inject NavigationManager Navigation
 @inject ISalesOrderService SalesOrderService
 @inject IInventoryService InventoryService
+@inject IJSRuntime Js
 
 <h1>Sales Order</h1>
 @if (SalesOrder is not null)
@@ -11,6 +12,8 @@
     <p>Invoice No.: @SalesOrder.InvoiceNumber</p>
     <p>Issued To: @SalesOrder.Customer</p>
     <p>Date Ordered: @SalesOrder.DateOrdered?.InZone(_userTimeZone).Date.ToDateOnly().ToString("dd MMM yyyy")</p>
+    
+    <button class="btn btn-secondary" @onclick="HandleExportSoDetailsButtonClick">Export Details As CSV</button>
     
     <h2>Details</h2>
     
@@ -23,8 +26,9 @@
                 ? item
                 : "")
         </TemplateColumn>
-        <PropertyColumn Title="Unit Price" Property="s => s.UnitPrice" />
         <PropertyColumn Title="Quantity" Property="s => s.Quantity" />
+        <PropertyColumn Title="Unit Price" Property="s => s.UnitPrice" />
+        <PropertyColumn Title="Total Price" Property="s => s.Quantity * s.UnitPrice" />
     </QuickGrid>
 }
 else
@@ -124,6 +128,44 @@ else
             return GridItemsProviderResult.From(
                 Array.Empty<GetSoDetailDto>(),
                 0);
+        }
+    }
+    
+    private async Task HandleExportSoDetailsButtonClick()
+    {
+        _errorMessages = [];
+
+        try
+        {
+            await using MemoryStream stream = new();
+
+            Result<bool> result = await SalesOrderService.ExportSoDetailsAsCsvAsync(SalesOrderId, stream);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            stream.Position = 0;
+
+            using DotNetStreamReference streamReference = new(stream);
+            
+            string localDate = await Js.InvokeAsync<string>("getLocalDate");
+            
+            string fileName = $"salesorderdetails-{localDate}" +
+                              $"-squrlexport+{Guid.NewGuid().ToString("N")[..8]}.csv";
+
+            await Js.InvokeVoidAsync(
+                "downloadFileFromStream",
+                fileName,
+                streamReference);
+        }
+        catch (Exception)
+        {
+            _errorMessages = [
+                "An unexpected error occurred while exporting sales order details."
+            ];
         }
     }
 }
