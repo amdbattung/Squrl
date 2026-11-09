@@ -5,7 +5,6 @@ using Serilog;
 using Serilog.Events;
 using Squrl.App.Data;
 using Squrl.App.Extensions;
-using Squrl.App.Features.Items.DTOs;
 using Squrl.App.Features.PurchaseOrders.DTOs;
 using Squrl.App.Features.SalesOrders.DTOs;
 using Squrl.App.Infrastructure.BackgroundTaskQueue;
@@ -124,7 +123,6 @@ try
     builder.Services.AddSingleton<DataSaveChangesInterceptor>();
 
     builder.Services
-        .AddNodaTimePersistentState<GetItemDto>()
         .AddNodaTimePersistentState<GetSalesOrderDto>()
         .AddNodaTimePersistentState<GetPurchaseOrderDto>();
     

@@ -6,9 +6,15 @@ namespace Squrl.App.Infrastructure.DataExporter;
 
 public abstract class CsvExporter<T> : ICsvExporter<T>
 {
+    private readonly string? _title;
     private readonly DataColumn<T>[] _columns;
+    
+    protected CsvExporter(params DataColumn<T>[] columns) : this(null, columns)
+    {
+        
+    }
 
-    protected CsvExporter(params DataColumn<T>[] columns)
+    protected CsvExporter(string? title, params DataColumn<T>[] columns)
     {
         ArgumentNullException.ThrowIfNull(columns);
 
@@ -29,13 +35,16 @@ public abstract class CsvExporter<T> : ICsvExporter<T>
             throw new ArgumentException("Column headers must be unique.", nameof(columns));
         }
 
+        _title = title;
         _columns = columns.ToArray();
     }
 
-    public void Export(IEnumerable<T> data, Stream destination)
+    public void Export(IEnumerable<T> data, Stream destination, string? title = null)
     {
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(destination);
+        
+        string? effectiveTitle = title ?? _title;
         
         if (!destination.CanWrite)
         {
@@ -46,6 +55,11 @@ public abstract class CsvExporter<T> : ICsvExporter<T>
             destination,
             new UTF8Encoding(false),
             leaveOpen: true);
+        
+        if (!string.IsNullOrWhiteSpace(effectiveTitle))
+        {
+            textWriter.WriteLineAsync(effectiveTitle.AsMemory());
+        }
 
         using SepWriter writer = Sep.New(',')
             .Writer(o => o with
@@ -80,10 +94,13 @@ public abstract class CsvExporter<T> : ICsvExporter<T>
 
     public async Task ExportAsync(IAsyncEnumerable<T> data,
         Stream destination,
+        string? title = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(destination);
+        
+        string? effectiveTitle = title ?? _title;
         
         if (!destination.CanWrite)
         {
@@ -96,6 +113,13 @@ public abstract class CsvExporter<T> : ICsvExporter<T>
             destination,
             new UTF8Encoding(false),
             leaveOpen: true);
+        
+        if (!string.IsNullOrWhiteSpace(effectiveTitle))
+        {
+            await textWriter.WriteLineAsync(
+                effectiveTitle.AsMemory(),
+                cancellationToken);
+        }
 
         await using SepWriter writer = Sep.New(',')
             .Writer(o => o with
@@ -130,5 +154,15 @@ public abstract class CsvExporter<T> : ICsvExporter<T>
         }
         
         await textWriter.FlushAsync(cancellationToken);
+    }
+
+    void IDataExporter<T>.Export(IEnumerable<T> data, Stream destination) 
+    {
+        Export(data, destination);
+    }
+
+    async Task IDataExporter<T>.ExportAsync(IAsyncEnumerable<T> data, Stream destination, CancellationToken cancellationToken = default)
+    {
+        await ExportAsync(data, destination, null, cancellationToken);
     }
 }

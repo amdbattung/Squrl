@@ -214,6 +214,7 @@ public sealed class EfTransactionManager : ITransactionManager
             }
 
             _rollbackCallbacks.Clear();
+            _dataContext.ChangeTracker.Clear();
         }
     }
     

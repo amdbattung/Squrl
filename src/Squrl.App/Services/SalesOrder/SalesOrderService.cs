@@ -7,6 +7,7 @@ using Squrl.App.Features.Items.DTOs;
 using Squrl.App.Features.SalesOrderDetails.DTOs;
 using Squrl.App.Features.SalesOrders.DTOs;
 using Squrl.App.Features.SalesOrders.Mapping;
+using Squrl.App.Infrastructure.DataExporter;
 using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Models;
 using Squrl.App.Services.Inventory;
@@ -18,16 +19,19 @@ public partial class SalesOrderService : ISalesOrderService
     private readonly DataContext _dataContext;
     private readonly ITransactionManager _transactionManager;
     private readonly IInventoryService _inventoryService;
+    private readonly ICsvExporter<SalesOrderDetail> _csvExporter;
     private readonly IClock _clock;
 
     public SalesOrderService(DataContext dataContext,
         ITransactionManager transactionManager,
         IInventoryService inventoryService,
+        ICsvExporter<SalesOrderDetail> csvExporter,
         IClock clock)
     {
         _dataContext = dataContext;
         _transactionManager = transactionManager;
         _inventoryService = inventoryService;
+        _csvExporter = csvExporter;
         _clock = clock;
     }
     

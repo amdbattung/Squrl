@@ -224,4 +224,24 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
         
         return result;
     }
+
+    public async Task<Result<bool>> ExportSoDetailsAsCsvAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
+    {
+        if (salesOrderId == Guid.Empty)
+        {
+            return Result<bool>.Fail("Null or invalid ID.")
+                .WithFailureType(FailureType.Validation);
+        }
+        
+        if (!destination.CanWrite)
+        {
+            return Result<bool>.Fail("Destination must be writable.")
+                .WithFailureType(FailureType.Validation);
+        }
+        
+        Result<bool> result = await _salesOrderService
+            .ExportSoDetailsAsCsvAsync(salesOrderId, destination, cancellationToken);
+        
+        return result;
+    }
 }
