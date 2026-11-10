@@ -1,4 +1,4 @@
-﻿namespace Squrl.App.Infrastructure.DataExporter;
+﻿namespace Squrl.App.Common;
 
 public sealed record DataColumn<T>(
     string Header,

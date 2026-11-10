@@ -1,6 +1,7 @@
 ﻿using System.Globalization;
 using System.Text;
 using nietras.SeparatedValues;
+using Squrl.App.Common;
 
 namespace Squrl.App.Infrastructure.DataExporter;
 
@@ -44,8 +45,6 @@ public abstract class CsvExporter<T> : ICsvExporter<T>
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(destination);
         
-        string? effectiveTitle = title ?? _title;
-        
         if (!destination.CanWrite)
         {
             throw new ArgumentException("Destination must be writable.", nameof(destination));
@@ -55,6 +54,8 @@ public abstract class CsvExporter<T> : ICsvExporter<T>
             destination,
             new UTF8Encoding(false),
             leaveOpen: true);
+        
+        string? effectiveTitle = title ?? _title;
         
         if (!string.IsNullOrWhiteSpace(effectiveTitle))
         {
@@ -100,8 +101,6 @@ public abstract class CsvExporter<T> : ICsvExporter<T>
         ArgumentNullException.ThrowIfNull(data);
         ArgumentNullException.ThrowIfNull(destination);
         
-        string? effectiveTitle = title ?? _title;
-        
         if (!destination.CanWrite)
         {
             throw new ArgumentException("Destination must be writable.", nameof(destination));
@@ -113,6 +112,8 @@ public abstract class CsvExporter<T> : ICsvExporter<T>
             destination,
             new UTF8Encoding(false),
             leaveOpen: true);
+        
+        string? effectiveTitle = title ?? _title;
         
         if (!string.IsNullOrWhiteSpace(effectiveTitle))
         {
@@ -161,7 +162,10 @@ public abstract class CsvExporter<T> : ICsvExporter<T>
         Export(data, destination);
     }
 
-    async Task IDataExporter<T>.ExportAsync(IAsyncEnumerable<T> data, Stream destination, CancellationToken cancellationToken = default)
+    async Task IDataExporter<T>.ExportAsync(
+        IAsyncEnumerable<T> data,
+        Stream destination,
+        CancellationToken cancellationToken)
     {
         await ExportAsync(data, destination, null, cancellationToken);
     }
