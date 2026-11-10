@@ -6,6 +6,7 @@ using Squrl.App.Enums;
 using Squrl.App.Features.PurchaseOrderDetails.DTOs;
 using Squrl.App.Features.PurchaseOrders.DTOs;
 using Squrl.App.Features.PurchaseOrders.Mapping;
+using Squrl.App.Infrastructure.DataExporter;
 using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Models;
 using Squrl.App.Services.Inventory;
@@ -17,16 +18,19 @@ public partial class PurchaseOrderService : IPurchaseOrderService
     private readonly DataContext _dataContext;
     private readonly ITransactionManager _transactionManager;
     private readonly IInventoryService _inventoryService;
+    private readonly ICsvExporter<PurchaseOrderDetail> _csvExporter;
     private readonly IClock _clock;
 
     public PurchaseOrderService(DataContext dataContext,
         ITransactionManager transactionManager,
         IInventoryService inventoryService,
+        ICsvExporter<PurchaseOrderDetail> csvExporter,
         IClock clock)
     {
         _dataContext = dataContext;
         _transactionManager = transactionManager;
         _inventoryService = inventoryService;
+        _csvExporter = csvExporter;
         _clock = clock;
     }
 
