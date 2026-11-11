@@ -7,7 +7,8 @@ namespace Squrl.App.Features.SalesOrders.Exporters;
 
 public sealed class SalesOrderExcelExporter : ExcelExporter<SalesOrder>
 {
-    public SalesOrderExcelExporter() : base(
+    public SalesOrderExcelExporter(IClock clock) : base(
+        clock,
         "Sales Orders",
         new DataColumn<SalesOrder>("ID", x => x.Id),
         new DataColumn<SalesOrder>("Issued To", x => x.Customer),

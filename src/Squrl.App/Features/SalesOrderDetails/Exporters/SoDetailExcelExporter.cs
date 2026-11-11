@@ -1,4 +1,5 @@
-﻿using Squrl.App.Common;
+﻿using NodaTime;
+using Squrl.App.Common;
 using Squrl.App.Infrastructure.DataExporter;
 using Squrl.App.Models;
 
@@ -6,7 +7,8 @@ namespace Squrl.App.Features.SalesOrderDetails.Exporters;
 
 public sealed class SoDetailExcelExporter : ExcelExporter<SalesOrderDetail>
 {
-    public SoDetailExcelExporter() : base(
+    public SoDetailExcelExporter(IClock clock) : base(
+        clock,
         "Sales Order Details",
         new DataColumn<SalesOrderDetail>("#", x => x.LineSequence),
         new DataColumn<SalesOrderDetail>("Item", x => x.Item.Name),

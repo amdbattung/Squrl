@@ -1,4 +1,5 @@
-﻿using Squrl.App.Common;
+﻿using NodaTime;
+using Squrl.App.Common;
 using Squrl.App.Infrastructure.DataExporter;
 using Squrl.App.Models;
 
@@ -6,7 +7,8 @@ namespace Squrl.App.Features.Items.Exporters;
 
 public class ItemExcelExporter : ExcelExporter<Item>
 {
-    public ItemExcelExporter() : base(
+    public ItemExcelExporter(IClock clock) : base(
+        clock,
         "Items",
         new DataColumn<Item>("Item", x => x.Name),
         new DataColumn<Item>("Description", x => x.Description),

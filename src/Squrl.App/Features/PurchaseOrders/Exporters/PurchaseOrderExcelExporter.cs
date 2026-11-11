@@ -7,7 +7,8 @@ namespace Squrl.App.Features.PurchaseOrders.Exporters;
 
 public class PurchaseOrderExcelExporter : ExcelExporter<PurchaseOrder>
 {
-    public PurchaseOrderExcelExporter() : base(
+    public PurchaseOrderExcelExporter(IClock clock) : base(
+        clock,
         "Purchase Orders",
         new DataColumn<PurchaseOrder>("ID", x => x.Id),
         new DataColumn<PurchaseOrder>("Issued To", x => x.Supplier?.Name),
