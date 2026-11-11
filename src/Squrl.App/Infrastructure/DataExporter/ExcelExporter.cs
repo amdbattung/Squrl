@@ -1,20 +1,23 @@
 ﻿using System.Globalization;
 using ClosedXML.Excel;
+using NodaTime;
 using Squrl.App.Common;
 
 namespace Squrl.App.Infrastructure.DataExporter;
 
 public abstract class ExcelExporter<T> : IExcelExporter<T>
 {
+    private readonly IClock _clock;
     private readonly string? _title;
     private readonly DataColumn<T>[] _columns;
 
-    protected ExcelExporter(params DataColumn<T>[] columns) : this(null, columns)
+    protected ExcelExporter(IClock clock, params DataColumn<T>[] columns) : this(clock, null, columns)
     {
     }
 
-    protected ExcelExporter(string? title, params DataColumn<T>[] columns)
+    protected ExcelExporter(IClock clock, string? title, params DataColumn<T>[] columns)
     {
+        ArgumentNullException.ThrowIfNull(clock);
         ArgumentNullException.ThrowIfNull(columns);
 
         if (columns.Length == 0)
@@ -34,6 +37,7 @@ public abstract class ExcelExporter<T> : IExcelExporter<T>
             throw new ArgumentException("Column headers must be unique.", nameof(columns));
         }
 
+        _clock = clock;
         _title = title;
         _columns = columns.ToArray();
     }
@@ -77,7 +81,11 @@ public abstract class ExcelExporter<T> : IExcelExporter<T>
             currentRow++;
         }
 
-        FormatWorksheet(worksheet, headerRow, currentRow - 1);
+        int lastDataRow = currentRow - 1;
+
+        WriteExportDate(worksheet, currentRow + 1);
+
+        FormatWorksheet(worksheet, headerRow, lastDataRow);
 
         workbook.SaveAs(destination);
     }
@@ -131,7 +139,11 @@ public abstract class ExcelExporter<T> : IExcelExporter<T>
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        FormatWorksheet(worksheet, headerRow, currentRow - 1);
+        int lastDataRow = currentRow - 1;
+
+        WriteExportDate(worksheet, currentRow + 1);
+
+        FormatWorksheet(worksheet, headerRow, lastDataRow);
         
         workbook.SaveAs(destination);
     }
@@ -194,6 +206,22 @@ public abstract class ExcelExporter<T> : IExcelExporter<T>
 
         // Automatically adjust column widths.
         worksheet.Columns(1, _columns.Length).AdjustToContents();
+    }
+    
+    private void WriteExportDate(IXLWorksheet worksheet, int row)
+    {
+        Instant exportedAt = _clock.GetCurrentInstant();
+
+        ZonedDateTime timeZone = exportedAt.InZone(DateTimeZoneProviders.Tzdb.GetSystemDefault());
+
+        string formattedDate = timeZone.ToString(
+            "yyyy-MMM-dd HH:mm",
+            CultureInfo.InvariantCulture).ToUpperInvariant();
+
+        worksheet.Cell(row, 1).Value = "Date Exported:";
+        worksheet.Cell(row, 2).Value = formattedDate;
+
+        worksheet.Cell(row, 1).Style.Font.Bold = true;
     }
 
     void IDataExporter<T>.Export(IEnumerable<T> data, Stream destination)
