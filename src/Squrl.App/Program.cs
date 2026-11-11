@@ -132,6 +132,7 @@ try
     builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
 
     builder.Services.AddCsvExportersFromAssembly(typeof(Program).Assembly);
+    builder.Services.AddExcelExportersFromAssembly(typeof(Program).Assembly);
 
     // Custom services.
     builder.Services.AddScoped<IInventoryService, InventoryService>();

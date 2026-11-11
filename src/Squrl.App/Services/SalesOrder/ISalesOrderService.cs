@@ -26,4 +26,5 @@ public interface ISalesOrderService
     Task<Result<GetSoDetailDto>> RemoveSoDetailAsync(Guid id, CancellationToken cancellationToken = default);
     
     Task<Result<bool>> ExportSoDetailsAsCsvAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default);
+    Task<Result<bool>> ExportSoDetailsAsExcelAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default);
 }

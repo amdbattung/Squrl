@@ -9,6 +9,35 @@
 };
 
 window.downloadFileFromStream = async (fileName, streamReference) => {
+    const fileTypes = {
+        ".txt": {
+            description: "Text Files",
+            mimeType: "text/plain"
+        },
+        ".csv": {
+            description: "CSV Files",
+            mimeType: "text/csv;charset=utf-8"
+        },
+        ".xlsx": {
+            description: "Excel Files",
+            mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        },
+        ".xls": {
+            description: "Excel 97-2003 Files",
+            mimeType: "application/vnd.ms-excel"
+        }
+    };
+
+    const extension = Object.keys(fileTypes)
+        .find(ext => fileName.toLowerCase().endsWith(ext));
+
+    const fileType = extension
+        ? fileTypes[extension]
+        : {
+            description: "Files",
+            mimeType: "application/octet-stream"
+        };
+    
     const arrayBuffer = await streamReference.arrayBuffer();
 
     // Use native Save As when supported.
@@ -17,9 +46,9 @@ window.downloadFileFromStream = async (fileName, streamReference) => {
             const handle = await window.showSaveFilePicker({
                 suggestedName: fileName,
                 types: [{
-                    description: "CSV Files",
+                    description: fileType.description,
                     accept: {
-                        "text/csv": [".csv"]
+                        [fileType.mimeType]: extension ? [extension] : []
                     }
                 }]
             });
@@ -42,7 +71,7 @@ window.downloadFileFromStream = async (fileName, streamReference) => {
 
     // Fallback for browsers without File System Access API.
     const blob = new Blob([arrayBuffer], {
-        type: "text/csv;charset=utf-8"
+        type: fileType.mimeType
     });
 
     const url = URL.createObjectURL(blob);
