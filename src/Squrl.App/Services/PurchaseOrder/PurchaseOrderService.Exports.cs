@@ -25,4 +25,24 @@ public partial class PurchaseOrderService
 
         return Result<bool>.Ok(true);
     }
+
+    public async Task<Result<bool>> ExportPoDetailsAsExcelAsync(Guid purchaseOrderId, Stream destination,
+        CancellationToken cancellationToken = default)
+    {
+        IAsyncEnumerable<PurchaseOrderDetail> existingPoDetails = _dataContext.PurchaseOrderDetails
+            .AsNoTracking()
+            .Include(p => p.Item)
+            .Where(p => p.PurchaseOrder.Id == purchaseOrderId)
+            .OrderBy(p => p.LineSequence)
+            .ThenBy(p => EF.Property<Instant>(p, "DateCreated"))
+            .ThenBy(p => p.Id)
+            .AsAsyncEnumerable();
+        
+        await _excelExporter.ExportAsync(existingPoDetails,
+            destination,
+            $"PO Details For Purchase Order {purchaseOrderId.ToString()}",
+            cancellationToken);
+
+        return Result<bool>.Ok(true);
+    }
 }

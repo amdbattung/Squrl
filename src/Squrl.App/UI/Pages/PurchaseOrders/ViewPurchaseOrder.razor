@@ -17,7 +17,12 @@
     <p>Date Required: @PurchaseOrder.DateRequired?.InZone(_userTimeZone).Date.ToDateOnly().ToString("dd MMM yyyy")</p>
     <p>Date Shipped: @PurchaseOrder.DateShipped?.InZone(_userTimeZone).Date.ToDateOnly().ToString("dd MMM yyyy")</p>
     
-    <button class="btn btn-secondary" @onclick="HandleExportPoDetailsButtonClick">Export Details As CSV</button>
+    <button class="btn btn-secondary" @onclick="HandleExportPoDetailsAsCsvButtonClick">
+        Export Details As CSV
+    </button>
+    <button class="btn btn-secondary" @onclick="HandleExportPoDetailsAsExcelButtonClick">
+        Export Details As Excel
+    </button>
     
     <h2>Details</h2>
     
@@ -143,7 +148,7 @@ else
         }
     }
     
-    private async Task HandleExportPoDetailsButtonClick()
+    private async Task HandleExportPoDetailsAsCsvButtonClick()
     {
         _errorMessages = [];
 
@@ -167,6 +172,44 @@ else
             
             string fileName = $"purchaseorderdetails-{localDate}" +
                               $"-squrlexport+{Guid.NewGuid().ToString("N")[..8]}.csv";
+
+            await Js.InvokeVoidAsync(
+                "downloadFileFromStream",
+                fileName,
+                streamReference);
+        }
+        catch (Exception)
+        {
+            _errorMessages = [
+                "An unexpected error occurred while exporting purchase order details."
+            ];
+        }
+    }
+    
+    private async Task HandleExportPoDetailsAsExcelButtonClick()
+    {
+        _errorMessages = [];
+
+        try
+        {
+            await using MemoryStream stream = new();
+
+            Result<bool> result = await PurchaseOrderService.ExportPoDetailsAsExcelAsync(PurchaseOrderId, stream);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            stream.Position = 0;
+
+            using DotNetStreamReference streamReference = new(stream);
+            
+            string localDate = await Js.InvokeAsync<string>("getLocalDate");
+            
+            string fileName = $"purchaseorderdetails-{localDate}" +
+                              $"-squrlexport+{Guid.NewGuid().ToString("N")[..8]}.xlsx";
 
             await Js.InvokeVoidAsync(
                 "downloadFileFromStream",

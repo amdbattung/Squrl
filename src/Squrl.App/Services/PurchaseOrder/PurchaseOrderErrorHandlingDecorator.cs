@@ -432,4 +432,28 @@ public class PurchaseOrderErrorHandlingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Unexpected);
         }
     }
+
+    public async Task<Result<bool>> ExportPoDetailsAsExcelAsync(Guid purchaseOrderId, Stream destination,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            Result<bool> result = await _purchaseOrderService
+                .ExportPoDetailsAsExcelAsync(purchaseOrderId, destination, cancellationToken);
+            
+            return result.Exception is null
+                ? result
+                : result.WithoutException();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            return Result<bool>
+                .Fail("Failed to export PO detail, something went wrong.")
+                .WithFailureType(FailureType.Unexpected);
+        }
+    }
 }

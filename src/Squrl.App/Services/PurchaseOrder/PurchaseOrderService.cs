@@ -19,18 +19,21 @@ public partial class PurchaseOrderService : IPurchaseOrderService
     private readonly ITransactionManager _transactionManager;
     private readonly IInventoryService _inventoryService;
     private readonly ICsvExporter<PurchaseOrderDetail> _csvExporter;
+    private readonly IExcelExporter<PurchaseOrderDetail> _excelExporter;
     private readonly IClock _clock;
 
     public PurchaseOrderService(DataContext dataContext,
         ITransactionManager transactionManager,
         IInventoryService inventoryService,
         ICsvExporter<PurchaseOrderDetail> csvExporter,
+        IExcelExporter<PurchaseOrderDetail> excelExporter,
         IClock clock)
     {
         _dataContext = dataContext;
         _transactionManager = transactionManager;
         _inventoryService = inventoryService;
         _csvExporter = csvExporter;
+        _excelExporter = excelExporter;
         _clock = clock;
     }
 

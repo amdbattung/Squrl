@@ -339,4 +339,25 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
         
         return result;
     }
+
+    public async Task<Result<bool>> ExportPoDetailsAsExcelAsync(Guid purchaseOrderId, Stream destination,
+        CancellationToken cancellationToken = default)
+    {
+        if (purchaseOrderId == Guid.Empty)
+        {
+            return Result<bool>.Fail("Null or invalid ID.")
+                .WithFailureType(FailureType.Validation);
+        }
+        
+        if (!destination.CanWrite)
+        {
+            return Result<bool>.Fail("Destination must be writable.")
+                .WithFailureType(FailureType.Validation);
+        }
+        
+        Result<bool> result = await _purchaseOrderService
+            .ExportPoDetailsAsExcelAsync(purchaseOrderId, destination, cancellationToken);
+        
+        return result;
+    }
 }
