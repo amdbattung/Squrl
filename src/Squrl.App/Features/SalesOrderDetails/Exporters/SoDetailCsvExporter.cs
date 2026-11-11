@@ -7,7 +7,6 @@ namespace Squrl.App.Features.SalesOrderDetails.Exporters;
 public sealed class SoDetailCsvExporter : CsvExporter<SalesOrderDetail>
 {
     public SoDetailCsvExporter() : base(
-        "Sales Order Details",
         new DataColumn<SalesOrderDetail>("#", x => x.LineSequence),
         new DataColumn<SalesOrderDetail>("Item", x => x.Item.Name),
         new DataColumn<SalesOrderDetail>("Quantity", x => x.Quantity),

@@ -20,7 +20,6 @@ public partial class PurchaseOrderService
         
         await _csvExporter.ExportAsync(existingPoDetails,
             destination,
-            $"PO Details For Purchase Order {purchaseOrderId.ToString()}",
             cancellationToken);
 
         return Result<bool>.Ok(true);

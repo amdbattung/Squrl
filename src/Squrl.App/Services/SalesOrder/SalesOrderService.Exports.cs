@@ -20,7 +20,6 @@ public partial class SalesOrderService
         
         await _csvExporter.ExportAsync(existingSoDetails,
             destination,
-            $"SO Details For Sales Order {salesOrderId.ToString()}",
             cancellationToken);
 
         return Result<bool>.Ok(true);
