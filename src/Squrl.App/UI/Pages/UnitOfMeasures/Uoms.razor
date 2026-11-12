@@ -3,6 +3,7 @@
 @implements IDisposable
 @inject IUomService UomService
 @inject NavigationManager Navigation
+@inject IJSRuntime Js
 
 <h1>Unit of Measures</h1>
 
@@ -12,6 +13,14 @@
        @oninput="OnSearchInput" />
 
 <button class="btn btn-primary" @onclick="HandleAddUomButtonClick">+ Add UOM</button>
+
+<button class="btn btn-secondary" @onclick="HandleExportUomsAsCsvButtonClick">
+    Export As CSV
+</button>
+
+<button class="btn btn-secondary" @onclick="HandleExportUomsAsExcelButtonClick">
+    Export As Excel
+</button>
 
 <QuickGrid @ref="_grid"
            TGridItem="GetUomDto"
@@ -198,6 +207,82 @@
         finally
         {
             _isDeleting = false;
+        }
+    }
+    
+    private async Task HandleExportUomsAsCsvButtonClick()
+    {
+        _errorMessages = [];
+
+        try
+        {
+            await using MemoryStream stream = new();
+
+            Result<bool> result = await UomService.ExportUomsAsCsvAsync(stream);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            stream.Position = 0;
+
+            using DotNetStreamReference streamReference = new(stream);
+            
+            string localDate = await Js.InvokeAsync<string>("getLocalDate");
+            
+            string fileName = $"uoms-{localDate}" +
+                              $"-squrlexport+{Guid.NewGuid().ToString("N")[..8]}.csv";
+
+            await Js.InvokeVoidAsync(
+                "downloadFileFromStream",
+                fileName,
+                streamReference);
+        }
+        catch (Exception)
+        {
+            _errorMessages = [
+                "An unexpected error occurred while exporting UOMs."
+            ];
+        }
+    }
+    
+    private async Task HandleExportUomsAsExcelButtonClick()
+    {
+        _errorMessages = [];
+
+        try
+        {
+            await using MemoryStream stream = new();
+
+            Result<bool> result = await UomService.ExportUomsAsExcelAsync(stream);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            stream.Position = 0;
+
+            using DotNetStreamReference streamReference = new(stream);
+            
+            string localDate = await Js.InvokeAsync<string>("getLocalDate");
+            
+            string fileName = $"uoms-{localDate}" +
+                              $"-squrlexport+{Guid.NewGuid().ToString("N")[..8]}.xlsx";
+
+            await Js.InvokeVoidAsync(
+                "downloadFileFromStream",
+                fileName,
+                streamReference);
+        }
+        catch (Exception)
+        {
+            _errorMessages = [
+                "An unexpected error occurred while exporting UOMs."
+            ];
         }
     }
     

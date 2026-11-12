@@ -17,5 +17,6 @@ public interface IUomService
     Task<Result<GetUomDto>> UpdateUomAsync(Guid id, UpdateUomDto uom, CancellationToken cancellationToken = default);
     Task<Result<GetUomDto>> DeleteUomAsync(Guid id, CancellationToken cancellationToken = default);
     
-    Task<Result<bool>> ExportUomAsCsvAsync(Stream destination, CancellationToken cancellationToken = default);
+    Task<Result<bool>> ExportUomsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default);
+    Task<Result<bool>> ExportUomsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default);
 }

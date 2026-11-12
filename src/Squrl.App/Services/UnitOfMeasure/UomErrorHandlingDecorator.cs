@@ -136,12 +136,35 @@ public class UomErrorHandlingDecorator : IUomService
         }
     }
 
-    public async Task<Result<bool>> ExportUomAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result<bool>> ExportUomsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
     {
         try
         {
             Result<bool> result = await _uomService
-                .ExportUomAsCsvAsync(destination, cancellationToken);
+                .ExportUomsAsCsvAsync(destination, cancellationToken);
+            
+            return result.Exception is null
+                ? result
+                : result.WithoutException();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            return Result<bool>
+                .Fail("Failed to export UOMs, something went wrong.")
+                .WithFailureType(FailureType.Unexpected);
+        }
+    }
+
+    public async Task<Result<bool>> ExportUomsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            Result<bool> result = await _uomService
+                .ExportUomsAsExcelAsync(destination, cancellationToken);
             
             return result.Exception is null
                 ? result

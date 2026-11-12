@@ -276,13 +276,13 @@ public class UomLoggingDecorator : IUomService
         return result;
     }
 
-    public async Task<Result<bool>> ExportUomAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result<bool>> ExportUomsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
     {
         Result<bool> result;
 
         try
         {
-            result = await _uomService.ExportUomAsCsvAsync(destination, cancellationToken);
+            result = await _uomService.ExportUomsAsCsvAsync(destination, cancellationToken);
         }
         catch (Exception e)
         {
@@ -292,7 +292,7 @@ public class UomLoggingDecorator : IUomService
 
         if (result.IsSuccess)
         {
-            _logger.LogInformation("Export UOMs As CSV Request: suppliers successfully exported.");
+            _logger.LogInformation("Export UOMs As CSV Request: UOMs successfully exported.");
         }
         else switch (result.FailureType)
         {
@@ -317,6 +317,55 @@ public class UomLoggingDecorator : IUomService
             default:
                 _logger.LogError(result.Exception,
                     "Export UOMs As CSV Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to export UOMs, something went wrong.");
+        }
+        
+        return result;
+    }
+
+    public async Task<Result<bool>> ExportUomsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    {
+        Result<bool> result;
+
+        try
+        {
+            result = await _uomService.ExportUomsAsExcelAsync(destination, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Export UOMs As Excel Request: unhandled exception.");
+            throw;
+        }
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Export UOMs As Excel Request: UOMs successfully exported.");
+        }
+        else switch (result.FailureType)
+        {
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Export UOMs As Excel Request: {Message}",
+                    result.Message ?? "Failed to export UOMs.");
+                break;
+            
+            case FailureType.Exception:
+            
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Export UOMs As Excel Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to export UOMs, something went wrong.");
+                
+            default:
+                _logger.LogError(result.Exception,
+                    "Export UOMs As Excel Request: unhandled failure type {FailureType}.",
                     Enum.GetName(result.FailureType ?? FailureType.Exception));
                 throw result.Exception
                       ?? new Exception(result.Message ?? "Failed to export UOMs, something went wrong.");
