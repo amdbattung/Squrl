@@ -160,4 +160,27 @@ public class SupplierErrorHandlingDecorator : ISupplierService
                 .WithFailureType(FailureType.Unexpected);
         }
     }
+
+    public async Task<Result<bool>> ExportSuppliersAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            Result<bool> result = await _supplierService
+                .ExportSuppliersAsExcelAsync(destination, cancellationToken);
+            
+            return result.Exception is null
+                ? result
+                : result.WithoutException();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            return Result<bool>
+                .Fail("Failed to export suppliers, something went wrong.")
+                .WithFailureType(FailureType.Unexpected);
+        }
+    }
 }

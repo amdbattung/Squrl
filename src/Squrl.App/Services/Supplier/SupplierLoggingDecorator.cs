@@ -323,4 +323,53 @@ public class SupplierLoggingDecorator : ISupplierService
         
         return result;
     }
+
+    public async Task<Result<bool>> ExportSuppliersAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    {
+        Result<bool> result;
+
+        try
+        {
+            result = await _supplierService.ExportSuppliersAsExcelAsync(destination, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Export Suppliers As Excel Request: unhandled exception.");
+            throw;
+        }
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Export Suppliers As Excel Request: suppliers successfully exported.");
+        }
+        else switch (result.FailureType)
+        {
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Export Suppliers As Excel Request: {Message}",
+                    result.Message ?? "Failed to export suppliers.");
+                break;
+            
+            case FailureType.Exception:
+            
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Export Suppliers As Excel Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to export suppliers, something went wrong.");
+                
+            default:
+                _logger.LogError(result.Exception,
+                    "Export Suppliers As CSV Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to export suppliers, something went wrong.");
+        }
+        
+        return result;
+    }
 }

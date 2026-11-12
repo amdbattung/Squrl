@@ -14,7 +14,13 @@
 
 <button class="btn btn-primary" @onclick="HandleAddSupplierButtonClick">+ Add Supplier</button>
 
-<button class="btn btn-secondary" @onclick="HandleExportSuppliersButtonClick">Export</button>
+<button class="btn btn-secondary" @onclick="HandleExportSuppliersAsCsvButtonClick">
+    Export As CSV
+</button>
+
+<button class="btn btn-secondary" @onclick="HandleExportSuppliersAsExcelButtonClick">
+    Export As Excel
+</button>
 
 <QuickGrid @ref="_grid"
            TGridItem="GetSupplierDto"
@@ -204,7 +210,7 @@
         }
     }
 
-    private async Task HandleExportSuppliersButtonClick()
+    private async Task HandleExportSuppliersAsCsvButtonClick()
     {
         _errorMessages = [];
 
@@ -228,6 +234,44 @@
             
             string fileName = $"suppliers-{localDate}" +
                               $"-squrlexport+{Guid.NewGuid().ToString("N")[..8]}.csv";
+
+            await Js.InvokeVoidAsync(
+                "downloadFileFromStream",
+                fileName,
+                streamReference);
+        }
+        catch (Exception)
+        {
+            _errorMessages = [
+                "An unexpected error occurred while exporting suppliers."
+            ];
+        }
+    }
+    
+    private async Task HandleExportSuppliersAsExcelButtonClick()
+    {
+        _errorMessages = [];
+
+        try
+        {
+            await using MemoryStream stream = new();
+
+            Result<bool> result = await SupplierService.ExportSuppliersAsExcelAsync(stream);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            stream.Position = 0;
+
+            using DotNetStreamReference streamReference = new(stream);
+            
+            string localDate = await Js.InvokeAsync<string>("getLocalDate");
+            
+            string fileName = $"suppliers-{localDate}" +
+                              $"-squrlexport+{Guid.NewGuid().ToString("N")[..8]}.xlsx";
 
             await Js.InvokeVoidAsync(
                 "downloadFileFromStream",

@@ -19,4 +19,17 @@ public partial class SupplierService
 
         return Result<bool>.Ok(true);
     }
+
+    public async Task<Result<bool>> ExportSuppliersAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    {
+        IAsyncEnumerable<Models.Supplier> existingSuppliers = _dataContext.Suppliers
+            .AsNoTracking()
+            .OrderBy(s => EF.Property<Instant>(s, "DateCreated"))
+            .ThenBy(s => s.Id)
+            .AsAsyncEnumerable();
+        
+        await _excelExporter.ExportAsync(existingSuppliers, destination, cancellationToken);
+
+        return Result<bool>.Ok(true);
+    }
 }

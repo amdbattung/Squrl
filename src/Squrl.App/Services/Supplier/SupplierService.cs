@@ -15,14 +15,17 @@ public partial class SupplierService : ISupplierService
     private readonly DataContext _dataContext;
     private readonly ITransactionManager _transactionManager;
     private readonly ICsvExporter<Models.Supplier> _csvExporter;
+    private readonly IExcelExporter<Models.Supplier> _excelExporter;
 
     public SupplierService(DataContext dataContext,
         ITransactionManager transactionManager,
-        ICsvExporter<Models.Supplier> csvExporter)
+        ICsvExporter<Models.Supplier> csvExporter,
+        IExcelExporter<Models.Supplier> excelExporter)
     {
         _dataContext = dataContext;
         _transactionManager = transactionManager;
         _csvExporter = csvExporter;
+        _excelExporter = excelExporter;
     }
 
     public async Task<Result<GetManySuppliersDto>> GetManySuppliersAsync(
