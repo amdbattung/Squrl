@@ -135,6 +135,16 @@ public class InventoryAlertDecorator : IInventoryService
         return result;
     }
 
+    public Task<Result<bool>> ExportItemsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
+    {
+        return _inventoryService.ExportItemsAsCsvAsync(destination, cancellationToken);
+    }
+
+    public Task<Result<bool>> ExportItemsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    {
+        return _inventoryService.ExportItemsAsExcelAsync(destination, cancellationToken);
+    }
+
     private async Task AlertHelper(GetItemDto item, CancellationToken cancellationToken)
     {
         if (item.Quantity <= item.LowQuantityAlertThreshold)

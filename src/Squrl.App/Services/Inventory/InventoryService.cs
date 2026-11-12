@@ -6,6 +6,7 @@ using Squrl.App.Enums;
 using Squrl.App.Features.Items.DTOs;
 using Squrl.App.Features.Items.Mapping;
 using Squrl.App.Infrastructure.BackgroundTaskQueue;
+using Squrl.App.Infrastructure.DataExporter;
 using Squrl.App.Infrastructure.ImageProcessor;
 using Squrl.App.Infrastructure.ImageStorage;
 using Squrl.App.Infrastructure.TransactionManager;
@@ -13,26 +14,32 @@ using Squrl.App.Models;
 
 namespace Squrl.App.Services.Inventory;
 
-public class InventoryService : IInventoryService
+public partial class InventoryService : IInventoryService
 {
     private readonly DataContext _dataContext;
     private readonly ITransactionManager _transactionManager;
     private readonly IBackgroundTaskQueue _queue;
     private readonly IImageProcessor _imageProcessor;
     private readonly IImageStorage _imageStorage;
+    private readonly ICsvExporter<Item> _csvExporter;
+    private readonly IExcelExporter<Item> _excelExporter;
 
     public InventoryService(
         DataContext dataContext,
         ITransactionManager transactionManager,
         IBackgroundTaskQueue queue,
         IImageProcessor imageProcessor,
-        IImageStorage imageStorage)
+        IImageStorage imageStorage,
+        ICsvExporter<Item> csvExporter,
+        IExcelExporter<Item> excelExporter)
     {
         _dataContext = dataContext;
         _transactionManager = transactionManager;
         _queue = queue;
         _imageProcessor = imageProcessor;
         _imageStorage = imageStorage;
+        _csvExporter = csvExporter;
+        _excelExporter = excelExporter;
     }
     
     public async Task<Result<GetManyItemsDto>> GetManyItemsAsync(

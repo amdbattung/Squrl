@@ -14,7 +14,7 @@ public sealed class ItemCsvExporter : CsvExporter<Item>
         new DataColumn<Item>("Cost", x => x.CostPrice),
         new DataColumn<Item>("List Price", x => x.ListPrice),
         new DataColumn<Item>("Retail Price", x => x.RetailPrice),
-        new DataColumn<Item>("Locations", x => x.RetailPrice))
+        new DataColumn<Item>("Locations", x => string.Join(", ", x.Locations)))
     {
         
     }

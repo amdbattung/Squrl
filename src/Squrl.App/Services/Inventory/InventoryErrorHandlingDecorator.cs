@@ -212,4 +212,50 @@ public class InventoryErrorHandlingDecorator : IInventoryService
                 .WithFailureType(FailureType.Unexpected);
         }
     }
+
+    public async Task<Result<bool>> ExportItemsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            Result<bool> result = await _inventoryService
+                .ExportItemsAsCsvAsync(destination, cancellationToken);
+            
+            return result.Exception is null
+                ? result
+                : result.WithoutException();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            return Result<bool>
+                .Fail("Failed to export items, something went wrong.")
+                .WithFailureType(FailureType.Unexpected);
+        }
+    }
+
+    public async Task<Result<bool>> ExportItemsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            Result<bool> result = await _inventoryService
+                .ExportItemsAsExcelAsync(destination, cancellationToken);
+            
+            return result.Exception is null
+                ? result
+                : result.WithoutException();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            return Result<bool>
+                .Fail("Failed to export items, something went wrong.")
+                .WithFailureType(FailureType.Unexpected);
+        }
+    }
 }
