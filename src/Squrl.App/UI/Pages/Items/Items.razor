@@ -15,12 +15,16 @@
 
 <button class="btn btn-primary" @onclick="HandleAddItemButtonClick">+ Add Item</button>
 
-<button class="btn btn-secondary" @onclick="HandleExportItemsAsCsvButtonClick">
-    Export As CSV
+<button class="btn btn-secondary"
+        disabled="@(_isExportingToCsv || _isDeleting || _isExportingToExcel)"
+        @onclick="HandleExportItemsAsCsvButtonClick">
+    @(_isExportingToCsv ? "Downloading..." : "Export As CSV")
 </button>
 
-<button class="btn btn-secondary" @onclick="HandleExportItemsAsExcelButtonClick">
-    Export As Excel
+<button class="btn btn-secondary"
+        disabled="@(_isExportingToExcel || _isDeleting || _isExportingToCsv)"
+        @onclick="HandleExportItemsAsExcelButtonClick">
+    @(_isExportingToExcel ? "Downloading..." : "Export As Excel")
 </button>
 
 <QuickGrid @ref="_grid"
@@ -113,6 +117,8 @@
     private readonly Debouncer _debouncer = new();
     
     private bool _isDeleting;
+    private bool _isExportingToCsv;
+    private bool _isExportingToExcel;
     private bool _disposed;
     
     private IReadOnlyList<string> _errorMessages = [];
@@ -226,7 +232,7 @@
     
     private async void HandleDeleteItemButtonClick(Guid itemId)
     {
-        if (_isDeleting)
+        if (_isDeleting || _isExportingToCsv || _isExportingToExcel)
         {
             return;
         }
@@ -261,6 +267,12 @@
     
     private async Task HandleExportItemsAsCsvButtonClick()
     {
+        if (_isExportingToCsv || _isDeleting || _isExportingToExcel)
+        {
+            return;
+        }
+
+        _isExportingToCsv = true;
         _errorMessages = [];
 
         try
@@ -295,10 +307,20 @@
                 "An unexpected error occurred while exporting suppliers."
             ];
         }
+        finally
+        {
+            _isExportingToCsv = false;
+        }
     }
     
     private async Task HandleExportItemsAsExcelButtonClick()
     {
+        if (_isExportingToExcel || _isDeleting || _isExportingToCsv)
+        {
+            return;
+        }
+
+        _isExportingToExcel = true;
         _errorMessages = [];
 
         try
@@ -332,6 +354,10 @@
             _errorMessages = [
                 "An unexpected error occurred while exporting items."
             ];
+        }
+        finally
+        {
+            _isExportingToExcel = false;
         }
     }
     

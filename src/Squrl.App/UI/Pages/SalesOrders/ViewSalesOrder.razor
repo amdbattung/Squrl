@@ -13,11 +13,16 @@
     <p>Issued To: @SalesOrder.Customer</p>
     <p>Date Ordered: @SalesOrder.DateOrdered?.InZone(_userTimeZone).Date.ToDateOnly().ToString("dd MMM yyyy")</p>
     
-    <button class="btn btn-secondary" @onclick="HandleExportSoDetailsAsCsvButtonClick">
-        Export Details As CSV
+    <button class="btn btn-secondary"
+            disabled="@(_isExportingToCsv || _isExportingToExcel)"
+            @onclick="HandleExportSoDetailsAsCsvButtonClick">
+        @(_isExportingToCsv ? "Downloading..." : "Export As CSV")
     </button>
-    <button class="btn btn-secondary" @onclick="HandleExportSoDetailsAsExcelButtonClick">
-        Export Details As Excel
+
+    <button class="btn btn-secondary"
+            disabled="@(_isExportingToExcel || _isExportingToCsv)"
+            @onclick="HandleExportSoDetailsAsExcelButtonClick">
+        @(_isExportingToExcel ? "Downloading..." : "Export As Excel")
     </button>
     
     <h2>Details</h2>
@@ -65,6 +70,9 @@ else
     
     [PersistentState]
     public GetSalesOrderDto? SalesOrder { get; set; }
+    
+    private bool _isExportingToCsv;
+    private bool _isExportingToExcel;
     
     private IReadOnlyList<string> _errorMessages = [];
 
@@ -138,6 +146,12 @@ else
     
     private async Task HandleExportSoDetailsAsCsvButtonClick()
     {
+        if (_isExportingToCsv || _isExportingToExcel)
+        {
+            return;
+        }
+
+        _isExportingToCsv = true;
         _errorMessages = [];
 
         try
@@ -169,13 +183,23 @@ else
         catch (Exception)
         {
             _errorMessages = [
-                "An unexpected error occurred while exporting sales order details."
+                "An unexpected error occurred while exporting SO details."
             ];
+        }
+        finally
+        {
+            _isExportingToCsv = false;
         }
     }
     
     private async Task HandleExportSoDetailsAsExcelButtonClick()
     {
+        if (_isExportingToExcel || _isExportingToCsv)
+        {
+            return;
+        }
+
+        _isExportingToExcel = true;
         _errorMessages = [];
 
         try
@@ -207,8 +231,12 @@ else
         catch (Exception)
         {
             _errorMessages = [
-                "An unexpected error occurred while exporting sales order details."
+                "An unexpected error occurred while exporting SO details."
             ];
+        }
+        finally
+        {
+            _isExportingToExcel = false;
         }
     }
 }

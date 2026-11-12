@@ -12,10 +12,16 @@
        value="@_searchInput"
        @oninput="OnSearchInput" />
 
-<button class="btn btn-primary" @onclick="HandleAddUomButtonClick">+ Add UOM</button>
+<button class="btn btn-secondary"
+        disabled="@(_isExportingToCsv || _isDeleting || _isExportingToExcel)"
+        @onclick="HandleExportUomsAsCsvButtonClick">
+    @(_isExportingToCsv ? "Downloading..." : "Export As CSV")
+</button>
 
-<button class="btn btn-secondary" @onclick="HandleExportUomsAsCsvButtonClick">
-    Export As CSV
+<button class="btn btn-secondary"
+        disabled="@(_isExportingToExcel || _isDeleting || _isExportingToCsv)"
+        @onclick="HandleExportUomsAsExcelButtonClick">
+    @(_isExportingToExcel ? "Downloading..." : "Export As Excel")
 </button>
 
 <button class="btn btn-secondary" @onclick="HandleExportUomsAsExcelButtonClick">
@@ -78,6 +84,8 @@
     private readonly Debouncer _debouncer = new();
     
     private bool _isDeleting;
+    private bool _isExportingToCsv;
+    private bool _isExportingToExcel;
     private bool _disposed;
     
     private IReadOnlyList<string> _errorMessages = [];
@@ -177,7 +185,7 @@
     
     private async Task HandleDeleteUomButtonClick(Guid uomId)
     {
-        if (_isDeleting)
+        if (_isDeleting || _isExportingToCsv || _isExportingToExcel)
         {
             return;
         }
@@ -212,6 +220,12 @@
     
     private async Task HandleExportUomsAsCsvButtonClick()
     {
+        if (_isExportingToCsv || _isDeleting || _isExportingToExcel)
+        {
+            return;
+        }
+
+        _isExportingToCsv = true;
         _errorMessages = [];
 
         try
@@ -246,10 +260,20 @@
                 "An unexpected error occurred while exporting UOMs."
             ];
         }
+        finally
+        {
+            _isExportingToCsv = false;
+        }
     }
     
     private async Task HandleExportUomsAsExcelButtonClick()
     {
+        if (_isExportingToExcel || _isDeleting || _isExportingToCsv)
+        {
+            return;
+        }
+
+        _isExportingToExcel = true;
         _errorMessages = [];
 
         try
@@ -283,6 +307,10 @@
             _errorMessages = [
                 "An unexpected error occurred while exporting UOMs."
             ];
+        }
+        finally
+        {
+            _isExportingToExcel = false;
         }
     }
     

@@ -17,11 +17,16 @@
     <p>Date Required: @PurchaseOrder.DateRequired?.InZone(_userTimeZone).Date.ToDateOnly().ToString("dd MMM yyyy")</p>
     <p>Date Shipped: @PurchaseOrder.DateShipped?.InZone(_userTimeZone).Date.ToDateOnly().ToString("dd MMM yyyy")</p>
     
-    <button class="btn btn-secondary" @onclick="HandleExportPoDetailsAsCsvButtonClick">
-        Export Details As CSV
+    <button class="btn btn-secondary"
+            disabled="@(_isExportingToCsv || _isExportingToExcel)"
+            @onclick="HandleExportPoDetailsAsCsvButtonClick">
+        @(_isExportingToCsv ? "Downloading..." : "Export As CSV")
     </button>
-    <button class="btn btn-secondary" @onclick="HandleExportPoDetailsAsExcelButtonClick">
-        Export Details As Excel
+
+    <button class="btn btn-secondary"
+            disabled="@(_isExportingToExcel || _isExportingToCsv)"
+            @onclick="HandleExportPoDetailsAsExcelButtonClick">
+        @(_isExportingToExcel ? "Downloading..." : "Export As Excel")
     </button>
     
     <h2>Details</h2>
@@ -71,6 +76,9 @@ else
     
     [PersistentState]
     public GetPurchaseOrderDto? PurchaseOrder { get; set; }
+    
+    private bool _isExportingToCsv;
+    private bool _isExportingToExcel;
     
     private IReadOnlyList<string> _errorMessages = [];
     
@@ -150,6 +158,12 @@ else
     
     private async Task HandleExportPoDetailsAsCsvButtonClick()
     {
+        if (_isExportingToCsv || _isExportingToExcel)
+        {
+            return;
+        }
+
+        _isExportingToCsv = true;
         _errorMessages = [];
 
         try
@@ -167,9 +181,9 @@ else
             stream.Position = 0;
 
             using DotNetStreamReference streamReference = new(stream);
-            
+
             string localDate = await Js.InvokeAsync<string>("getLocalDate");
-            
+
             string fileName = $"purchaseorderdetails-{localDate}" +
                               $"-squrlexport+{Guid.NewGuid().ToString("N")[..8]}.csv";
 
@@ -180,14 +194,25 @@ else
         }
         catch (Exception)
         {
-            _errorMessages = [
-                "An unexpected error occurred while exporting purchase order details."
+            _errorMessages =
+            [
+                "An unexpected error occurred while exporting PO details."
             ];
+        }
+        finally
+        {
+            _isExportingToCsv = false;
         }
     }
     
     private async Task HandleExportPoDetailsAsExcelButtonClick()
     {
+        if (_isExportingToExcel || _isExportingToCsv)
+        {
+            return;
+        }
+
+        _isExportingToExcel = true;
         _errorMessages = [];
 
         try
@@ -205,9 +230,9 @@ else
             stream.Position = 0;
 
             using DotNetStreamReference streamReference = new(stream);
-            
+
             string localDate = await Js.InvokeAsync<string>("getLocalDate");
-            
+
             string fileName = $"purchaseorderdetails-{localDate}" +
                               $"-squrlexport+{Guid.NewGuid().ToString("N")[..8]}.xlsx";
 
@@ -218,9 +243,14 @@ else
         }
         catch (Exception)
         {
-            _errorMessages = [
-                "An unexpected error occurred while exporting purchase order details."
+            _errorMessages =
+            [
+                "An unexpected error occurred while exporting PO details."
             ];
+        }
+        finally
+        {
+            _isExportingToExcel = false;
         }
     }
 }
