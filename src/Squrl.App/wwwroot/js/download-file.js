@@ -12,19 +12,23 @@ window.downloadFileFromStream = async (fileName, streamReference) => {
     const fileTypes = {
         ".txt": {
             description: "Text Files",
-            mimeType: "text/plain"
+            pickerMimeType: "text/plain",
+            blobMimeType: "text/plain;charset=utf-8"
         },
         ".csv": {
             description: "CSV Files",
-            mimeType: "text/csv;charset=utf-8"
+            pickerMimeType: "text/csv",
+            blobMimeType: "text/csv;charset=utf-8"
         },
         ".xlsx": {
             description: "Excel Files",
-            mimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            pickerMimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            blobMimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
         },
         ".xls": {
             description: "Excel 97-2003 Files",
-            mimeType: "application/vnd.ms-excel"
+            pickerMimeType: "application/vnd.ms-excel",
+            blobMimeType: "application/vnd.ms-excel"
         }
     };
 
@@ -48,7 +52,7 @@ window.downloadFileFromStream = async (fileName, streamReference) => {
                 types: [{
                     description: fileType.description,
                     accept: {
-                        [fileType.mimeType]: extension ? [extension] : []
+                        [fileType.pickerMimeType]: [extension]
                     }
                 }]
             });
@@ -71,7 +75,7 @@ window.downloadFileFromStream = async (fileName, streamReference) => {
 
     // Fallback for browsers without File System Access API.
     const blob = new Blob([arrayBuffer], {
-        type: fileType.mimeType
+        type: fileType.blobMimeType
     });
 
     const url = URL.createObjectURL(blob);
