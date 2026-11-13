@@ -104,6 +104,10 @@
         @context.DateShipped?.InZone(_userTimeZone).Date.ToDateOnly().ToString("dd MMM yyyy")
     </TemplateColumn>
     <TemplateColumn Title="Actions">
+        <button class="btn btn-primary"
+                @onclick="@(() => HandleViewPurchaseOrderButtonClick(context.Id ?? Guid.Empty))">
+            Details
+        </button>
         <button class="btn btn-secondary"
                 @onclick="@(() => HandleEditPurchaseOrderButtonClick(context.Id ?? Guid.Empty))">
             Edit
@@ -309,6 +313,11 @@
         {
             await _grid.RefreshDataAsync();
         }
+    }
+    
+    private void HandleViewPurchaseOrderButtonClick(Guid salesOrderId)
+    {
+        Navigation.NavigateTo($"/pos/{salesOrderId}");
     }
     
     private void HandleEditPurchaseOrderButtonClick(Guid purchaseOrderId)

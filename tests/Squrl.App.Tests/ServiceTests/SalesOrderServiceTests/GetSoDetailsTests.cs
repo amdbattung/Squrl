@@ -57,8 +57,8 @@ public sealed class GetSoDetailsTests : IntegrationTest
                 SalesOrder = salesOrderSeed,
                 LineSequence = i,
                 Item = itemSeed,
-                UnitPrice = 600m,
-                Quantity = 5m
+                Quantity = 5m,
+                UnitPrice = 600m
             })
             .ToList();
 
@@ -164,8 +164,8 @@ public sealed class GetSoDetailsTests : IntegrationTest
                 SalesOrder = salesOrderSeed,
                 LineSequence = i,
                 Item = itemSeed,
-                UnitPrice = 600m,
-                Quantity = 5m
+                Quantity = 5m,
+                UnitPrice = 600m
             })
             .ToList();
 
@@ -245,8 +245,8 @@ public sealed class GetSoDetailsTests : IntegrationTest
                 SalesOrder = salesOrderSeed,
                 LineSequence = i,
                 Item = itemSeed,
-                UnitPrice = 600m,
-                Quantity = 5m
+                Quantity = 5m,
+                UnitPrice = 600m
             })
             .ToList();
 

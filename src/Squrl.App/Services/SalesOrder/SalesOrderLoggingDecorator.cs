@@ -531,4 +531,102 @@ public class SalesOrderLoggingDecorator : ISalesOrderService
         
         return result;
     }
+
+    public async Task<Result<bool>> ExportSoDetailsAsCsvAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
+    {
+        Result<bool> result;
+
+        try
+        {
+            result = await _salesOrderService.ExportSoDetailsAsCsvAsync(salesOrderId, destination, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Export SO Details As CSV Request: unhandled exception.");
+            throw;
+        }
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Export SO Details As CSV Request: SO details successfully exported.");
+        }
+        else switch (result.FailureType)
+        {
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Export SO Details As CSV Request: {Message}",
+                    result.Message ?? "Failed to export SO details.");
+                break;
+            
+            case FailureType.Exception:
+            
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Export SO Details As CSV Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to export SO details, something went wrong.");
+                
+            default:
+                _logger.LogError(result.Exception,
+                    "Export SO Details As CSV Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to export SO details, something went wrong.");
+        }
+        
+        return result;
+    }
+
+    public async Task<Result<bool>> ExportSoDetailsAsExcelAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
+    {
+        Result<bool> result;
+
+        try
+        {
+            result = await _salesOrderService.ExportSoDetailsAsExcelAsync(salesOrderId, destination, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Export SO Details As Excel Request: unhandled exception.");
+            throw;
+        }
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Export SO Details As Excel Request: SO details successfully exported.");
+        }
+        else switch (result.FailureType)
+        {
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Export SO Details As Excel Request: {Message}",
+                    result.Message ?? "Failed to export SO details.");
+                break;
+            
+            case FailureType.Exception:
+            
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Export SO Details As Excel Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to export SO details, something went wrong.");
+                
+            default:
+                _logger.LogError(result.Exception,
+                    "Export SO Details As Excel Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to export SO details, something went wrong.");
+        }
+        
+        return result;
+    }
 }

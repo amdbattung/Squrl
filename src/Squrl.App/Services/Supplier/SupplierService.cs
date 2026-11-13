@@ -5,20 +5,27 @@ using Squrl.App.Data;
 using Squrl.App.Enums;
 using Squrl.App.Features.Suppliers.DTOs;
 using Squrl.App.Features.Suppliers.Mapping;
+using Squrl.App.Infrastructure.DataExporter;
 using Squrl.App.Infrastructure.TransactionManager;
 
 namespace Squrl.App.Services.Supplier;
 
-public class SupplierService : ISupplierService
+public partial class SupplierService : ISupplierService
 {
     private readonly DataContext _dataContext;
     private readonly ITransactionManager _transactionManager;
+    private readonly ICsvExporter<Models.Supplier> _csvExporter;
+    private readonly IExcelExporter<Models.Supplier> _excelExporter;
 
     public SupplierService(DataContext dataContext,
-        ITransactionManager transactionManager)
+        ITransactionManager transactionManager,
+        ICsvExporter<Models.Supplier> csvExporter,
+        IExcelExporter<Models.Supplier> excelExporter)
     {
         _dataContext = dataContext;
         _transactionManager = transactionManager;
+        _csvExporter = csvExporter;
+        _excelExporter = excelExporter;
     }
 
     public async Task<Result<GetManySuppliersDto>> GetManySuppliersAsync(

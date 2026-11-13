@@ -28,7 +28,7 @@ public static class CustomValidationRulesExtensions
         
         public IRuleBuilderOptions<T, string?> BeLatin1()
         {
-            return ruleBuilder.Must(x => x is null ||x.All(c => c is >= '\u0020' and <= '\u00FF'));
+            return ruleBuilder.Must(x => x is null || x.All(c => c is >= '\u0020' and <= '\u00FF'));
         }
     }
     

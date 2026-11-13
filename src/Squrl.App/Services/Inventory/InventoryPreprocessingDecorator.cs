@@ -232,4 +232,32 @@ public class InventoryPreprocessingDecorator : IInventoryService
         
         return result;
     }
+
+    public async Task<Result<bool>> ExportItemsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
+    {
+        if (!destination.CanWrite)
+        {
+            return Result<bool>.Fail("Destination must be writable.")
+                .WithFailureType(FailureType.Validation);
+        }
+        
+        Result<bool> result = await _inventoryService
+            .ExportItemsAsCsvAsync(destination, cancellationToken);
+        
+        return result;
+    }
+
+    public async Task<Result<bool>> ExportItemsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    {
+        if (!destination.CanWrite)
+        {
+            return Result<bool>.Fail("Destination must be writable.")
+                .WithFailureType(FailureType.Validation);
+        }
+        
+        Result<bool> result = await _inventoryService
+            .ExportItemsAsExcelAsync(destination, cancellationToken);
+        
+        return result;
+    }
 }

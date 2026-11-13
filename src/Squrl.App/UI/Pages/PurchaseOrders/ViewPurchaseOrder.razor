@@ -1,0 +1,256 @@
+﻿@page "/pos/{PurchaseOrderId:guid}"
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject IPurchaseOrderService PurchaseOrderService
+@inject ISupplierService SupplierService
+@inject IInventoryService InventoryService
+@inject IJSRuntime Js
+
+<h1>Purchase Order</h1>
+
+@if (PurchaseOrder is not null)
+{
+    <p>ID: @PurchaseOrder.Id</p>
+    <p>Invoice No.: @PurchaseOrder.InvoiceNumber</p>
+    <p>Issued To: @_supplierName</p>
+    <p>Date Ordered: @PurchaseOrder.DateOrdered?.InZone(_userTimeZone).Date.ToDateOnly().ToString("dd MMM yyyy")</p>
+    <p>Date Required: @PurchaseOrder.DateRequired?.InZone(_userTimeZone).Date.ToDateOnly().ToString("dd MMM yyyy")</p>
+    <p>Date Shipped: @PurchaseOrder.DateShipped?.InZone(_userTimeZone).Date.ToDateOnly().ToString("dd MMM yyyy")</p>
+    
+    <button class="btn btn-secondary"
+            disabled="@(_isExportingToCsv || _isExportingToExcel)"
+            @onclick="HandleExportPoDetailsAsCsvButtonClick">
+        @(_isExportingToCsv ? "Downloading..." : "Export As CSV")
+    </button>
+
+    <button class="btn btn-secondary"
+            disabled="@(_isExportingToExcel || _isExportingToCsv)"
+            @onclick="HandleExportPoDetailsAsExcelButtonClick">
+        @(_isExportingToExcel ? "Downloading..." : "Export As Excel")
+    </button>
+    
+    <h2>Details</h2>
+    
+    <QuickGrid @ref="_grid"
+               TGridItem="GetPoDetailDto"
+               ItemsProvider="LoadPoDetails">
+        <PropertyColumn Title="#" Property="p => p.LineSequence" />
+        <TemplateColumn Title="Item">
+            @(_itemNameCache.TryGetValue(context.ItemId ?? Guid.Empty, out string? item)
+                ? item
+                : "")
+        </TemplateColumn>
+        <PropertyColumn Title="Quantity" Property="p => p.Quantity" />
+        <PropertyColumn Title="Unit Price" Property="p => p.UnitPrice" />
+        <PropertyColumn Title="Total Price" Property="p => p.Quantity * p.UnitPrice" />
+    </QuickGrid>
+}
+else
+{
+    <p>Loading...</p>
+}
+
+@if (_errorMessages.Count > 0)
+{
+    <div class="alert alert-danger mt-3" role="alert">
+        <ul class="mb-0">
+            @foreach (string error in _errorMessages)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}
+
+@code {
+    private QuickGrid<GetPoDetailDto>? _grid;
+    
+    private readonly DateTimeZone _userTimeZone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+    
+    private readonly Dictionary<Guid, string> _itemNameCache = new();
+
+    private string? _supplierName;
+    
+    [Parameter]
+    public required Guid PurchaseOrderId { get; set; }
+    
+    [PersistentState]
+    public GetPurchaseOrderDto? PurchaseOrder { get; set; }
+    
+    private bool _isExportingToCsv;
+    private bool _isExportingToExcel;
+    
+    private IReadOnlyList<string> _errorMessages = [];
+    
+    protected override async Task OnInitializedAsync()
+    {
+        if (PurchaseOrder is null)
+        {
+            GetPurchaseOrderDto? purchaseOrderResult = (await PurchaseOrderService
+                .GetPurchaseOrderByIdAsync(PurchaseOrderId)).Value;
+            
+            if (purchaseOrderResult is null)
+            {
+                Navigation.NotFound();
+                return;
+            }
+
+            PurchaseOrder = purchaseOrderResult;
+            
+            GetSupplierDto? supplierResult = (await SupplierService
+                .GetSupplierByIdAsync(PurchaseOrder.SupplierId ?? Guid.Empty)).Value;
+
+            _supplierName = supplierResult?.Name;
+        }
+    }
+    
+    private async ValueTask<GridItemsProviderResult<GetPoDetailDto>> LoadPoDetails(
+        GridItemsProviderRequest<GetPoDetailDto> request)
+    {
+        try
+        {
+            Result<GetManyPoDetailsDto> result =
+                await PurchaseOrderService.GetPoDetailsAsync(
+                    PurchaseOrderId,
+                    cancellationToken: request.CancellationToken);
+
+            if (!result.IsSuccess || result.Value?.PoDetails is null)
+            {
+                _errorMessages = result.Errors;
+
+                return GridItemsProviderResult.From(
+                    Array.Empty<GetPoDetailDto>(),
+                    0);
+            }
+            
+            foreach (GetPoDetailDto poDetail in result.Value.PoDetails)
+            {
+                if (!_itemNameCache.ContainsKey(poDetail.ItemId ?? Guid.Empty))
+                {
+                    Result<GetItemDto> item = await InventoryService.GetItemByIdAsync(poDetail.ItemId ?? Guid.Empty);
+
+                    if (item.IsSuccess)
+                    {
+                        _itemNameCache[poDetail.ItemId ?? Guid.Empty] = item.Value?.Name ?? string.Empty;
+                    }
+                }
+            }
+
+            _errorMessages = [];
+
+            return GridItemsProviderResult.From(
+                result.Value.PoDetails?.ToList() ?? [],
+                result.Value.TotalCount);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            _errorMessages = ["An unexpected error occurred while loading sales orders."];
+
+            return GridItemsProviderResult.From(
+                Array.Empty<GetPoDetailDto>(),
+                0);
+        }
+    }
+    
+    private async Task HandleExportPoDetailsAsCsvButtonClick()
+    {
+        if (_isExportingToCsv || _isExportingToExcel)
+        {
+            return;
+        }
+
+        _isExportingToCsv = true;
+        _errorMessages = [];
+
+        try
+        {
+            await using MemoryStream stream = new();
+
+            Result<bool> result = await PurchaseOrderService.ExportPoDetailsAsCsvAsync(PurchaseOrderId, stream);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            stream.Position = 0;
+
+            using DotNetStreamReference streamReference = new(stream);
+
+            string localDate = await Js.InvokeAsync<string>("getLocalDate");
+
+            string fileName = $"purchaseorderdetails-{localDate}" +
+                              $"-squrlexport+{Guid.NewGuid().ToString("N")[..8]}.csv";
+
+            await Js.InvokeVoidAsync(
+                "downloadFileFromStream",
+                fileName,
+                streamReference);
+        }
+        catch (Exception)
+        {
+            _errorMessages =
+            [
+                "An unexpected error occurred while exporting PO details."
+            ];
+        }
+        finally
+        {
+            _isExportingToCsv = false;
+        }
+    }
+    
+    private async Task HandleExportPoDetailsAsExcelButtonClick()
+    {
+        if (_isExportingToExcel || _isExportingToCsv)
+        {
+            return;
+        }
+
+        _isExportingToExcel = true;
+        _errorMessages = [];
+
+        try
+        {
+            await using MemoryStream stream = new();
+
+            Result<bool> result = await PurchaseOrderService.ExportPoDetailsAsExcelAsync(PurchaseOrderId, stream);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            stream.Position = 0;
+
+            using DotNetStreamReference streamReference = new(stream);
+
+            string localDate = await Js.InvokeAsync<string>("getLocalDate");
+
+            string fileName = $"purchaseorderdetails-{localDate}" +
+                              $"-squrlexport+{Guid.NewGuid().ToString("N")[..8]}.xlsx";
+
+            await Js.InvokeVoidAsync(
+                "downloadFileFromStream",
+                fileName,
+                streamReference);
+        }
+        catch (Exception)
+        {
+            _errorMessages =
+            [
+                "An unexpected error occurred while exporting PO details."
+            ];
+        }
+        finally
+        {
+            _isExportingToExcel = false;
+        }
+    }
+}

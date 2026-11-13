@@ -91,8 +91,8 @@ public partial class SalesOrderService
                 SalesOrder = salesOrder,
                 LineSequence = soDetail.LineSequence ?? 0,
                 Item = item,
-                UnitPrice = soDetail.UnitPrice ?? 0m,
-                Quantity = soDetail.Quantity ?? 0m
+                Quantity = soDetail.Quantity ?? 0m,
+                UnitPrice = soDetail.UnitPrice ?? 0m
             };
         
             await _dataContext.SalesOrderDetails.AddAsync(newSoDetail, ct);
@@ -191,8 +191,8 @@ public partial class SalesOrderService
             
             existingSoDetail.SalesOrder = salesOrder ?? existingSoDetail.SalesOrder;
             existingSoDetail.Item = item ?? existingSoDetail.Item;
-            existingSoDetail.UnitPrice = soDetail.UnitPrice ?? existingSoDetail.Quantity;
             existingSoDetail.Quantity = soDetail.Quantity ?? existingSoDetail.Quantity;
+            existingSoDetail.UnitPrice = soDetail.UnitPrice ?? existingSoDetail.UnitPrice;
 
             return Result<GetSoDetailDto>.Ok(SoDetailMapper.ToDto(existingSoDetail));
         };

@@ -1,0 +1,242 @@
+﻿@page "/sos/{SalesOrderId:guid}"
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@inject ISalesOrderService SalesOrderService
+@inject IInventoryService InventoryService
+@inject IJSRuntime Js
+
+<h1>Sales Order</h1>
+@if (SalesOrder is not null)
+{
+    <p>ID: @SalesOrder.Id</p>
+    <p>Invoice No.: @SalesOrder.InvoiceNumber</p>
+    <p>Issued To: @SalesOrder.Customer</p>
+    <p>Date Ordered: @SalesOrder.DateOrdered?.InZone(_userTimeZone).Date.ToDateOnly().ToString("dd MMM yyyy")</p>
+    
+    <button class="btn btn-secondary"
+            disabled="@(_isExportingToCsv || _isExportingToExcel)"
+            @onclick="HandleExportSoDetailsAsCsvButtonClick">
+        @(_isExportingToCsv ? "Downloading..." : "Export As CSV")
+    </button>
+
+    <button class="btn btn-secondary"
+            disabled="@(_isExportingToExcel || _isExportingToCsv)"
+            @onclick="HandleExportSoDetailsAsExcelButtonClick">
+        @(_isExportingToExcel ? "Downloading..." : "Export As Excel")
+    </button>
+    
+    <h2>Details</h2>
+    
+    <QuickGrid @ref="_grid"
+               TGridItem="GetSoDetailDto"
+               ItemsProvider="LoadSoDetails">
+        <PropertyColumn Title="#" Property="s => s.LineSequence" />
+        <TemplateColumn Title="Item">
+            @(_itemNameCache.TryGetValue(context.ItemId ?? Guid.Empty, out string? item)
+                ? item
+                : "")
+        </TemplateColumn>
+        <PropertyColumn Title="Quantity" Property="s => s.Quantity" />
+        <PropertyColumn Title="Unit Price" Property="s => s.UnitPrice" />
+        <PropertyColumn Title="Total Price" Property="s => s.Quantity * s.UnitPrice" />
+    </QuickGrid>
+}
+else
+{
+    <p>Loading...</p>
+}
+
+@if (_errorMessages.Count > 0)
+{
+    <div class="alert alert-danger mt-3" role="alert">
+        <ul class="mb-0">
+            @foreach (string error in _errorMessages)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}
+
+@code {
+    private QuickGrid<GetSoDetailDto>? _grid;
+    
+    private readonly DateTimeZone _userTimeZone = DateTimeZoneProviders.Tzdb.GetSystemDefault();
+    
+    private readonly Dictionary<Guid, string> _itemNameCache = new();
+    
+    [Parameter]
+    public required Guid SalesOrderId { get; set; }
+    
+    [PersistentState]
+    public GetSalesOrderDto? SalesOrder { get; set; }
+    
+    private bool _isExportingToCsv;
+    private bool _isExportingToExcel;
+    
+    private IReadOnlyList<string> _errorMessages = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (SalesOrder is null)
+        {
+            GetSalesOrderDto? salesOrderResult = (await SalesOrderService.GetSalesOrderByIdAsync(SalesOrderId)).Value;
+            
+            if (salesOrderResult is null)
+            {
+                Navigation.NotFound();
+                return;
+            }
+
+            SalesOrder = salesOrderResult;
+        }
+    }
+
+    private async ValueTask<GridItemsProviderResult<GetSoDetailDto>> LoadSoDetails(
+        GridItemsProviderRequest<GetSoDetailDto> request)
+    {
+        try
+        {
+            Result<GetManySoDetailsDto> result =
+                await SalesOrderService.GetSoDetailsAsync(
+                    SalesOrderId,
+                    cancellationToken: request.CancellationToken);
+
+            if (!result.IsSuccess || result.Value?.SoDetails is null)
+            {
+                _errorMessages = result.Errors;
+
+                return GridItemsProviderResult.From(
+                    Array.Empty<GetSoDetailDto>(),
+                    0);
+            }
+            
+            foreach (GetSoDetailDto soDetail in result.Value.SoDetails)
+            {
+                if (!_itemNameCache.ContainsKey(soDetail.ItemId ?? Guid.Empty))
+                {
+                    Result<GetItemDto> item = await InventoryService.GetItemByIdAsync(soDetail.ItemId ?? Guid.Empty);
+
+                    if (item.IsSuccess)
+                    {
+                        _itemNameCache[soDetail.ItemId ?? Guid.Empty] = item.Value?.Name ?? string.Empty;
+                    }
+                }
+            }
+
+            _errorMessages = [];
+
+            return GridItemsProviderResult.From(
+                result.Value.SoDetails?.ToList() ?? [],
+                result.Value.TotalCount);
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            _errorMessages = ["An unexpected error occurred while loading sales orders."];
+
+            return GridItemsProviderResult.From(
+                Array.Empty<GetSoDetailDto>(),
+                0);
+        }
+    }
+    
+    private async Task HandleExportSoDetailsAsCsvButtonClick()
+    {
+        if (_isExportingToCsv || _isExportingToExcel)
+        {
+            return;
+        }
+
+        _isExportingToCsv = true;
+        _errorMessages = [];
+
+        try
+        {
+            await using MemoryStream stream = new();
+
+            Result<bool> result = await SalesOrderService.ExportSoDetailsAsCsvAsync(SalesOrderId, stream);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            stream.Position = 0;
+
+            using DotNetStreamReference streamReference = new(stream);
+            
+            string localDate = await Js.InvokeAsync<string>("getLocalDate");
+            
+            string fileName = $"salesorderdetails-{localDate}" +
+                              $"-squrlexport+{Guid.NewGuid().ToString("N")[..8]}.csv";
+
+            await Js.InvokeVoidAsync(
+                "downloadFileFromStream",
+                fileName,
+                streamReference);
+        }
+        catch (Exception)
+        {
+            _errorMessages = [
+                "An unexpected error occurred while exporting SO details."
+            ];
+        }
+        finally
+        {
+            _isExportingToCsv = false;
+        }
+    }
+    
+    private async Task HandleExportSoDetailsAsExcelButtonClick()
+    {
+        if (_isExportingToExcel || _isExportingToCsv)
+        {
+            return;
+        }
+
+        _isExportingToExcel = true;
+        _errorMessages = [];
+
+        try
+        {
+            await using MemoryStream stream = new();
+
+            Result<bool> result = await SalesOrderService.ExportSoDetailsAsExcelAsync(SalesOrderId, stream);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            stream.Position = 0;
+
+            using DotNetStreamReference streamReference = new(stream);
+            
+            string localDate = await Js.InvokeAsync<string>("getLocalDate");
+            
+            string fileName = $"salesorderdetails-{localDate}" +
+                              $"-squrlexport+{Guid.NewGuid().ToString("N")[..8]}.xlsx";
+
+            await Js.InvokeVoidAsync(
+                "downloadFileFromStream",
+                fileName,
+                streamReference);
+        }
+        catch (Exception)
+        {
+            _errorMessages = [
+                "An unexpected error occurred while exporting SO details."
+            ];
+        }
+        finally
+        {
+            _isExportingToExcel = false;
+        }
+    }
+}

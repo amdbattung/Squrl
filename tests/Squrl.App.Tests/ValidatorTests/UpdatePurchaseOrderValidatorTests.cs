@@ -221,16 +221,16 @@ public class UpdatePurchaseOrderValidatorTests
                     PurchaseOrderId = Guid.Empty,
                     LineSequence = 1,
                     ItemId = Guid.NewGuid(),
-                    UnitPrice = 600m,
-                    Quantity = 10m
+                    Quantity = 10m,
+                    UnitPrice = 600m
                 },
                 new UpdatePoDetailDto
                 {
                     PurchaseOrderId = Guid.Empty,
                     LineSequence = 2,
                     ItemId = Guid.NewGuid(),
-                    UnitPrice = 600.05m,
-                    Quantity = 10.05m
+                    Quantity = 10.05m,
+                    UnitPrice = 600.05m
                 }
             ],
             DateOrdered = Instant.FromUtc(2020, 1, 1, 0, 0),

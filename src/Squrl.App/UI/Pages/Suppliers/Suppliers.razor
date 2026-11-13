@@ -3,6 +3,7 @@
 @implements IDisposable
 @inject ISupplierService SupplierService
 @inject NavigationManager Navigation
+@inject IJSRuntime Js
 
 <h1>Suppliers</h1>
 
@@ -12,6 +13,18 @@
        @oninput="OnSearchInput" />
 
 <button class="btn btn-primary" @onclick="HandleAddSupplierButtonClick">+ Add Supplier</button>
+
+<button class="btn btn-secondary"
+        disabled="@(_isExportingToCsv || _isDeleting || _isExportingToExcel)"
+        @onclick="HandleExportSuppliersAsCsvButtonClick">
+    @(_isExportingToCsv ? "Downloading..." : "Export As CSV")
+</button>
+
+<button class="btn btn-secondary"
+        disabled="@(_isExportingToExcel || _isDeleting || _isExportingToCsv)"
+        @onclick="HandleExportSuppliersAsExcelButtonClick">
+    @(_isExportingToExcel ? "Downloading..." : "Export As Excel")
+</button>
 
 <QuickGrid @ref="_grid"
            TGridItem="GetSupplierDto"
@@ -25,7 +38,7 @@
             Edit
         </button>
         <button class="btn btn-danger"
-                disabled="@(_isDeleting)"
+                disabled="@(_isDeleting || _isExportingToCsv || _isExportingToExcel)"
                 @onclick="@(() => HandleDeleteSupplierButtonClick(context.Id ?? Guid.Empty))">
             @(_isDeleting ? "Deleting..." : "Delete")
         </button>
@@ -68,6 +81,8 @@
     private readonly Debouncer _debouncer = new();
     
     private bool _isDeleting;
+    private bool _isExportingToCsv;
+    private bool _isExportingToExcel;
     private bool _disposed;
     
     private IReadOnlyList<string> _errorMessages = [];
@@ -168,7 +183,7 @@
     
     private async Task HandleDeleteSupplierButtonClick(Guid supplierId)
     {
-        if (_isDeleting)
+        if (_isDeleting || _isExportingToCsv || _isExportingToExcel)
         {
             return;
         }
@@ -198,6 +213,103 @@
         finally
         {
             _isDeleting = false;
+        }
+    }
+
+    private async Task HandleExportSuppliersAsCsvButtonClick()
+    {
+        if (_isExportingToCsv || _isDeleting || _isExportingToExcel)
+        {
+            return;
+        }
+
+        _isExportingToCsv = true;
+        _errorMessages = [];
+
+        try
+        {
+            await using MemoryStream stream = new();
+
+            Result<bool> result = await SupplierService.ExportSuppliersAsCsvAsync(stream);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            stream.Position = 0;
+
+            using DotNetStreamReference streamReference = new(stream);
+
+            string localDate = await Js.InvokeAsync<string>("getLocalDate");
+
+            string fileName = $"suppliers-{localDate}" +
+                              $"-squrlexport+{Guid.NewGuid().ToString("N")[..8]}.csv";
+
+            await Js.InvokeVoidAsync(
+                "downloadFileFromStream",
+                fileName,
+                streamReference);
+        }
+        catch (Exception)
+        {
+            _errorMessages =
+            [
+                "An unexpected error occurred while exporting suppliers."
+            ];
+        }
+        finally
+        {
+            _isExportingToCsv = false;
+        }
+    }
+    
+    private async Task HandleExportSuppliersAsExcelButtonClick()
+    {
+        if (_isExportingToExcel || _isDeleting || _isExportingToCsv)
+        {
+            return;
+        }
+
+        _isExportingToExcel = true;
+        _errorMessages = [];
+
+        try
+        {
+            await using MemoryStream stream = new();
+
+            Result<bool> result = await SupplierService.ExportSuppliersAsExcelAsync(stream);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            stream.Position = 0;
+
+            using DotNetStreamReference streamReference = new(stream);
+            
+            string localDate = await Js.InvokeAsync<string>("getLocalDate");
+            
+            string fileName = $"suppliers-{localDate}" +
+                              $"-squrlexport+{Guid.NewGuid().ToString("N")[..8]}.xlsx";
+
+            await Js.InvokeVoidAsync(
+                "downloadFileFromStream",
+                fileName,
+                streamReference);
+        }
+        catch (Exception)
+        {
+            _errorMessages = [
+                "An unexpected error occurred while exporting suppliers."
+            ];
+        }
+        finally
+        {
+            _isExportingToExcel = false;
         }
     }
     

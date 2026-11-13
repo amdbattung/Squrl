@@ -258,4 +258,50 @@ public class SalesOrderErrorHandlingDecorator : ISalesOrderService
                 .WithFailureType(FailureType.Unexpected);
         }
     }
+
+    public async Task<Result<bool>> ExportSoDetailsAsCsvAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            Result<bool> result = await _salesOrderService
+                .ExportSoDetailsAsCsvAsync(salesOrderId, destination, cancellationToken);
+            
+            return result.Exception is null
+                ? result
+                : result.WithoutException();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            return Result<bool>
+                .Fail("Failed to export SO detail, something went wrong.")
+                .WithFailureType(FailureType.Unexpected);
+        }
+    }
+
+    public async Task<Result<bool>> ExportSoDetailsAsExcelAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            Result<bool> result = await _salesOrderService
+                .ExportSoDetailsAsExcelAsync(salesOrderId, destination, cancellationToken);
+            
+            return result.Exception is null
+                ? result
+                : result.WithoutException();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            return Result<bool>
+                .Fail("Failed to export SO detail, something went wrong.")
+                .WithFailureType(FailureType.Unexpected);
+        }
+    }
 }

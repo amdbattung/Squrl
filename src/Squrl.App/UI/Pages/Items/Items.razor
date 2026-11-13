@@ -4,6 +4,7 @@
 @inject IInventoryService InventoryService
 @inject IUomService UomService
 @inject NavigationManager Navigation
+@inject IJSRuntime Js
 
 <h1>Items</h1>
 
@@ -13,6 +14,18 @@
        @oninput="OnSearchInput" />
 
 <button class="btn btn-primary" @onclick="HandleAddItemButtonClick">+ Add Item</button>
+
+<button class="btn btn-secondary"
+        disabled="@(_isExportingToCsv || _isDeleting || _isExportingToExcel)"
+        @onclick="HandleExportItemsAsCsvButtonClick">
+    @(_isExportingToCsv ? "Downloading..." : "Export As CSV")
+</button>
+
+<button class="btn btn-secondary"
+        disabled="@(_isExportingToExcel || _isDeleting || _isExportingToCsv)"
+        @onclick="HandleExportItemsAsExcelButtonClick">
+    @(_isExportingToExcel ? "Downloading..." : "Export As Excel")
+</button>
 
 <QuickGrid @ref="_grid"
            TGridItem="GetItemDto"
@@ -104,6 +117,8 @@
     private readonly Debouncer _debouncer = new();
     
     private bool _isDeleting;
+    private bool _isExportingToCsv;
+    private bool _isExportingToExcel;
     private bool _disposed;
     
     private IReadOnlyList<string> _errorMessages = [];
@@ -217,7 +232,7 @@
     
     private async void HandleDeleteItemButtonClick(Guid itemId)
     {
-        if (_isDeleting)
+        if (_isDeleting || _isExportingToCsv || _isExportingToExcel)
         {
             return;
         }
@@ -247,6 +262,102 @@
         finally
         {
             _isDeleting = false;
+        }
+    }
+    
+    private async Task HandleExportItemsAsCsvButtonClick()
+    {
+        if (_isExportingToCsv || _isDeleting || _isExportingToExcel)
+        {
+            return;
+        }
+
+        _isExportingToCsv = true;
+        _errorMessages = [];
+
+        try
+        {
+            await using MemoryStream stream = new();
+
+            Result<bool> result = await InventoryService.ExportItemsAsCsvAsync(stream);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            stream.Position = 0;
+
+            using DotNetStreamReference streamReference = new(stream);
+            
+            string localDate = await Js.InvokeAsync<string>("getLocalDate");
+            
+            string fileName = $"items-{localDate}" +
+                              $"-squrlexport+{Guid.NewGuid().ToString("N")[..8]}.csv";
+
+            await Js.InvokeVoidAsync(
+                "downloadFileFromStream",
+                fileName,
+                streamReference);
+        }
+        catch (Exception)
+        {
+            _errorMessages = [
+                "An unexpected error occurred while exporting suppliers."
+            ];
+        }
+        finally
+        {
+            _isExportingToCsv = false;
+        }
+    }
+    
+    private async Task HandleExportItemsAsExcelButtonClick()
+    {
+        if (_isExportingToExcel || _isDeleting || _isExportingToCsv)
+        {
+            return;
+        }
+
+        _isExportingToExcel = true;
+        _errorMessages = [];
+
+        try
+        {
+            await using MemoryStream stream = new();
+
+            Result<bool> result = await InventoryService.ExportItemsAsExcelAsync(stream);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            stream.Position = 0;
+
+            using DotNetStreamReference streamReference = new(stream);
+            
+            string localDate = await Js.InvokeAsync<string>("getLocalDate");
+            
+            string fileName = $"items-{localDate}" +
+                              $"-squrlexport+{Guid.NewGuid().ToString("N")[..8]}.xlsx";
+
+            await Js.InvokeVoidAsync(
+                "downloadFileFromStream",
+                fileName,
+                streamReference);
+        }
+        catch (Exception)
+        {
+            _errorMessages = [
+                "An unexpected error occurred while exporting items."
+            ];
+        }
+        finally
+        {
+            _isExportingToExcel = false;
         }
     }
     

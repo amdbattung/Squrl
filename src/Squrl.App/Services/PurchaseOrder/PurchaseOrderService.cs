@@ -6,6 +6,7 @@ using Squrl.App.Enums;
 using Squrl.App.Features.PurchaseOrderDetails.DTOs;
 using Squrl.App.Features.PurchaseOrders.DTOs;
 using Squrl.App.Features.PurchaseOrders.Mapping;
+using Squrl.App.Infrastructure.DataExporter;
 using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Models;
 using Squrl.App.Services.Inventory;
@@ -17,16 +18,22 @@ public partial class PurchaseOrderService : IPurchaseOrderService
     private readonly DataContext _dataContext;
     private readonly ITransactionManager _transactionManager;
     private readonly IInventoryService _inventoryService;
+    private readonly ICsvExporter<PurchaseOrderDetail> _csvExporter;
+    private readonly IExcelExporter<PurchaseOrderDetail> _excelExporter;
     private readonly IClock _clock;
 
     public PurchaseOrderService(DataContext dataContext,
         ITransactionManager transactionManager,
         IInventoryService inventoryService,
+        ICsvExporter<PurchaseOrderDetail> csvExporter,
+        IExcelExporter<PurchaseOrderDetail> excelExporter,
         IClock clock)
     {
         _dataContext = dataContext;
         _transactionManager = transactionManager;
         _inventoryService = inventoryService;
+        _csvExporter = csvExporter;
+        _excelExporter = excelExporter;
         _clock = clock;
     }
 
@@ -175,8 +182,8 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                     PurchaseOrder = newPurchaseOrder,
                     LineSequence = poDetail.LineSequence ?? 0,
                     Item = item,
-                    UnitPrice = poDetail.UnitPrice ?? 0m,
-                    Quantity = poDetail.Quantity ?? 0m
+                    Quantity = poDetail.Quantity ?? 0m,
+                    UnitPrice = poDetail.UnitPrice ?? 0m
                 };
 
                 await _dataContext.PurchaseOrderDetails.AddAsync(newPoDetail, ct);
@@ -275,8 +282,8 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                         }
                         
                         existingPoDetail.Item = item ?? existingPoDetail.Item;
-                        existingPoDetail.UnitPrice = poDetail.UnitPrice ?? existingPoDetail.UnitPrice;
                         existingPoDetail.Quantity = poDetail.Quantity ?? existingPoDetail.Quantity;
+                        existingPoDetail.UnitPrice = poDetail.UnitPrice ?? existingPoDetail.UnitPrice;
                     }
                     else
                     {
@@ -296,8 +303,8 @@ public partial class PurchaseOrderService : IPurchaseOrderService
                             PurchaseOrder = existingPurchaseOrder,
                             LineSequence = poDetail.LineSequence ?? 0,
                             Item = item,
-                            UnitPrice = poDetail.UnitPrice ?? 0m,
-                            Quantity = poDetail.Quantity ?? 0m
+                            Quantity = poDetail.Quantity ?? 0m,
+                            UnitPrice = poDetail.UnitPrice ?? 0m
                         };
                         
                         await _dataContext.PurchaseOrderDetails.AddAsync(newPoDetail, ct);

@@ -435,4 +435,102 @@ public class InventoryLoggingDecorator : IInventoryService
         
         return result;
     }
+
+    public async Task<Result<bool>> ExportItemsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
+    {
+        Result<bool> result;
+
+        try
+        {
+            result = await _inventoryService.ExportItemsAsCsvAsync(destination, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Export Items As CSV Request: unhandled exception.");
+            throw;
+        }
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Export Items As CSV Request: items successfully exported.");
+        }
+        else switch (result.FailureType)
+        {
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Export Items As CSV Request: {Message}",
+                    result.Message ?? "Failed to export items.");
+                break;
+            
+            case FailureType.Exception:
+            
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Export Items As CSV Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to export items, something went wrong.");
+                
+            default:
+                _logger.LogError(result.Exception,
+                    "Export Items As CSV Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to export items, something went wrong.");
+        }
+        
+        return result;
+    }
+
+    public async Task<Result<bool>> ExportItemsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    {
+        Result<bool> result;
+
+        try
+        {
+            result = await _inventoryService.ExportItemsAsExcelAsync(destination, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Export Items As Excel Request: unhandled exception.");
+            throw;
+        }
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Export Items As Excel Request: items successfully exported.");
+        }
+        else switch (result.FailureType)
+        {
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Export Items As Excel Request: {Message}",
+                    result.Message ?? "Failed to export items.");
+                break;
+            
+            case FailureType.Exception:
+            
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Export Items As Excel Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to export items, something went wrong.");
+                
+            default:
+                _logger.LogError(result.Exception,
+                    "Export Items As Excel Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to export items, something went wrong.");
+        }
+        
+        return result;
+    }
 }

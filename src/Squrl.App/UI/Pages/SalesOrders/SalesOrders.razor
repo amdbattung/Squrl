@@ -24,6 +24,10 @@
         @context.DateOrdered?.InZone(_userTimeZone).Date.ToDateOnly().ToString("dd MMM yyyy")
     </TemplateColumn>
     <TemplateColumn Title="Actions">
+        <button class="btn btn-primary"
+                @onclick="@(() => HandleViewSalesOrderButtonClick(context.Id ?? Guid.Empty))">
+            Details
+        </button>
         <button class="btn btn-secondary"
                 @onclick="@(() => HandleEditSalesOrderButtonClick(context.Id ?? Guid.Empty))">
             Edit
@@ -165,6 +169,11 @@
     private void HandleAddSalesOrderButtonClick()
     {
         Navigation.NavigateTo("/sos/new");
+    }
+    
+    private void HandleViewSalesOrderButtonClick(Guid salesOrderId)
+    {
+        Navigation.NavigateTo($"/sos/{salesOrderId}");
     }
     
     private void HandleEditSalesOrderButtonClick(Guid salesOrderId)

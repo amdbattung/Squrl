@@ -77,8 +77,8 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
                         PurchaseOrder = order,
                         LineSequence = 1,
                         Item = itemSeedA,
-                        UnitPrice = 600m,
-                        Quantity = 5m
+                        Quantity = 5m,
+                        UnitPrice = 600m
                     },
                     new PurchaseOrderDetail
                     {
@@ -86,8 +86,8 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
                         PurchaseOrder = order,
                         LineSequence = 2,
                         Item = itemSeedB,
-                        UnitPrice = 600m,
-                        Quantity = 5m
+                        Quantity = 5m,
+                        UnitPrice = 600m
                     }
                 })
             .ToList();
@@ -184,8 +184,8 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
                         PurchaseOrder = order,
                         LineSequence = 1,
                         Item = itemSeed,
-                        UnitPrice = 600m,
-                        Quantity = 5m
+                        Quantity = 5m,
+                        UnitPrice = 600m
                     }
                 })
             .ToList();
@@ -261,8 +261,8 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
                         PurchaseOrder = order,
                         LineSequence = 1,
                         Item = itemSeed,
-                        UnitPrice = 600m,
-                        Quantity = 5m
+                        Quantity = 5m,
+                        UnitPrice = 600m
                     }
                 })
             .ToList();
@@ -343,8 +343,8 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
                         PurchaseOrder = order,
                         LineSequence = 1,
                         Item = itemSeed,
-                        UnitPrice = 600m,
-                        Quantity = 5m
+                        Quantity = 5m,
+                        UnitPrice = 600m
                     }
                 })
             .ToList();
@@ -425,8 +425,8 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
                         PurchaseOrder = order,
                         LineSequence = 1,
                         Item = itemSeed,
-                        UnitPrice = 600m,
-                        Quantity = 5m
+                        Quantity = 5m,
+                        UnitPrice = 600m
                     }
                 })
             .ToList();
@@ -507,8 +507,8 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
                         PurchaseOrder = order,
                         LineSequence = 1,
                         Item = itemSeed,
-                        UnitPrice = 600m,
-                        Quantity = 5m
+                        Quantity = 5m,
+                        UnitPrice = 600m
                     }
                 })
             .ToList();
@@ -589,8 +589,8 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
                         PurchaseOrder = order,
                         LineSequence = 1,
                         Item = itemSeed,
-                        UnitPrice = 600m,
-                        Quantity = 5m
+                        Quantity = 5m,
+                        UnitPrice = 600m
                     }
                 })
             .ToList();
@@ -671,8 +671,8 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
                         PurchaseOrder = order,
                         LineSequence = 1,
                         Item = itemSeed,
-                        UnitPrice = 600m,
-                        Quantity = 5m
+                        Quantity = 5m,
+                        UnitPrice = 600m
                     }
                 })
             .ToList();
@@ -753,8 +753,8 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
                         PurchaseOrder = order,
                         LineSequence = 1,
                         Item = itemSeed,
-                        UnitPrice = 600m,
-                        Quantity = 5m
+                        Quantity = 5m,
+                        UnitPrice = 600m
                     }
                 })
             .ToList();
@@ -826,8 +826,8 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
                         PurchaseOrder = order,
                         LineSequence = 1,
                         Item = itemSeed,
-                        UnitPrice = 600m,
-                        Quantity = 5m
+                        Quantity = 5m,
+                        UnitPrice = 600m
                     }
                 })
             .ToList();
@@ -920,8 +920,8 @@ public class GetManyPurchaseOrdersTests : IntegrationTest
                         PurchaseOrder = order,
                         LineSequence = 1,
                         Item = itemSeed,
-                        UnitPrice = 600m,
-                        Quantity = 5m
+                        Quantity = 5m,
+                        UnitPrice = 600m
                     }
                 })
             .ToList();

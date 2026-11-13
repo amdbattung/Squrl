@@ -91,8 +91,8 @@ public partial class PurchaseOrderService
                 PurchaseOrder = existingPurchaseOrder,
                 LineSequence = poDetail.LineSequence ?? 0,
                 Item = item,
-                UnitPrice = poDetail.UnitPrice ?? 0m,
-                Quantity = poDetail.Quantity ?? 0m
+                Quantity = poDetail.Quantity ?? 0m,
+                UnitPrice = poDetail.UnitPrice ?? 0m
             };
         
             await _dataContext.PurchaseOrderDetails.AddAsync(newPoDetail, ct);
@@ -191,8 +191,8 @@ public partial class PurchaseOrderService
             
             existingPoDetail.PurchaseOrder = purchaseOrder ?? existingPoDetail.PurchaseOrder;
             existingPoDetail.Item = item ?? existingPoDetail.Item;
-            existingPoDetail.UnitPrice = poDetail.UnitPrice ?? existingPoDetail.Quantity;
             existingPoDetail.Quantity = poDetail.Quantity ?? existingPoDetail.Quantity;
+            existingPoDetail.UnitPrice = poDetail.UnitPrice ?? existingPoDetail.UnitPrice;
 
             return Result<GetPoDetailDto>.Ok(PoDetailMapper.ToDto(existingPoDetail));
         };

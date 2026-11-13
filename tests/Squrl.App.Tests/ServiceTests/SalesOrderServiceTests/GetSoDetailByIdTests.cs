@@ -51,8 +51,8 @@ public sealed class GetSoDetailByIdTests : IntegrationTest
                 Quantity = 10m,
                 Locations = ["Shelf A", "Shelf B"]
             },
-            UnitPrice = 600m,
-            Quantity = 5m
+            Quantity = 5m,
+            UnitPrice = 600m
         };
 
         dataContext.SalesOrders.Add(salesOrderSeed);
@@ -73,8 +73,8 @@ public sealed class GetSoDetailByIdTests : IntegrationTest
         Assert.Equal(seed.SalesOrder.Id, actual.Value.SalesOrderId);
         Assert.Equal(seed.LineSequence, actual.Value.LineSequence);
         Assert.Equal(seed.Item.Id, actual.Value.ItemId);
-        Assert.Equal(seed.UnitPrice, actual.Value.UnitPrice);
         Assert.Equal(seed.Quantity, actual.Value.Quantity);
+        Assert.Equal(seed.UnitPrice, actual.Value.UnitPrice);
     }
 
     [Fact]

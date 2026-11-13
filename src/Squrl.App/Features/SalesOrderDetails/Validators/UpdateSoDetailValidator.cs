@@ -25,6 +25,12 @@ public class UpdateSoDetailValidator : AbstractValidator<UpdateSoDetailDto>
             .WithName("Item")
             .WithMessage("{PropertyName} is required.");
         
+        RuleFor(x => x.Quantity)
+            .NotNull()
+            .WithMessage("{PropertyName} is required.")
+            .GreaterThan(0m)
+            .WithMessage("{PropertyName} must not be zero or negative.");
+        
         RuleFor(x => x.UnitPrice)
             .NotNull()
             .WithName("Unit Price")
@@ -32,11 +38,5 @@ public class UpdateSoDetailValidator : AbstractValidator<UpdateSoDetailDto>
             .GreaterThanOrEqualTo(0m)
             .WithName("Unit Price")
             .WithMessage("{PropertyName} must not be negative.");
-        
-        RuleFor(x => x.Quantity)
-            .NotNull()
-            .WithMessage("{PropertyName} is required.")
-            .GreaterThan(0m)
-            .WithMessage("{PropertyName} must not be zero or negative.");
     }
 }

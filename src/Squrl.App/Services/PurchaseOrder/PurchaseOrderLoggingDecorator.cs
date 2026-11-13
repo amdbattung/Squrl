@@ -845,4 +845,105 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
         
         return result;
     }
+
+    public async Task<Result<bool>> ExportPoDetailsAsCsvAsync(Guid purchaseOrderId, Stream destination, CancellationToken cancellationToken = default)
+    {
+        Result<bool> result;
+
+        try
+        {
+            result = await _purchaseOrderService
+                .ExportPoDetailsAsCsvAsync(purchaseOrderId, destination, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Export PO Details As CSV Request: unhandled exception.");
+            throw;
+        }
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Export PO Details As CSV Request: PO details successfully exported.");
+        }
+        else switch (result.FailureType)
+        {
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Export PO Details As CSV Request: {Message}",
+                    result.Message ?? "Failed to export PO details.");
+                break;
+            
+            case FailureType.Exception:
+
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Export PO Details As CSV Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to export PO detail, something went wrong.");
+                
+            default:
+                _logger.LogError(result.Exception,
+                    "Export PO Details As CSV Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to export PO detail, something went wrong.");
+        }
+        
+        return result;
+    }
+
+    public async Task<Result<bool>> ExportPoDetailsAsExcelAsync(Guid purchaseOrderId, Stream destination,
+        CancellationToken cancellationToken = default)
+    {
+        Result<bool> result;
+
+        try
+        {
+            result = await _purchaseOrderService
+                .ExportPoDetailsAsExcelAsync(purchaseOrderId, destination, cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Export PO Details As Excel Request: unhandled exception.");
+            throw;
+        }
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Export PO Details As Excel Request: PO details successfully exported.");
+        }
+        else switch (result.FailureType)
+        {
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Export PO Details As Excel Request: {Message}",
+                    result.Message ?? "Failed to export PO details.");
+                break;
+            
+            case FailureType.Exception:
+
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Export PO Details As Excel Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to export PO detail, something went wrong.");
+                
+            default:
+                _logger.LogError(result.Exception,
+                    "Export PO Details As Excel Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to export PO detail, something went wrong.");
+        }
+        
+        return result;
+    }
 }

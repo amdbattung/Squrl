@@ -7,6 +7,7 @@ using Squrl.App.Features.Items.DTOs;
 using Squrl.App.Features.SalesOrderDetails.DTOs;
 using Squrl.App.Features.SalesOrders.DTOs;
 using Squrl.App.Features.SalesOrders.Mapping;
+using Squrl.App.Infrastructure.DataExporter;
 using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Models;
 using Squrl.App.Services.Inventory;
@@ -18,16 +19,22 @@ public partial class SalesOrderService : ISalesOrderService
     private readonly DataContext _dataContext;
     private readonly ITransactionManager _transactionManager;
     private readonly IInventoryService _inventoryService;
+    private readonly ICsvExporter<SalesOrderDetail> _csvExporter;
+    private readonly IExcelExporter<SalesOrderDetail> _excelExporter;
     private readonly IClock _clock;
 
     public SalesOrderService(DataContext dataContext,
         ITransactionManager transactionManager,
         IInventoryService inventoryService,
+        ICsvExporter<SalesOrderDetail> csvExporter,
+        IExcelExporter<SalesOrderDetail> excelExporter,
         IClock clock)
     {
         _dataContext = dataContext;
         _transactionManager = transactionManager;
         _inventoryService = inventoryService;
+        _csvExporter = csvExporter;
+        _excelExporter = excelExporter;
         _clock = clock;
     }
     
@@ -118,8 +125,8 @@ public partial class SalesOrderService : ISalesOrderService
                     SalesOrder = newSalesOrder,
                     LineSequence = soDetail.LineSequence ?? 0,
                     Item = item,
-                    UnitPrice = soDetail.UnitPrice ?? 0m,
-                    Quantity = soDetail.Quantity ?? 0m
+                    Quantity = soDetail.Quantity ?? 0m,
+                    UnitPrice = soDetail.UnitPrice ?? 0m
                 };
 
                 await _dataContext.SalesOrderDetails.AddAsync(newSoDetail, ct);
@@ -215,8 +222,8 @@ public partial class SalesOrderService : ISalesOrderService
                     }
                     
                     existingSoDetail.Item = item ?? existingSoDetail.Item;
-                    existingSoDetail.UnitPrice = soDetail.UnitPrice ?? existingSoDetail.UnitPrice;
                     existingSoDetail.Quantity = soDetail.Quantity ?? existingSoDetail.Quantity;
+                    existingSoDetail.UnitPrice = soDetail.UnitPrice ?? existingSoDetail.UnitPrice;
                 }
                 else
                 {
@@ -236,8 +243,8 @@ public partial class SalesOrderService : ISalesOrderService
                         SalesOrder = existingSalesOrder,
                         LineSequence = soDetail.LineSequence ?? 0,
                         Item = item,
-                        UnitPrice = soDetail.UnitPrice ?? 0m,
-                        Quantity = soDetail.Quantity ?? 0m
+                        Quantity = soDetail.Quantity ?? 0m,
+                        UnitPrice = soDetail.UnitPrice ?? 0m
                     };
                     
                     await _dataContext.SalesOrderDetails.AddAsync(newSoDetail, ct);

@@ -6,21 +6,21 @@ public class GetPoDetailDto
     public Guid? PurchaseOrderId { get; }
     public int? LineSequence { get; }
     public Guid? ItemId { get; }
-    public decimal? UnitPrice { get; set; }
     public decimal? Quantity { get; }
+    public decimal? UnitPrice { get; set; }
 
     public GetPoDetailDto(Guid? id,
         Guid? purchaseOrderId,
         int? lineSequence,
         Guid? itemId,
-        decimal? unitPrice,
-        decimal? quantity)
+        decimal? quantity,
+        decimal? unitPrice)
     {
         Id = id;
         PurchaseOrderId = purchaseOrderId;
         LineSequence = lineSequence;
         ItemId = itemId;
-        UnitPrice = unitPrice;
         Quantity = quantity;
+        UnitPrice = unitPrice;
     }
 }

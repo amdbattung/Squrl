@@ -16,4 +16,7 @@ public interface ISupplierService
     Task<Result<GetSupplierDto>> GetSupplierByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Result<GetSupplierDto>> UpdateSupplierAsync(Guid id, UpdateSupplierDto supplier, CancellationToken cancellationToken = default);
     Task<Result<GetSupplierDto>> DeleteSupplierAsync(Guid id, CancellationToken cancellationToken = default);
+    
+    Task<Result<bool>> ExportSuppliersAsCsvAsync(Stream destination, CancellationToken cancellationToken = default);
+    Task<Result<bool>> ExportSuppliersAsExcelAsync(Stream destination, CancellationToken cancellationToken = default);
 }
