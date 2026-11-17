@@ -16,6 +16,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Aspose.Words.FOSS" Version="26.3.0" />
       <PackageReference Include="Blazilla" Version="2.4.1" />
       <PackageReference Include="ClosedXML" Version="0.105.1" />
       <PackageReference Include="EFCore.NamingConventions" Version="10.0.1" />
@@ -33,6 +34,7 @@
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
+      <PackageReference Include="MiniPdf" Version="0.43.2" />
       <PackageReference Include="NodaTime" Version="3.3.2" />
       <PackageReference Include="NodaTime.Serialization.SystemTextJson" Version="1.4.0" />
       <PackageReference Include="Scrutor" Version="7.0.0" />
