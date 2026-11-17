@@ -1,0 +1,74 @@
+﻿@page "/reports"
+@rendermode InteractiveServer
+
+<h1>Select a Report</h1>
+
+<div class="mb-3">
+    <InputSearchableSelect TItem="ReportOption"
+                           TValue="string"
+                           @bind-Value="SelectedReport"
+                           LoadItems="LoadReports"
+                           GetValue="@(item => item.Value)"
+                           GetText="@(item => item.Text)"
+                           Placeholder="Search or select a report..."
+                           PageSize="5" />
+</div>
+
+<hr />
+
+@switch (SelectedReport)
+{
+    case "Report1":
+        <CustomerItemSales />
+        break;
+
+    case "Report2":
+        <SupplierItemPurchases />
+        break;
+
+    default:
+        <p class="text-muted">Please select a report.</p>
+        break;
+}
+
+@code {
+    private string? SelectedReport { get; set; }
+
+    private class ReportOption
+    {
+        public string Value { get; init; } = "";
+        public string Text { get; init; } = "";
+    }
+
+    private readonly List<ReportOption> _reportsList =
+    [
+        new() { Value = "Report1", Text = "Customer Item Sales Summary" },
+        new() { Value = "Report2", Text = "Supplier Item Purchases Summary" }
+    ];
+
+    private Task<InputSearchableSelect<ReportOption, string>
+        .PagedResult<ReportOption>> LoadReports(
+        string? search,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken)
+    {
+        List<ReportOption> filtered = _reportsList
+            .Where(x => string.IsNullOrWhiteSpace(search) ||
+                        x.Text.Contains(search, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        List<ReportOption> items = filtered
+            .Skip((page - 1) * pageSize)
+            .Take(pageSize)
+            .ToList();
+
+        return Task.FromResult(
+            new InputSearchableSelect<ReportOption, string>
+                .PagedResult<ReportOption>
+                {
+                    Items = items,
+                    HasMore = filtered.Count > page * pageSize
+                });
+    }
+}
