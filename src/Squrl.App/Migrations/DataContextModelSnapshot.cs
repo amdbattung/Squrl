@@ -188,6 +188,10 @@ namespace Squrl.Migrations
                     b.HasIndex("ItemId")
                         .HasDatabaseName("ix_purchase_order_details_item_id");
 
+                    b.HasIndex("PurchaseOrderId", "ItemId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_purchase_order_details_purchase_order_id_item_id");
+
                     b.HasIndex("PurchaseOrderId", "LineSequence")
                         .IsUnique()
                         .HasDatabaseName("ix_purchase_order_details_purchase_order_id_line_sequence");
@@ -279,6 +283,10 @@ namespace Squrl.Migrations
 
                     b.HasIndex("ItemId")
                         .HasDatabaseName("ix_sales_order_details_item_id");
+
+                    b.HasIndex("SalesOrderId", "ItemId")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sales_order_details_sales_order_id_item_id");
 
                     b.HasIndex("SalesOrderId", "LineSequence")
                         .IsUnique()
