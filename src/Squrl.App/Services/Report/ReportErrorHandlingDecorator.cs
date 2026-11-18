@@ -135,4 +135,66 @@ public class ReportErrorHandlingDecorator : IReportService
                 .WithFailureType(FailureType.Unexpected);
         }
     }
+
+    public async Task<Result<bool>> GenerateItemSalesHistoryAsWord(
+        Guid itemId,
+        Stream destination,
+        Stream? template = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            Result<bool> result = await _reportService
+                .GenerateItemSalesHistoryAsWord(
+                    itemId,
+                    destination,
+                    template,
+                    cancellationToken);
+            
+            return result.Exception is null
+                ? result
+                : result.WithoutException();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            return Result<bool>
+                .Fail("Failed to generate report, something went wrong.")
+                .WithFailureType(FailureType.Unexpected);
+        }
+    }
+
+    public async Task<Result<bool>> GenerateItemSalesHistoryAsPdf(
+        Guid itemId,
+        Stream destination,
+        Stream? template = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            Result<bool> result = await _reportService
+                .GenerateItemSalesHistoryAsPdf(
+                    itemId,
+                    destination,
+                    template,
+                    cancellationToken);
+            
+            return result.Exception is null
+                ? result
+                : result.WithoutException();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            return Result<bool>
+                .Fail("Failed to generate report, something went wrong.")
+                .WithFailureType(FailureType.Unexpected);
+        }
+    }
 }

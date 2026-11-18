@@ -242,4 +242,118 @@ public class ReportLoggingDecorator : IReportService
         
         return result;
     }
+
+    public async Task<Result<bool>> GenerateItemSalesHistoryAsWord(
+        Guid itemId,
+        Stream destination,
+        Stream? template = null,
+        CancellationToken cancellationToken = default)
+    {
+        Result<bool> result;
+
+        try
+        {
+            result = await _reportService.GenerateItemSalesHistoryAsWord(
+                itemId,
+                destination,
+                template,
+                cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Generate Item Sales History As Word Request: unhandled exception.");
+            throw;
+        }
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Generate Item Sales History As Word Request: report successfully generated.");
+        }
+        else switch (result.FailureType)
+        {
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Generate Item Sales History As Word Request: {Message}",
+                    result.Message ?? "Failed to generate report.");
+                break;
+            
+            case FailureType.Exception:
+            
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Generate Item Sales History As Word Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to generate report, something went wrong.");
+                
+            default:
+                _logger.LogError(result.Exception,
+                    "Generate Item Sales History As Word Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to generate report, something went wrong.");
+        }
+        
+        return result;
+    }
+
+    public async Task<Result<bool>> GenerateItemSalesHistoryAsPdf(
+        Guid itemId,
+        Stream destination,
+        Stream? template = null,
+        CancellationToken cancellationToken = default)
+    {
+        Result<bool> result;
+
+        try
+        {
+            result = await _reportService.GenerateItemSalesHistoryAsPdf(
+                itemId,
+                destination,
+                template,
+                cancellationToken);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Generate Item Sales History As PDF Request: unhandled exception.");
+            throw;
+        }
+
+        if (result.IsSuccess)
+        {
+            _logger.LogInformation("Generate Item Sales History As PDF Request: report successfully generated.");
+        }
+        else switch (result.FailureType)
+        {
+            case FailureType.Validation:
+            
+            case FailureType.NotFound:
+            
+            case FailureType.BusinessLogic:
+                _logger.LogInformation(result.Exception,
+                    "Generate Item Sales History As PDF Request: {Message}",
+                    result.Message ?? "Failed to generate report.");
+                break;
+            
+            case FailureType.Exception:
+            
+            case FailureType.Unexpected:
+                _logger.LogError(result.Exception,
+                    "Generate Item Sales History As PDF Request: unhandled exception.");
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to generate report, something went wrong.");
+                
+            default:
+                _logger.LogError(result.Exception,
+                    "Generate Item Sales History As PDF Request: unhandled failure type {FailureType}.",
+                    Enum.GetName(result.FailureType ?? FailureType.Exception));
+                throw result.Exception
+                      ?? new Exception(result.Message ?? "Failed to generate report, something went wrong.");
+        }
+        
+        return result;
+    }
 }
