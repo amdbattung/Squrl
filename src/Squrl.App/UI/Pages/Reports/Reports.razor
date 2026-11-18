@@ -29,6 +29,10 @@
     case "Report3":
         <ItemSalesHistory />
         break;
+        
+    case "Report4":
+        <ItemPurchaseHistory />
+        break;
 
     default:
         <p class="text-muted">Please select a report.</p>
@@ -48,7 +52,8 @@
     [
         new() { Value = "Report1", Text = "Customer Item Sales Summary" },
         new() { Value = "Report2", Text = "Supplier Item Purchases Summary" },
-        new() { Value = "Report3", Text = "Item Sales History" }
+        new() { Value = "Report3", Text = "Item Sales History" },
+        new() { Value = "Report4", Text = "Item Purchase History" }
     ];
 
     private Task<InputSearchableSelect<ReportOption, string>

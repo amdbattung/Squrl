@@ -1,5 +1,4 @@
-﻿@page "/ItemSalesHistory"
-@inject IReportService ReportService
+﻿@inject IReportService ReportService
 @inject IInventoryService InventoryService
 @inject IJSRuntime Js
 
@@ -34,7 +33,7 @@
 </div>
 
 <div>
-    <label>Supplier</label>
+    <label>Item</label>
     <InputSearchableSelect
         TItem="GetItemDto"
         TValue="Guid?"

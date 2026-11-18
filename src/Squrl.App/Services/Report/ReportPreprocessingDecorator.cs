@@ -281,4 +281,92 @@ public class ReportPreprocessingDecorator : IReportService
         
         return result;
     }
+
+    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsWord(
+        Guid itemId,
+        Stream destination,
+        Stream? template = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (itemId == Guid.Empty)
+        {
+            return Result<bool>.Fail("Null or invalid ID.")
+                .WithFailureType(FailureType.Validation);
+        }
+        
+        if (!destination.CanWrite)
+        {
+            return Result<bool>.Fail("Destination must be writable.")
+                .WithFailureType(FailureType.Validation);
+        }
+
+        if (template is not null)
+        {
+            if (!template.CanRead)
+            {
+                return Result<bool>.Fail("Template is not readable.")
+                    .WithFailureType(FailureType.Validation);
+            }
+
+            if (template.CanSeek)
+            {
+                if (template.Length > _maxTemplateSize)
+                {
+                    return Result<bool>.Fail("Template is too large.")
+                        .WithFailureType(FailureType.Validation);
+                }
+
+                template.Position = 0;
+            }
+        }
+
+        Result<bool> result = await _reportService
+            .GenerateItemPurchaseHistoryAsWord(itemId, destination, template, cancellationToken);
+        
+        return result;
+    }
+
+    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsPdf(
+        Guid itemId,
+        Stream destination,
+        Stream? template = null,
+        CancellationToken cancellationToken = default)
+    {
+        if (itemId == Guid.Empty)
+        {
+            return Result<bool>.Fail("Null or invalid ID.")
+                .WithFailureType(FailureType.Validation);
+        }
+        
+        if (!destination.CanWrite)
+        {
+            return Result<bool>.Fail("Destination must be writable.")
+                .WithFailureType(FailureType.Validation);
+        }
+
+        if (template is not null)
+        {
+            if (!template.CanRead)
+            {
+                return Result<bool>.Fail("Template is not readable.")
+                    .WithFailureType(FailureType.Validation);
+            }
+
+            if (template.CanSeek)
+            {
+                if (template.Length > _maxTemplateSize)
+                {
+                    return Result<bool>.Fail("Template is too large.")
+                        .WithFailureType(FailureType.Validation);
+                }
+
+                template.Position = 0;
+            }
+        }
+
+        Result<bool> result = await _reportService
+            .GenerateItemPurchaseHistoryAsPdf(itemId, destination, template, cancellationToken);
+        
+        return result;
+    }
 }

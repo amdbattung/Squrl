@@ -39,4 +39,16 @@ public interface IReportService
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default);
+    
+    Task<Result<bool>> GenerateItemPurchaseHistoryAsWord(
+        Guid itemId,
+        Stream destination,
+        Stream? template = null,
+        CancellationToken cancellationToken = default);
+    
+    Task<Result<bool>> GenerateItemPurchaseHistoryAsPdf(
+        Guid itemId,
+        Stream destination,
+        Stream? template = null,
+        CancellationToken cancellationToken = default);
 }
