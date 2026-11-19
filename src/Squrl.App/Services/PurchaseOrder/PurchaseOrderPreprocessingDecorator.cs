@@ -45,7 +45,7 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
         pageNumber = pageNumber >= 1 ? pageNumber : 1;
         pageSize = pageSize is >= 1 and <= 50 ? pageSize : 10;
         
-        Result<GetManyPurchaseOrdersDto> result = await _purchaseOrderService
+        return await _purchaseOrderService
             .GetManyPurchaseOrdersAsync(
                 search,
                 supplierId,
@@ -58,8 +58,6 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 pageSize,
                 orderDirection,
                 cancellationToken);
-
-        return result;
     }
 
     public async Task<Result<GetPurchaseOrderDto>> CreatePurchaseOrderAsync(CreatePurchaseOrderDto purchaseOrder, CancellationToken cancellationToken = default)
@@ -77,10 +75,8 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetPurchaseOrderDto> result = await _purchaseOrderService
+        return await _purchaseOrderService
             .CreatePurchaseOrderAsync(purchaseOrder, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetPurchaseOrderDto>> GetPurchaseOrderByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -91,10 +87,8 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetPurchaseOrderDto> result = await _purchaseOrderService
+        return await _purchaseOrderService
             .GetPurchaseOrderByIdAsync(id, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetPurchaseOrderDto>> UpdatePurchaseOrderAsync(
@@ -119,10 +113,8 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetPurchaseOrderDto> result = await _purchaseOrderService
+        return await _purchaseOrderService
             .UpdatePurchaseOrderAsync(id, purchaseOrder, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetPurchaseOrderDto>> DeletePurchaseOrderAsync(Guid id, CancellationToken cancellationToken = default)
@@ -133,10 +125,8 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetPurchaseOrderDto> result = await _purchaseOrderService
+        return await _purchaseOrderService
             .DeletePurchaseOrderAsync(id, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetManyPoDetailsDto>> GetPoDetailsAsync(
@@ -150,10 +140,8 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetManyPoDetailsDto> result = await _purchaseOrderService
+        return await _purchaseOrderService
             .GetPoDetailsAsync(purchaseOrderId, orderDirection, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetPoDetailDto>> AddPoDetailAsync(Guid purchaseOrderId, CreatePoDetailDto poDetail, CancellationToken cancellationToken = default)
@@ -183,10 +171,8 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetPoDetailDto> result = await _purchaseOrderService
+        return await _purchaseOrderService
             .AddPoDetailAsync(purchaseOrderId, poDetail, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetPoDetailDto>> GetPoDetailByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -197,10 +183,8 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetPoDetailDto> result = await _purchaseOrderService
+        return await _purchaseOrderService
             .GetPoDetailByIdAsync(id, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetPoDetailDto>> UpdatePoDetailAsync(Guid id, UpdatePoDetailDto poDetail, CancellationToken cancellationToken = default)
@@ -222,10 +206,8 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetPoDetailDto> result = await _purchaseOrderService
+        return await _purchaseOrderService
             .UpdatePoDetailAsync(id, poDetail, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetPoDetailDto>> RemovePoDetailAsync(Guid id, CancellationToken cancellationToken = default)
@@ -236,10 +218,8 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetPoDetailDto> result = await _purchaseOrderService
+        return await _purchaseOrderService
             .RemovePoDetailAsync(id, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetPurchaseOrderDto>> ReceivePurchaseOrderAsync(Guid id, CancellationToken cancellationToken = default)
@@ -250,10 +230,8 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetPurchaseOrderDto> result = await _purchaseOrderService
+        return await _purchaseOrderService
             .ReceivePurchaseOrderAsync(id, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetPurchaseOrderDto>> CancelPurchaseOrderAsync(Guid id, CancellationToken cancellationToken = default)
@@ -264,10 +242,8 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetPurchaseOrderDto> result = await _purchaseOrderService
+        return await _purchaseOrderService
             .CancelPurchaseOrderAsync(id, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetPurchaseOrderDto>> ReturnPurchaseOrderAsync(Guid id, CancellationToken cancellationToken = default)
@@ -278,18 +254,14 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetPurchaseOrderDto> result = await _purchaseOrderService
+        return await _purchaseOrderService
             .ReturnPurchaseOrderAsync(id, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetPurchaseOrderDto>> UpdatePurchaseOrderStatusAsync(Guid id, PurchaseOrderStatus status, CancellationToken cancellationToken = default)
     {
-        Result<GetPurchaseOrderDto> result = await _purchaseOrderService
+        return await _purchaseOrderService
             .UpdatePurchaseOrderStatusAsync(id, status, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetPurchaseOrderDto>> RevertReceivedPurchaseOrderToPendingAsync(Guid id, CancellationToken cancellationToken = default)
@@ -300,10 +272,8 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetPurchaseOrderDto> result = await _purchaseOrderService
+        return await _purchaseOrderService
             .RevertReceivedPurchaseOrderToPendingAsync(id, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetPurchaseOrderDto>> UncancelPurchaseOrderAsync(Guid id, CancellationToken cancellationToken = default)
@@ -314,10 +284,8 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetPurchaseOrderDto> result = await _purchaseOrderService
+        return await _purchaseOrderService
             .UncancelPurchaseOrderAsync(id, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<bool>> ExportPoDetailsAsCsvAsync(Guid purchaseOrderId, Stream destination, CancellationToken cancellationToken = default)
@@ -334,10 +302,8 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<bool> result = await _purchaseOrderService
+        return await _purchaseOrderService
             .ExportPoDetailsAsCsvAsync(purchaseOrderId, destination, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<bool>> ExportPoDetailsAsExcelAsync(Guid purchaseOrderId, Stream destination,
@@ -355,9 +321,7 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<bool> result = await _purchaseOrderService
+        return await _purchaseOrderService
             .ExportPoDetailsAsExcelAsync(purchaseOrderId, destination, cancellationToken);
-        
-        return result;
     }
 }

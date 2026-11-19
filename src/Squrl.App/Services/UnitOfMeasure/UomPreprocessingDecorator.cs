@@ -32,14 +32,12 @@ public class UomPreprocessingDecorator : IUomService
         pageNumber = pageNumber >= 1 ? pageNumber : 1;
         pageSize = pageSize is >= 1 and <= 50 ? pageSize : 10;
         
-        Result<GetManyUomsDto> result = await _uomService.GetManyUomsAsync(
+        return await _uomService.GetManyUomsAsync(
             search,
             pageNumber,
             pageSize,
             orderDirection,
             cancellationToken);
-
-        return result;
     }
 
     public async Task<Result<GetUomDto>> CreateUomAsync(CreateUomDto uom, CancellationToken cancellationToken = default)
@@ -61,10 +59,8 @@ public class UomPreprocessingDecorator : IUomService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetUomDto> result = await _uomService
+        return await _uomService
             .CreateUomAsync(uom, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetUomDto>> GetUomByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -75,10 +71,8 @@ public class UomPreprocessingDecorator : IUomService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetUomDto> result = await _uomService
+        return await _uomService
             .GetUomByIdAsync(id, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetUomDto>> UpdateUomAsync(Guid id, UpdateUomDto uom, CancellationToken cancellationToken = default)
@@ -105,10 +99,8 @@ public class UomPreprocessingDecorator : IUomService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetUomDto> result = await _uomService
+        return await _uomService
             .UpdateUomAsync(id, uom, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetUomDto>> DeleteUomAsync(Guid id, CancellationToken cancellationToken = default)
@@ -119,10 +111,8 @@ public class UomPreprocessingDecorator : IUomService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetUomDto> result = await _uomService
+        return await _uomService
             .DeleteUomAsync(id, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<bool>> ExportUomsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
@@ -133,10 +123,8 @@ public class UomPreprocessingDecorator : IUomService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<bool> result = await _uomService
+        return await _uomService
             .ExportUomsAsCsvAsync(destination, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<bool>> ExportUomsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
@@ -147,9 +135,7 @@ public class UomPreprocessingDecorator : IUomService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<bool> result = await _uomService
+        return await _uomService
             .ExportUomsAsExcelAsync(destination, cancellationToken);
-        
-        return result;
     }
 }

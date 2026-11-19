@@ -40,7 +40,7 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
         pageNumber = pageNumber >= 1 ? pageNumber : 1;
         pageSize = pageSize is >= 1 and <= 50 ? pageSize : 10;
         
-        Result<GetManySalesOrdersDto> result = await _salesOrderService
+        return await _salesOrderService
             .GetManySalesOrdersAsync(
                 search,
                 customer,
@@ -48,8 +48,6 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
                 pageSize,
                 orderDirection,
                 cancellationToken);
-
-        return result;
     }
 
     public async Task<Result<GetSalesOrderDto>> CreateSalesOrderAsync(CreateSalesOrderDto salesOrder, CancellationToken cancellationToken = default)
@@ -65,10 +63,8 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetSalesOrderDto> result = await _salesOrderService
+        return await _salesOrderService
             .CreateSalesOrderAsync(salesOrder, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetSalesOrderDto>> GetSalesOrderByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -79,10 +75,8 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetSalesOrderDto> result = await _salesOrderService
+        return await _salesOrderService
             .GetSalesOrderByIdAsync(id, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetSalesOrderDto>> UpdateSalesOrderAsync(Guid id, UpdateSalesOrderDto salesOrder, CancellationToken cancellationToken = default)
@@ -104,10 +98,8 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetSalesOrderDto> result = await _salesOrderService
+        return await _salesOrderService
             .UpdateSalesOrderAsync(id, salesOrder, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetSalesOrderDto>> DeleteSalesOrderAsync(Guid id, CancellationToken cancellationToken = default)
@@ -118,10 +110,8 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetSalesOrderDto> result = await _salesOrderService
+        return await _salesOrderService
             .DeleteSalesOrderAsync(id, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetManySoDetailsDto>> GetSoDetailsAsync(Guid salesOrderId, SortDirection orderDirection = SortDirection.Ascending,
@@ -133,10 +123,8 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetManySoDetailsDto> result = await _salesOrderService
+        return await _salesOrderService
             .GetSoDetailsAsync(salesOrderId, orderDirection, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetSoDetailDto>> AddSoDetailAsync(Guid salesOrderId, CreateSoDetailDto soDetail, CancellationToken cancellationToken = default)
@@ -166,10 +154,8 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetSoDetailDto> result = await _salesOrderService
+        return await _salesOrderService
             .AddSoDetailAsync(salesOrderId, soDetail, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetSoDetailDto>> GetSoDetailByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -180,10 +166,8 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetSoDetailDto> result = await _salesOrderService
+        return await _salesOrderService
             .GetSoDetailByIdAsync(id, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetSoDetailDto>> UpdateSoDetailAsync(Guid id, UpdateSoDetailDto soDetail, CancellationToken cancellationToken = default)
@@ -205,10 +189,8 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetSoDetailDto> result = await _salesOrderService
+        return await _salesOrderService
             .UpdateSoDetailAsync(id, soDetail, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetSoDetailDto>> RemoveSoDetailAsync(Guid id, CancellationToken cancellationToken = default)
@@ -219,10 +201,8 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetSoDetailDto> result = await _salesOrderService
+        return await _salesOrderService
             .RemoveSoDetailAsync(id, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<bool>> ExportSoDetailsAsCsvAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
@@ -239,10 +219,8 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<bool> result = await _salesOrderService
+        return await _salesOrderService
             .ExportSoDetailsAsCsvAsync(salesOrderId, destination, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<bool>> ExportSoDetailsAsExcelAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
@@ -259,9 +237,7 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<bool> result = await _salesOrderService
+        return await _salesOrderService
             .ExportSoDetailsAsExcelAsync(salesOrderId, destination, cancellationToken);
-        
-        return result;
     }
 }

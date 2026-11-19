@@ -54,10 +54,8 @@ public class ReportPreprocessingDecorator : IReportService
             }
         }
 
-        Result<bool> result = await _reportService
+        return await _reportService
             .GenerateCustomerItemSalesAsWord(customer, destination, template, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<bool>> GenerateCustomerItemSalesAsPdf(
@@ -100,10 +98,8 @@ public class ReportPreprocessingDecorator : IReportService
             }
         }
 
-        Result<bool> result = await _reportService
+        return await _reportService
             .GenerateCustomerItemSalesAsPdf(customer, destination, template, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<bool>> GenerateSupplierItemPurchasesAsWord(
@@ -144,10 +140,8 @@ public class ReportPreprocessingDecorator : IReportService
             }
         }
 
-        Result<bool> result = await _reportService
+        return await _reportService
             .GenerateSupplierItemPurchasesAsWord(supplierId, destination, template, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<bool>> GenerateSupplierItemPurchasesAsPdf(
@@ -188,10 +182,8 @@ public class ReportPreprocessingDecorator : IReportService
             }
         }
 
-        Result<bool> result = await _reportService
+        return await _reportService
             .GenerateSupplierItemPurchasesAsPdf(supplierId, destination, template, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<bool>> GenerateItemSalesHistoryAsWord(
@@ -232,10 +224,8 @@ public class ReportPreprocessingDecorator : IReportService
             }
         }
 
-        Result<bool> result = await _reportService
+        return await _reportService
             .GenerateItemSalesHistoryAsWord(itemId, destination, template, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<bool>> GenerateItemSalesHistoryAsPdf(
@@ -276,10 +266,8 @@ public class ReportPreprocessingDecorator : IReportService
             }
         }
 
-        Result<bool> result = await _reportService
+        return await _reportService
             .GenerateItemSalesHistoryAsPdf(itemId, destination, template, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<bool>> GenerateItemPurchaseHistoryAsWord(
@@ -320,10 +308,8 @@ public class ReportPreprocessingDecorator : IReportService
             }
         }
 
-        Result<bool> result = await _reportService
+        return await _reportService
             .GenerateItemPurchaseHistoryAsWord(itemId, destination, template, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<bool>> GenerateItemPurchaseHistoryAsPdf(
@@ -364,9 +350,7 @@ public class ReportPreprocessingDecorator : IReportService
             }
         }
 
-        Result<bool> result = await _reportService
+        return await _reportService
             .GenerateItemPurchaseHistoryAsPdf(itemId, destination, template, cancellationToken);
-        
-        return result;
     }
 }
