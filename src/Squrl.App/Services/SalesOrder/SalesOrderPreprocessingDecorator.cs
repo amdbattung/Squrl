@@ -52,12 +52,20 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
 
     public async Task<Result<GetSalesOrderDto>> CreateSalesOrderAsync(CreateSalesOrderDto salesOrder, CancellationToken cancellationToken = default)
     {
-        ValidationResult soValidationResult = await _createSalesOrderValidator
-            .ValidateAsync(salesOrder, cancellationToken);
-        
-        if (!soValidationResult.IsValid)
+        ValidationContext<CreateSalesOrderDto> validationContext = new(salesOrder)
         {
-            return Result<GetSalesOrderDto>.Fail(soValidationResult.Errors
+            RootContextData =
+            {
+                ["SkipSalesOrderIdValidation"] = true
+            }
+        };
+
+        ValidationResult validationResult = await _createSalesOrderValidator
+            .ValidateAsync(validationContext, cancellationToken);
+        
+        if (!validationResult.IsValid)
+        {
+            return Result<GetSalesOrderDto>.Fail(validationResult.Errors
                     .Select(e => e.ErrorMessage)
                     .ToArray())
                 .WithFailureType(FailureType.Validation);
@@ -87,12 +95,20 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
                 .WithFailureType(FailureType.Validation);
         }
             
-        ValidationResult soValidationResult = await _updateSalesOrderValidator
-            .ValidateAsync(salesOrder, cancellationToken);
-            
-        if (!soValidationResult.IsValid)
+        ValidationContext<UpdateSalesOrderDto> validationContext = new(salesOrder)
         {
-            return Result<GetSalesOrderDto>.Fail(soValidationResult.Errors
+            RootContextData =
+            {
+                ["SkipSalesOrderIdValidation"] = true
+            }
+        };
+
+        ValidationResult validationResult = await _updateSalesOrderValidator
+            .ValidateAsync(validationContext, cancellationToken);
+            
+        if (!validationResult.IsValid)
+        {
+            return Result<GetSalesOrderDto>.Fail(validationResult.Errors
                     .Select(e => e.ErrorMessage)
                     .ToArray())
                 .WithFailureType(FailureType.Validation);
