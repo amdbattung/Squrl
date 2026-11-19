@@ -32,14 +32,12 @@ public class InventoryPreprocessingDecorator : IInventoryService
         pageNumber = pageNumber >= 1 ? pageNumber : 1;
         pageSize = pageSize is >= 1 and <= 50 ? pageSize : 10;
         
-        Result<GetManyItemsDto> result = await _inventoryService.GetManyItemsAsync(
+        return await _inventoryService.GetManyItemsAsync(
             search,
             pageNumber,
             pageSize,
             orderDirection,
             cancellationToken);
-
-        return result;
     }
 
     public async Task<Result<GetItemDto>> CreateItemAsync(
@@ -90,10 +88,8 @@ public class InventoryPreprocessingDecorator : IInventoryService
             }
         }
         
-        Result<GetItemDto> result = await _inventoryService
+        return await _inventoryService
             .CreateItemAsync(item, photo, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetItemDto>> GetItemByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -104,10 +100,8 @@ public class InventoryPreprocessingDecorator : IInventoryService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetItemDto> result = await _inventoryService
+        return await _inventoryService
             .GetItemByIdAsync(id, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetItemDto>> UpdateItemAsync(
@@ -165,10 +159,8 @@ public class InventoryPreprocessingDecorator : IInventoryService
             }
         }
         
-        Result<GetItemDto> result = await _inventoryService
+        return await _inventoryService
             .UpdateItemAsync(id, item, photo, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetItemDto>> DeleteItemAsync(Guid id, CancellationToken cancellationToken = default)
@@ -179,10 +171,8 @@ public class InventoryPreprocessingDecorator : IInventoryService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetItemDto> result = await _inventoryService
+        return await _inventoryService
             .DeleteItemAsync(id, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetItemDto>> AddStocksAsync(Guid itemId, decimal quantity, CancellationToken cancellationToken = default)
@@ -193,10 +183,8 @@ public class InventoryPreprocessingDecorator : IInventoryService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetItemDto> result = await _inventoryService
+        return await _inventoryService
             .AddStocksAsync(itemId, quantity, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetItemDto>> RemoveStocksAsync(Guid itemId, decimal quantity, CancellationToken cancellationToken = default)
@@ -207,10 +195,8 @@ public class InventoryPreprocessingDecorator : IInventoryService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetItemDto> result = await _inventoryService
+        return await _inventoryService
             .RemoveStocksAsync(itemId, quantity, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetItemDto>> DynamicStockUpdateAsync(Guid itemId, string quantity, CancellationToken cancellationToken = default)
@@ -227,10 +213,8 @@ public class InventoryPreprocessingDecorator : IInventoryService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetItemDto> result = await _inventoryService
+        return await _inventoryService
             .DynamicStockUpdateAsync(itemId, quantity, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<bool>> ExportItemsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
@@ -241,10 +225,8 @@ public class InventoryPreprocessingDecorator : IInventoryService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<bool> result = await _inventoryService
+        return await _inventoryService
             .ExportItemsAsCsvAsync(destination, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<bool>> ExportItemsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
@@ -255,9 +237,7 @@ public class InventoryPreprocessingDecorator : IInventoryService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<bool> result = await _inventoryService
+        return await _inventoryService
             .ExportItemsAsExcelAsync(destination, cancellationToken);
-        
-        return result;
     }
 }

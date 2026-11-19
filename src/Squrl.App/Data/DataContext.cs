@@ -82,6 +82,10 @@ public class DataContext : DbContext
             .IsUnique();
         
         modelBuilder.Entity<SalesOrderDetail>()
+            .HasIndex("SalesOrderId", "ItemId")
+            .IsUnique();
+        
+        modelBuilder.Entity<SalesOrderDetail>()
             .HasIndex("DateCreated");
         
         modelBuilder.Entity<PurchaseOrder>()
@@ -92,6 +96,10 @@ public class DataContext : DbContext
         
         modelBuilder.Entity<PurchaseOrderDetail>()
             .HasIndex("PurchaseOrderId", nameof(PurchaseOrderDetail.LineSequence))
+            .IsUnique();
+        
+        modelBuilder.Entity<PurchaseOrderDetail>()
+            .HasIndex("PurchaseOrderId", "ItemId")
             .IsUnique();
         
         modelBuilder.Entity<PurchaseOrderDetail>()
@@ -156,6 +164,14 @@ public class DataContext : DbContext
             .ToTable("sales_order_details", t =>
             {
                 t.HasCheckConstraint(
+                    "CK_sales_order_details_line_sequence",
+                    "line_sequence >= 1");
+            });
+        
+        modelBuilder.Entity<SalesOrderDetail>()
+            .ToTable("sales_order_details", t =>
+            {
+                t.HasCheckConstraint(
                     "CK_sales_order_details_unit_price",
                     "unit_price >= 0");
             });
@@ -168,11 +184,11 @@ public class DataContext : DbContext
                     "quantity >= 0");
             });
         
-        modelBuilder.Entity<SalesOrderDetail>()
-            .ToTable("sales_order_details", t =>
+        modelBuilder.Entity<PurchaseOrderDetail>()
+            .ToTable("purchase_order_details", t =>
             {
                 t.HasCheckConstraint(
-                    "CK_sales_order_details_line_sequence",
+                    "CK_purchase_order_details_line_sequence",
                     "line_sequence >= 1");
             });
         
@@ -190,14 +206,6 @@ public class DataContext : DbContext
                 t.HasCheckConstraint(
                     "CK_purchase_order_details_quantity",
                     "quantity >= 0");
-            });
-        
-        modelBuilder.Entity<PurchaseOrderDetail>()
-            .ToTable("purchase_order_details", t =>
-            {
-                t.HasCheckConstraint(
-                    "CK_purchase_order_details_line_sequence",
-                    "line_sequence >= 1");
             });
     }
 }

@@ -1,0 +1,267 @@
+﻿@inject IReportService ReportService
+@inject IInventoryService InventoryService
+@inject IJSRuntime Js
+
+<h2>Item Sales History</h2>
+
+<div>
+    <label>Template</label>
+    <InputFile @key="_inputFileKey"
+               OnChange="HandleTemplateUpload"
+               accept=".docx"
+               class="form-control" />
+    
+    <div>
+        @if (_processedTemplate != null)
+        {
+            <button class="btn btn-sm btn-outline-danger ms-3"
+                    @onclick="RemoveTemplate">
+                Remove Template
+            </button>
+        }
+        else
+        {
+            <small class="text-muted mt-2">
+                No template selected. A default Word document will be generated.
+            </small>
+        }
+    </div>
+    @if (!string.IsNullOrWhiteSpace(_templateError))
+    {
+        <div class="alert alert-danger"> @_templateError </div>
+    }
+</div>
+
+<div>
+    <label>Item</label>
+    <InputSearchableSelect
+        TItem="GetItemDto"
+        TValue="Guid?"
+        @bind-Value="_itemId"
+        Placeholder="Select a item"
+        AllowNull="false"
+        PageSize="10"
+        LoadItems="LoadItems"
+        GetValue="@(item => item.Id)"
+        GetText="@(item => item.Name ?? string.Empty)" />
+</div>
+
+<button class="btn btn-primary"
+        disabled="@(_isGeneratingWord || _isGeneratingPdf)"
+        @onclick="HandleGenerateReportAsWord">
+    @(_isGeneratingWord ? "Downloading..." : "Download Word")
+</button>
+
+<button class="btn btn-primary"
+        disabled="@(_isGeneratingPdf || _isGeneratingWord)"
+        @onclick="HandleGenerateReportAsPdf">
+    @(_isGeneratingPdf ? "Downloading..." : "Download PDF")
+</button>
+
+@code {
+    private Guid? _itemId;
+
+    private byte[]? _processedTemplate;
+    private string? _templateError;
+    
+    private bool _isGeneratingWord;
+    private bool _isGeneratingPdf;
+    
+    private IReadOnlyList<string> _errorMessages = [];
+    
+    private Guid _inputFileKey = Guid.NewGuid();
+    
+    private async Task<InputSearchableSelect<GetItemDto, Guid?>.PagedResult<GetItemDto>>
+        LoadItems(
+            string? search,
+            int pageNumber,
+            int pageSize,
+            CancellationToken cancellationToken)
+    {
+        Result<GetManyItemsDto> result =
+            await InventoryService.GetManyItemsAsync(
+                search,
+                pageNumber,
+                pageSize,
+                cancellationToken: cancellationToken);
+
+        if (!result.IsSuccess || result.Value?.Items is null)
+        {
+            return new()
+            {
+                Items = [],
+                HasMore = false
+            };
+        }
+
+        GetManyItemsDto payload = result.Value;
+
+        bool hasMore = payload.PageNumber * payload.PageSize < payload.TotalCount;
+
+        return new()
+        {
+            Items = payload.Items ?? [],
+            HasMore = hasMore
+        };
+    }
+    
+    private async Task HandleTemplateUpload(InputFileChangeEventArgs e)
+    {
+        _processedTemplate = null;
+        
+        _templateError = null;
+
+        try
+        {
+            IBrowserFile file = e.File;
+            
+            if (!file.Name.EndsWith(".docx", StringComparison.OrdinalIgnoreCase))
+            {
+                _templateError = "Upload failed: Please upload a DOCX file.";
+                return;
+            }
+
+            await using Stream stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+
+            using MemoryStream memory = new MemoryStream();
+
+            await stream.CopyToAsync(memory);
+
+            _processedTemplate = memory.ToArray();
+
+            if (_processedTemplate.Length == 0)
+            {
+                _processedTemplate = null;
+
+                _templateError = "Upload failed: The uploaded file is empty.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _processedTemplate = null;
+
+            _templateError = $"Upload failed: {ex.Message}";
+        }
+    }
+    
+    private void RemoveTemplate()
+    {
+        _processedTemplate = null;
+        
+        _templateError = null;
+        
+        _inputFileKey = Guid.NewGuid();
+    }
+    
+    private async Task HandleGenerateReportAsWord()
+    {
+        if (_isGeneratingWord || _isGeneratingPdf)
+        {
+            return;
+        }
+
+        _isGeneratingWord = true;
+        _errorMessages = [];
+
+        try
+        {
+            using var templateStream = _processedTemplate != null
+                ? new MemoryStream(_processedTemplate)
+                : null;
+            
+            await using MemoryStream stream = new();
+
+            Result<bool> result = await ReportService.GenerateItemSalesHistoryAsWord(
+                _itemId ?? Guid.Empty,
+                stream,
+                templateStream);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            stream.Position = 0;
+
+            using DotNetStreamReference streamReference = new(stream);
+
+            string localDate = await Js.InvokeAsync<string>("getLocalDate");
+
+            string fileName = $"itemsaleshistoryreport-{localDate}" +
+                              $"-squrlexport+{Guid.NewGuid().ToString("N")[..8]}.docx";
+
+            await Js.InvokeVoidAsync(
+                "downloadFileFromStream",
+                fileName,
+                streamReference);
+        }
+        catch (Exception)
+        {
+            _errorMessages =
+            [
+                "An unexpected error occurred while generating report."
+            ];
+        }
+        finally
+        {
+            _isGeneratingWord = false;
+        }
+    }
+    
+    private async Task HandleGenerateReportAsPdf()
+    {
+        if (_isGeneratingPdf || _isGeneratingWord)
+        {
+            return;
+        }
+
+        _isGeneratingPdf = true;
+        _errorMessages = [];
+
+        try
+        {
+            using var templateStream = _processedTemplate != null
+                ? new MemoryStream(_processedTemplate)
+                : null;
+            
+            await using MemoryStream stream = new();
+
+            Result<bool> result = await ReportService.GenerateItemSalesHistoryAsPdf(
+                _itemId ?? Guid.Empty,
+                stream,
+                templateStream);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+                return;
+            }
+
+            stream.Position = 0;
+
+            using DotNetStreamReference streamReference = new(stream);
+
+            string localDate = await Js.InvokeAsync<string>("getLocalDate");
+
+            string fileName = $"itemsaleshistoryreport-{localDate}" +
+                              $"-squrlexport+{Guid.NewGuid().ToString("N")[..8]}.pdf";
+
+            await Js.InvokeVoidAsync(
+                "downloadFileFromStream",
+                fileName,
+                streamReference);
+        }
+        catch (Exception)
+        {
+            _errorMessages =
+            [
+                "An unexpected error occurred while generating report."
+            ];
+        }
+        finally
+        {
+            _isGeneratingPdf = false;
+        }
+    }
+}

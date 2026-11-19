@@ -20,6 +20,16 @@ window.downloadFileFromStream = async (fileName, streamReference) => {
             pickerMimeType: "text/csv",
             blobMimeType: "text/csv;charset=utf-8"
         },
+        ".pdf": {
+            description: "PDF Files",
+            pickerMimeType: "application/pdf",
+            blobMimeType: "application/pdf"
+        },
+        ".docx": {
+            description: "Word Documents",
+            pickerMimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            blobMimeType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        },
         ".xlsx": {
             description: "Excel Files",
             pickerMimeType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -39,6 +49,7 @@ window.downloadFileFromStream = async (fileName, streamReference) => {
         ? fileTypes[extension]
         : {
             description: "Files",
+            pickerMimeType: "application/octet-stream",
             mimeType: "application/octet-stream"
         };
     

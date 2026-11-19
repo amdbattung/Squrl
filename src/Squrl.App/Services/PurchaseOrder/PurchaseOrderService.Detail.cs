@@ -84,6 +84,20 @@ public partial class PurchaseOrderService
                     .Fail("Line sequence must be consecutive.")
                     .WithFailureType(FailureType.Validation);
             }
+            
+            bool hasDuplicateItem = await _dataContext.PurchaseOrderDetails
+                .AsNoTracking()
+                .AnyAsync(p =>
+                        p.PurchaseOrder.Id == purchaseOrderId &&
+                        p.Item.Id == poDetail.ItemId,
+                    ct);
+            
+            if (hasDuplicateItem)
+            {
+                return Result<GetPoDetailDto>
+                    .Fail("Duplicate items are not allowed.")
+                    .WithFailureType(FailureType.Validation);
+            }
         
             PurchaseOrderDetail newPoDetail = new()
             {
@@ -126,9 +140,9 @@ public partial class PurchaseOrderService
         Func<CancellationToken, Task<Result<GetPoDetailDto>>> action = async ct =>
         {
             PurchaseOrderDetail? existingPoDetail = await _dataContext.PurchaseOrderDetails
-            .Include(p => p.PurchaseOrder)
-            .Include(p => p.Item)
-            .FirstOrDefaultAsync(p => p.Id == id, ct);
+                .Include(p => p.PurchaseOrder)
+                .Include(p => p.Item)
+                .FirstOrDefaultAsync(p => p.Id == id, ct);
         
             if (existingPoDetail == null)
             {
@@ -173,6 +187,24 @@ public partial class PurchaseOrderService
                     return Result<GetPoDetailDto>.Fail("Line sequence must be consecutive.")
                         .WithFailureType(FailureType.Validation);
                 }
+                
+                if (item != null)
+                {
+                    bool hasDuplicateItem = await _dataContext.PurchaseOrderDetails
+                        .AsNoTracking()
+                        .AnyAsync(p =>
+                                p.PurchaseOrder.Id == poDetail.PurchaseOrderId &&
+                                p.Item.Id == poDetail.ItemId &&
+                                p.Id != id,
+                            ct);
+                    
+                    if (hasDuplicateItem)
+                    {
+                        return Result<GetPoDetailDto>
+                            .Fail("Duplicate items are not allowed.")
+                            .WithFailureType(FailureType.Validation);
+                    }
+                }
             }
             else
             {
@@ -185,6 +217,22 @@ public partial class PurchaseOrderService
                 {
                     return Result<GetPoDetailDto>
                         .Fail("Line sequence must be consecutive.")
+                        .WithFailureType(FailureType.Validation);
+                }
+                
+                bool hasDuplicateItem = await _dataContext.PurchaseOrderDetails
+                    .AsNoTracking()
+                    .AnyAsync(p =>
+                            p.PurchaseOrder.Id == poDetail.PurchaseOrderId &&
+                            p.Item.Id == (item != null
+                                ? poDetail.ItemId
+                                : existingPoDetail.Item.Id),
+                        ct);
+            
+                if (hasDuplicateItem)
+                {
+                    return Result<GetPoDetailDto>
+                        .Fail("Duplicate items are not allowed.")
                         .WithFailureType(FailureType.Validation);
                 }
             }

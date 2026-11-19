@@ -15,6 +15,7 @@ using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Services.Alert;
 using Squrl.App.Services.Inventory;
 using Squrl.App.Services.PurchaseOrder;
+using Squrl.App.Services.Report;
 using Squrl.App.Services.SalesOrder;
 using Squrl.App.Services.Supplier;
 using Squrl.App.Services.UnitOfMeasure;
@@ -160,6 +161,11 @@ try
     builder.Services.Decorate<ISupplierService, SupplierPreprocessingDecorator>();
     builder.Services.Decorate<ISupplierService, SupplierLoggingDecorator>();
     builder.Services.Decorate<ISupplierService, SupplierErrorHandlingDecorator>();
+    
+    builder.Services.AddScoped<IReportService, ReportService>();
+    builder.Services.Decorate<IReportService, ReportPreprocessingDecorator>();
+    builder.Services.Decorate<IReportService, ReportLoggingDecorator>();
+    builder.Services.Decorate<IReportService, ReportErrorHandlingDecorator>();
     
     builder.Services.AddSingleton<IAlertService, AlertService>();
 

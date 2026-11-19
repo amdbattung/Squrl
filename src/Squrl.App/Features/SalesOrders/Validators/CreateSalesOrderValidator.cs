@@ -28,7 +28,12 @@ public class CreateSalesOrderValidator : AbstractValidator<CreateSalesOrderDto>
             .WithName("Sales Order Details")
             .WithMessage("{PropertyName} is required.")
             .BeSequential()
-            .WithMessage("Line sequences must start at 1 and be consecutive.");
+            .WithMessage("Line sequences must start at 1 and be consecutive.")
+            .Must(details => details == null || details
+                .Where(d => d.ItemId.HasValue)
+                .GroupBy(d => d.ItemId)
+                .All(g => g.Count() == 1))
+            .WithMessage("Duplicate items are not allowed.");
         
         RuleForEach(x => x.Details)
             .SetValidator(soDetailValidator);

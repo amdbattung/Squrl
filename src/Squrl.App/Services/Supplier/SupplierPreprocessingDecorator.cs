@@ -32,14 +32,12 @@ public class SupplierPreprocessingDecorator : ISupplierService
         pageNumber = pageNumber >= 1 ? pageNumber : 1;
         pageSize = pageSize is >= 1 and <= 50 ? pageSize : 10;
         
-        Result<GetManySuppliersDto> result = await _supplierService.GetManySuppliersAsync(
+        return await _supplierService.GetManySuppliersAsync(
             search,
             pageNumber,
             pageSize,
             orderDirection,
             cancellationToken);
-
-        return result;
     }
 
     public async Task<Result<GetSupplierDto>> CreateSupplierAsync(CreateSupplierDto supplier, CancellationToken cancellationToken = default)
@@ -60,10 +58,8 @@ public class SupplierPreprocessingDecorator : ISupplierService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetSupplierDto> result = await _supplierService
+        return await _supplierService
             .CreateSupplierAsync(supplier, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetSupplierDto>> GetSupplierByIdAsync(Guid id, CancellationToken cancellationToken = default)
@@ -74,10 +70,8 @@ public class SupplierPreprocessingDecorator : ISupplierService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetSupplierDto> result = await _supplierService
+        return await _supplierService
             .GetSupplierByIdAsync(id, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetSupplierDto>> UpdateSupplierAsync(Guid id, UpdateSupplierDto supplier, CancellationToken cancellationToken = default)
@@ -104,10 +98,8 @@ public class SupplierPreprocessingDecorator : ISupplierService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetSupplierDto> result = await _supplierService
+        return await _supplierService
             .UpdateSupplierAsync(id, supplier, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<GetSupplierDto>> DeleteSupplierAsync(Guid id, CancellationToken cancellationToken = default)
@@ -118,10 +110,8 @@ public class SupplierPreprocessingDecorator : ISupplierService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<GetSupplierDto> result = await _supplierService
+        return await _supplierService
             .DeleteSupplierAsync(id, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<bool>> ExportSuppliersAsCsvAsync(Stream destination,
@@ -133,10 +123,8 @@ public class SupplierPreprocessingDecorator : ISupplierService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<bool> result = await _supplierService
+        return await _supplierService
             .ExportSuppliersAsCsvAsync(destination, cancellationToken);
-        
-        return result;
     }
 
     public async Task<Result<bool>> ExportSuppliersAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
@@ -147,9 +135,7 @@ public class SupplierPreprocessingDecorator : ISupplierService
                 .WithFailureType(FailureType.Validation);
         }
         
-        Result<bool> result = await _supplierService
+        return await _supplierService
             .ExportSuppliersAsExcelAsync(destination, cancellationToken);
-        
-        return result;
     }
 }

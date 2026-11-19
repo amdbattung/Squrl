@@ -76,6 +76,11 @@ public class MenuItems
             },
             new()
             {
+                Text = "Reports",
+                Url = "/reports"
+            },
+            new()
+            {
                 Text = "Settings",
                 Url = "/settings"
             }

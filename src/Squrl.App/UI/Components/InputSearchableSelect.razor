@@ -331,8 +331,6 @@
             // Prevent stale/canceled results from being added.
             cancellationToken.ThrowIfCancellationRequested();
 
-            int previousCount = _items.Count;
-
             _items.AddRange(result.Items);
             _hasMore = result.HasMore;
         }
@@ -388,13 +386,11 @@
             // Only update the page number after successful loading.
             _pageNumber = nextPage;
 
-            int previousCount = _items.Count;
-
             _items.AddRange(result.Items);
 
             _hasMore = result.HasMore;
         }
-        catch (Exception exception)
+        catch (Exception)
         {
             // Ignored
         }
@@ -418,21 +414,25 @@
         }
 
         TValue value = GetValue(item);
-        
+
         _searchCancellation?.Cancel();
-        
+        _searchCancellation?.Dispose();
+        _searchCancellation = new CancellationTokenSource();
+
         Value = value;
 
-
-        // This only changes what is displayed. It does NOT change _searchQuery.
         _searchText = GetText(item);
+        _searchQuery = string.Empty;
 
         _userHasSelectedValue = true;
-        
-        _isOpen =
-            false;
-        
+
+        _isOpen = false;
+
+        await LoadFirstPage(_searchCancellation.Token);
+
         await ValueChanged.InvokeAsync(value);
+
+        _isOpen = false;
 
         await InvokeAsync(StateHasChanged);
     }

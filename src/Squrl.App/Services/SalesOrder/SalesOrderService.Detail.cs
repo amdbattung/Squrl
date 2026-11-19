@@ -84,6 +84,20 @@ public partial class SalesOrderService
                     .Fail("Line sequence must be consecutive.")
                     .WithFailureType(FailureType.Validation);
             }
+
+            bool hasDuplicateItem = await _dataContext.SalesOrderDetails
+                .AsNoTracking()
+                .AnyAsync(s =>
+                        s.SalesOrder.Id == salesOrderId &&
+                        s.Item.Id == soDetail.ItemId,
+                    ct);
+            
+            if (hasDuplicateItem)
+            {
+                return Result<GetSoDetailDto>
+                    .Fail("Duplicate items are not allowed.")
+                    .WithFailureType(FailureType.Validation);
+            }
         
             SalesOrderDetail newSoDetail = new()
             {
@@ -126,9 +140,9 @@ public partial class SalesOrderService
         Func<CancellationToken, Task<Result<GetSoDetailDto>>> action = async ct =>
         {
             SalesOrderDetail? existingSoDetail = await _dataContext.SalesOrderDetails
-            .Include(s => s.SalesOrder)
-            .Include(s => s.Item)
-            .FirstOrDefaultAsync(s => s.Id == id, ct);
+                .Include(s => s.SalesOrder)
+                .Include(s => s.Item)
+                .FirstOrDefaultAsync(s => s.Id == id, ct);
         
             if (existingSoDetail == null)
             {
@@ -173,6 +187,24 @@ public partial class SalesOrderService
                     return Result<GetSoDetailDto>.Fail("Line sequence must be consecutive.")
                         .WithFailureType(FailureType.Validation);
                 }
+
+                if (item != null)
+                {
+                    bool hasDuplicateItem = await _dataContext.SalesOrderDetails
+                        .AsNoTracking()
+                        .AnyAsync(s =>
+                                s.SalesOrder.Id == soDetail.SalesOrderId &&
+                                s.Item.Id == soDetail.ItemId &&
+                                s.Id != id,
+                            ct);
+                    
+                    if (hasDuplicateItem)
+                    {
+                        return Result<GetSoDetailDto>
+                            .Fail("Duplicate items are not allowed.")
+                            .WithFailureType(FailureType.Validation);
+                    }
+                }
             }
             else
             {
@@ -185,6 +217,22 @@ public partial class SalesOrderService
                 {
                     return Result<GetSoDetailDto>
                         .Fail("Line sequence must be consecutive.")
+                        .WithFailureType(FailureType.Validation);
+                }
+                
+                bool hasDuplicateItem = await _dataContext.SalesOrderDetails
+                    .AsNoTracking()
+                    .AnyAsync(s =>
+                            s.SalesOrder.Id == soDetail.SalesOrderId &&
+                            s.Item.Id == (item != null
+                                ? soDetail.ItemId
+                                : existingSoDetail.Item.Id),
+                        ct);
+            
+                if (hasDuplicateItem)
+                {
+                    return Result<GetSoDetailDto>
+                        .Fail("Duplicate items are not allowed.")
                         .WithFailureType(FailureType.Validation);
                 }
             }
