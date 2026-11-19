@@ -4,49 +4,49 @@ namespace Squrl.App.Services.Report;
 
 public interface IReportService
 {
-    Task<Result<bool>> GenerateCustomerItemSalesAsWord(
+    Task<Result<bool>> GenerateCustomerItemSalesAsWordAsync(
         string customer,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default);
     
-    Task<Result<bool>> GenerateCustomerItemSalesAsPdf(
+    Task<Result<bool>> GenerateCustomerItemSalesAsPdfAsync(
         string customer,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default);
     
-    Task<Result<bool>> GenerateSupplierItemPurchasesAsWord(
+    Task<Result<bool>> GenerateSupplierItemPurchasesAsWordAsync(
         Guid supplierId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default);
     
-    Task<Result<bool>> GenerateSupplierItemPurchasesAsPdf(
+    Task<Result<bool>> GenerateSupplierItemPurchasesAsPdfAsync(
         Guid supplierId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default);
     
-    Task<Result<bool>> GenerateItemSalesHistoryAsWord(
+    Task<Result<bool>> GenerateItemSalesHistoryAsWordAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default);
     
-    Task<Result<bool>> GenerateItemSalesHistoryAsPdf(
+    Task<Result<bool>> GenerateItemSalesHistoryAsPdfAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default);
     
-    Task<Result<bool>> GenerateItemPurchaseHistoryAsWord(
+    Task<Result<bool>> GenerateItemPurchaseHistoryAsWordAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default);
     
-    Task<Result<bool>> GenerateItemPurchaseHistoryAsPdf(
+    Task<Result<bool>> GenerateItemPurchaseHistoryAsPdfAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,

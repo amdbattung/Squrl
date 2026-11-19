@@ -11,7 +11,7 @@ namespace Squrl.App.Services.Report;
 
 public partial class ReportService
 {
-    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsWord(
+    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsWordAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
@@ -234,7 +234,7 @@ public partial class ReportService
         return Result<bool>.Ok(true);
     }
 
-    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsPdf(
+    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsPdfAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
@@ -244,7 +244,7 @@ public partial class ReportService
         using MemoryStream wordStream = new();
 
         Result<bool> wordGeneration =
-            await GenerateItemPurchaseHistoryAsWord(
+            await GenerateItemPurchaseHistoryAsWordAsync(
                 itemId,
                 wordStream,
                 template,

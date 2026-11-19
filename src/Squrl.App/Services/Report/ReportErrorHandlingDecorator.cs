@@ -12,7 +12,7 @@ public class ReportErrorHandlingDecorator : IReportService
         _reportService = reportService;
     }
 
-    public async Task<Result<bool>> GenerateCustomerItemSalesAsWord(
+    public async Task<Result<bool>> GenerateCustomerItemSalesAsWordAsync(
         string customer,
         Stream destination,
         Stream? template = null,
@@ -21,7 +21,7 @@ public class ReportErrorHandlingDecorator : IReportService
         try
         {
             Result<bool> result = await _reportService
-                .GenerateCustomerItemSalesAsWord(
+                .GenerateCustomerItemSalesAsWordAsync(
                     customer,
                     destination,
                     template,
@@ -43,7 +43,7 @@ public class ReportErrorHandlingDecorator : IReportService
         }
     }
 
-    public async Task<Result<bool>> GenerateCustomerItemSalesAsPdf(
+    public async Task<Result<bool>> GenerateCustomerItemSalesAsPdfAsync(
         string customer,
         Stream destination,
         Stream? template = null,
@@ -52,7 +52,7 @@ public class ReportErrorHandlingDecorator : IReportService
         try
         {
             Result<bool> result = await _reportService
-                .GenerateCustomerItemSalesAsPdf(
+                .GenerateCustomerItemSalesAsPdfAsync(
                     customer,
                     destination,
                     template,
@@ -74,7 +74,7 @@ public class ReportErrorHandlingDecorator : IReportService
         }
     }
 
-    public async Task<Result<bool>> GenerateSupplierItemPurchasesAsWord(
+    public async Task<Result<bool>> GenerateSupplierItemPurchasesAsWordAsync(
         Guid supplierId,
         Stream destination,
         Stream? template = null,
@@ -83,7 +83,7 @@ public class ReportErrorHandlingDecorator : IReportService
         try
         {
             Result<bool> result = await _reportService
-                .GenerateSupplierItemPurchasesAsWord(
+                .GenerateSupplierItemPurchasesAsWordAsync(
                     supplierId,
                     destination,
                     template,
@@ -105,7 +105,7 @@ public class ReportErrorHandlingDecorator : IReportService
         }
     }
 
-    public async Task<Result<bool>> GenerateSupplierItemPurchasesAsPdf(
+    public async Task<Result<bool>> GenerateSupplierItemPurchasesAsPdfAsync(
         Guid supplierId,
         Stream destination,
         Stream? template = null,
@@ -114,7 +114,7 @@ public class ReportErrorHandlingDecorator : IReportService
         try
         {
             Result<bool> result = await _reportService
-                .GenerateSupplierItemPurchasesAsPdf(
+                .GenerateSupplierItemPurchasesAsPdfAsync(
                     supplierId,
                     destination,
                     template,
@@ -136,7 +136,7 @@ public class ReportErrorHandlingDecorator : IReportService
         }
     }
 
-    public async Task<Result<bool>> GenerateItemSalesHistoryAsWord(
+    public async Task<Result<bool>> GenerateItemSalesHistoryAsWordAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
@@ -145,7 +145,7 @@ public class ReportErrorHandlingDecorator : IReportService
         try
         {
             Result<bool> result = await _reportService
-                .GenerateItemSalesHistoryAsWord(
+                .GenerateItemSalesHistoryAsWordAsync(
                     itemId,
                     destination,
                     template,
@@ -167,7 +167,7 @@ public class ReportErrorHandlingDecorator : IReportService
         }
     }
 
-    public async Task<Result<bool>> GenerateItemSalesHistoryAsPdf(
+    public async Task<Result<bool>> GenerateItemSalesHistoryAsPdfAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
@@ -176,7 +176,7 @@ public class ReportErrorHandlingDecorator : IReportService
         try
         {
             Result<bool> result = await _reportService
-                .GenerateItemSalesHistoryAsPdf(
+                .GenerateItemSalesHistoryAsPdfAsync(
                     itemId,
                     destination,
                     template,
@@ -198,7 +198,7 @@ public class ReportErrorHandlingDecorator : IReportService
         }
     }
 
-    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsWord(
+    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsWordAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
@@ -207,7 +207,7 @@ public class ReportErrorHandlingDecorator : IReportService
         try
         {
             Result<bool> result = await _reportService
-                .GenerateItemPurchaseHistoryAsWord(
+                .GenerateItemPurchaseHistoryAsWordAsync(
                     itemId,
                     destination,
                     template,
@@ -229,7 +229,7 @@ public class ReportErrorHandlingDecorator : IReportService
         }
     }
 
-    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsPdf(
+    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsPdfAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
@@ -238,7 +238,7 @@ public class ReportErrorHandlingDecorator : IReportService
         try
         {
             Result<bool> result = await _reportService
-                .GenerateItemPurchaseHistoryAsPdf(
+                .GenerateItemPurchaseHistoryAsPdfAsync(
                     itemId,
                     destination,
                     template,

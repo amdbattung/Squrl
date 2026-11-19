@@ -14,7 +14,7 @@ public class ReportPreprocessingDecorator : IReportService
         _maxTemplateSize = 10 * 1024L * 1024L; // 10 MB
     }
     
-    public async Task<Result<bool>> GenerateCustomerItemSalesAsWord(
+    public async Task<Result<bool>> GenerateCustomerItemSalesAsWordAsync(
         string customer,
         Stream destination,
         Stream? template = null,
@@ -55,10 +55,10 @@ public class ReportPreprocessingDecorator : IReportService
         }
 
         return await _reportService
-            .GenerateCustomerItemSalesAsWord(customer, destination, template, cancellationToken);
+            .GenerateCustomerItemSalesAsWordAsync(customer, destination, template, cancellationToken);
     }
 
-    public async Task<Result<bool>> GenerateCustomerItemSalesAsPdf(
+    public async Task<Result<bool>> GenerateCustomerItemSalesAsPdfAsync(
         string customer,
         Stream destination,
         Stream? template = null,
@@ -99,10 +99,10 @@ public class ReportPreprocessingDecorator : IReportService
         }
 
         return await _reportService
-            .GenerateCustomerItemSalesAsPdf(customer, destination, template, cancellationToken);
+            .GenerateCustomerItemSalesAsPdfAsync(customer, destination, template, cancellationToken);
     }
 
-    public async Task<Result<bool>> GenerateSupplierItemPurchasesAsWord(
+    public async Task<Result<bool>> GenerateSupplierItemPurchasesAsWordAsync(
         Guid supplierId,
         Stream destination,
         Stream? template = null,
@@ -141,10 +141,10 @@ public class ReportPreprocessingDecorator : IReportService
         }
 
         return await _reportService
-            .GenerateSupplierItemPurchasesAsWord(supplierId, destination, template, cancellationToken);
+            .GenerateSupplierItemPurchasesAsWordAsync(supplierId, destination, template, cancellationToken);
     }
 
-    public async Task<Result<bool>> GenerateSupplierItemPurchasesAsPdf(
+    public async Task<Result<bool>> GenerateSupplierItemPurchasesAsPdfAsync(
         Guid supplierId,
         Stream destination,
         Stream? template = null,
@@ -183,10 +183,10 @@ public class ReportPreprocessingDecorator : IReportService
         }
 
         return await _reportService
-            .GenerateSupplierItemPurchasesAsPdf(supplierId, destination, template, cancellationToken);
+            .GenerateSupplierItemPurchasesAsPdfAsync(supplierId, destination, template, cancellationToken);
     }
 
-    public async Task<Result<bool>> GenerateItemSalesHistoryAsWord(
+    public async Task<Result<bool>> GenerateItemSalesHistoryAsWordAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
@@ -225,10 +225,10 @@ public class ReportPreprocessingDecorator : IReportService
         }
 
         return await _reportService
-            .GenerateItemSalesHistoryAsWord(itemId, destination, template, cancellationToken);
+            .GenerateItemSalesHistoryAsWordAsync(itemId, destination, template, cancellationToken);
     }
 
-    public async Task<Result<bool>> GenerateItemSalesHistoryAsPdf(
+    public async Task<Result<bool>> GenerateItemSalesHistoryAsPdfAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
@@ -267,10 +267,10 @@ public class ReportPreprocessingDecorator : IReportService
         }
 
         return await _reportService
-            .GenerateItemSalesHistoryAsPdf(itemId, destination, template, cancellationToken);
+            .GenerateItemSalesHistoryAsPdfAsync(itemId, destination, template, cancellationToken);
     }
 
-    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsWord(
+    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsWordAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
@@ -309,10 +309,10 @@ public class ReportPreprocessingDecorator : IReportService
         }
 
         return await _reportService
-            .GenerateItemPurchaseHistoryAsWord(itemId, destination, template, cancellationToken);
+            .GenerateItemPurchaseHistoryAsWordAsync(itemId, destination, template, cancellationToken);
     }
 
-    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsPdf(
+    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsPdfAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
@@ -351,6 +351,6 @@ public class ReportPreprocessingDecorator : IReportService
         }
 
         return await _reportService
-            .GenerateItemPurchaseHistoryAsPdf(itemId, destination, template, cancellationToken);
+            .GenerateItemPurchaseHistoryAsPdfAsync(itemId, destination, template, cancellationToken);
     }
 }
