@@ -180,7 +180,7 @@ public sealed class EfTransactionManager : ITransactionManager
     {
         if (_dataContext.Database.CurrentTransaction is null)
         {
-            throw new InvalidOperationException("Cannot register a commit callback without an active transaction.");
+            throw new InvalidOperationException("No active transaction.");
         }
 
         _commitCallbacks.Add(callback);
