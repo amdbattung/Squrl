@@ -1,0 +1,127 @@
+﻿@page "/imports"
+@using Squrl.App.Services.Import
+@rendermode InteractiveServer
+@inject IImportService ImportService
+
+<h1>Imports</h1>
+
+<div>
+    <label>Template</label>
+    <InputFile @key="_inputFileKey"
+               OnChange="HandleFileUpload"
+               accept=".csv"
+               class="form-control" />
+    
+    @if (!string.IsNullOrWhiteSpace(_fileError))
+    {
+        <div class="alert alert-danger"> @_fileError </div>
+    }
+</div>
+
+@if (_errorMessages.Count > 0)
+{
+    <div class="alert alert-danger mt-3" role="alert">
+        <ul class="mb-0">
+            @foreach (string error in _errorMessages)
+            {
+                <li>@error</li>
+            }
+        </ul>
+    </div>
+}
+
+<button class="btn btn-primary"
+        disabled="@(_isImporting)"
+        @onclick="HandleImport">
+    @(_isImporting ? "Handle Import" : "Import")
+</button>
+
+@code {
+    private byte[]? _processedFile;
+    private string? _fileError;
+    
+    private bool _isImporting;
+    
+    private IReadOnlyList<string> _errorMessages = [];
+    
+    private Guid _inputFileKey = Guid.NewGuid();
+    
+    private async Task HandleFileUpload(InputFileChangeEventArgs e)
+    {
+        _processedFile = null;
+        
+        _fileError = null;
+
+        try
+        {
+            IBrowserFile file = e.File;
+            
+            if (!file.Name.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+            {
+                _fileError = "Upload failed: Please upload a CSV file.";
+                return;
+            }
+
+            await using Stream stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
+
+            using MemoryStream memory = new MemoryStream();
+
+            await stream.CopyToAsync(memory);
+
+            _processedFile = memory.ToArray();
+
+            if (_processedFile.Length == 0)
+            {
+                _processedFile = null;
+
+                _fileError = "Upload failed: The uploaded file is empty.";
+            }
+        }
+        catch (Exception ex)
+        {
+            _processedFile = null;
+
+            _fileError = $"Upload failed: {ex.Message}";
+        }
+    }
+
+    private async Task HandleImport()
+    {
+        if (_isImporting)
+        {
+            return;
+        }
+
+        _isImporting = true;
+        _errorMessages = [];
+
+        try
+        {
+            if (_processedFile == null)
+            {
+                _errorMessages = ["No file selected."];
+                return;
+            }
+
+            using MemoryStream stream = new MemoryStream(_processedFile);
+            
+            Result<bool> result = await ImportService.ImportSuppliersAsync(stream);
+
+            if (!result.IsSuccess)
+            {
+                _errorMessages = result.Errors;
+            }
+        }
+        catch (Exception e)
+        {
+            _errorMessages =
+            [
+                "An unexpected error occurred while importing file."
+            ];
+        }
+        finally
+        {
+            _isImporting = false;
+        }
+    }
+}
