@@ -532,9 +532,9 @@ public class SalesOrderLoggingDecorator : ISalesOrderService
         return result;
     }
 
-    public async Task<Result<bool>> ExportSoDetailsAsCsvAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportSoDetailsAsCsvAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
@@ -581,9 +581,9 @@ public class SalesOrderLoggingDecorator : ISalesOrderService
         return result;
     }
 
-    public async Task<Result<bool>> ExportSoDetailsAsExcelAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportSoDetailsAsExcelAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {

@@ -171,7 +171,7 @@
             
             await using MemoryStream stream = new();
 
-            Result<bool> result = await ReportService.GenerateItemSalesHistoryAsWordAsync(
+            Result result = await ReportService.GenerateItemSalesHistoryAsWordAsync(
                 _itemId ?? Guid.Empty,
                 stream,
                 templateStream);
@@ -227,7 +227,7 @@
             
             await using MemoryStream stream = new();
 
-            Result<bool> result = await ReportService.GenerateItemSalesHistoryAsPdfAsync(
+            Result result = await ReportService.GenerateItemSalesHistoryAsPdfAsync(
                 _itemId ?? Guid.Empty,
                 stream,
                 templateStream);

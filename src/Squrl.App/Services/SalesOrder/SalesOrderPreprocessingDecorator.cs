@@ -221,17 +221,17 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
             .RemoveSoDetailAsync(id, cancellationToken);
     }
 
-    public async Task<Result<bool>> ExportSoDetailsAsCsvAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportSoDetailsAsCsvAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
     {
         if (salesOrderId == Guid.Empty)
         {
-            return Result<bool>.Fail("Null or invalid ID.")
+            return Result.Fail("Null or invalid ID.")
                 .WithFailureType(FailureType.Validation);
         }
         
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
         
@@ -239,17 +239,17 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
             .ExportSoDetailsAsCsvAsync(salesOrderId, destination, cancellationToken);
     }
 
-    public async Task<Result<bool>> ExportSoDetailsAsExcelAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportSoDetailsAsExcelAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
     {
         if (salesOrderId == Guid.Empty)
         {
-            return Result<bool>.Fail("Null or invalid ID.")
+            return Result.Fail("Null or invalid ID.")
                 .WithFailureType(FailureType.Validation);
         }
         
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
         

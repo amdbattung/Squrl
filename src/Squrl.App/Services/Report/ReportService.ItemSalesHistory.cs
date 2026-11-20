@@ -11,7 +11,7 @@ namespace Squrl.App.Services.Report;
 
 public partial class ReportService
 {
-    public async Task<Result<bool>> GenerateItemSalesHistoryAsWordAsync(
+    public async Task<Result> GenerateItemSalesHistoryAsWordAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
@@ -25,7 +25,7 @@ public partial class ReportService
         
         if (existingItem == null)
         {
-            return Result<bool>.Fail("Item not found.")
+            return Result.Fail("Item not found.")
                 .WithFailureType(FailureType.NotFound);
         }
         
@@ -41,7 +41,7 @@ public partial class ReportService
 
             if (bodyBookmark == null)
             {
-                return Result<bool>.Fail("Template must contain a BODY bookmark.")
+                return Result.Fail("Template must contain a BODY bookmark.")
                     .WithFailureType(FailureType.Validation);
             }
 
@@ -229,10 +229,10 @@ public partial class ReportService
 
         await destination.FlushAsync(cancellationToken);
 
-        return Result<bool>.Ok(true);
+        return Result.Ok();
     }
 
-    public async Task<Result<bool>> GenerateItemSalesHistoryAsPdfAsync(
+    public async Task<Result> GenerateItemSalesHistoryAsPdfAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
@@ -241,7 +241,7 @@ public partial class ReportService
         // Generate Word document first.
         using MemoryStream wordStream = new();
 
-        Result<bool> wordGeneration =
+        Result wordGeneration =
             await GenerateItemSalesHistoryAsWordAsync(
                 itemId,
                 wordStream,
@@ -250,7 +250,7 @@ public partial class ReportService
 
         if (!wordGeneration.IsSuccess)
         {
-            return Result<bool>.Fail(wordGeneration.Message ?? "Something went wrong");
+            return Result.Fail(wordGeneration.Message ?? "Something went wrong");
         }
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -261,6 +261,6 @@ public partial class ReportService
 
         await destination.FlushAsync(cancellationToken);
 
-        return Result<bool>.Ok(true);
+        return Result.Ok();
     }
 }

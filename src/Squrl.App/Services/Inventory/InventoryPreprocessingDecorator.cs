@@ -217,11 +217,11 @@ public class InventoryPreprocessingDecorator : IInventoryService
             .DynamicStockUpdateAsync(itemId, quantity, cancellationToken);
     }
 
-    public async Task<Result<bool>> ExportItemsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportItemsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
     {
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
         
@@ -229,11 +229,11 @@ public class InventoryPreprocessingDecorator : IInventoryService
             .ExportItemsAsCsvAsync(destination, cancellationToken);
     }
 
-    public async Task<Result<bool>> ExportItemsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportItemsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
     {
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
         

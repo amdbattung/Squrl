@@ -135,12 +135,12 @@ public class InventoryAlertDecorator : IInventoryService
         return result;
     }
 
-    public Task<Result<bool>> ExportItemsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
+    public Task<Result> ExportItemsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
     {
         return _inventoryService.ExportItemsAsCsvAsync(destination, cancellationToken);
     }
 
-    public Task<Result<bool>> ExportItemsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    public Task<Result> ExportItemsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
     {
         return _inventoryService.ExportItemsAsExcelAsync(destination, cancellationToken);
     }

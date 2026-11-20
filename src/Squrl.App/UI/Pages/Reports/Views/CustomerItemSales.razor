@@ -133,7 +133,7 @@
             
             await using MemoryStream stream = new();
 
-            Result<bool> result = await ReportService.GenerateCustomerItemSalesAsWordAsync(
+            Result result = await ReportService.GenerateCustomerItemSalesAsWordAsync(
                 _customer,
                 stream,
                 templateStream);
@@ -194,7 +194,7 @@
             
             await using MemoryStream stream = new();
 
-            Result<bool> result = await ReportService.GenerateCustomerItemSalesAsPdfAsync(
+            Result result = await ReportService.GenerateCustomerItemSalesAsPdfAsync(
                 _customer,
                 stream,
                 templateStream);

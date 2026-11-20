@@ -15,13 +15,13 @@ public class ReportLoggingDecorator : IReportService
         _logger = logger;
     }
     
-    public async Task<Result<bool>> GenerateCustomerItemSalesAsWordAsync(
+    public async Task<Result> GenerateCustomerItemSalesAsWordAsync(
         string customer,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
@@ -72,13 +72,13 @@ public class ReportLoggingDecorator : IReportService
         return result;
     }
 
-    public async Task<Result<bool>> GenerateCustomerItemSalesAsPdfAsync(
+    public async Task<Result> GenerateCustomerItemSalesAsPdfAsync(
         string customer,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
@@ -129,13 +129,13 @@ public class ReportLoggingDecorator : IReportService
         return result;
     }
 
-    public async Task<Result<bool>> GenerateSupplierItemPurchasesAsWordAsync(
+    public async Task<Result> GenerateSupplierItemPurchasesAsWordAsync(
         Guid supplierId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
@@ -186,13 +186,13 @@ public class ReportLoggingDecorator : IReportService
         return result;
     }
 
-    public async Task<Result<bool>> GenerateSupplierItemPurchasesAsPdfAsync(
+    public async Task<Result> GenerateSupplierItemPurchasesAsPdfAsync(
         Guid supplierId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
@@ -243,13 +243,13 @@ public class ReportLoggingDecorator : IReportService
         return result;
     }
 
-    public async Task<Result<bool>> GenerateItemSalesHistoryAsWordAsync(
+    public async Task<Result> GenerateItemSalesHistoryAsWordAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
@@ -300,13 +300,13 @@ public class ReportLoggingDecorator : IReportService
         return result;
     }
 
-    public async Task<Result<bool>> GenerateItemSalesHistoryAsPdfAsync(
+    public async Task<Result> GenerateItemSalesHistoryAsPdfAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
@@ -357,13 +357,13 @@ public class ReportLoggingDecorator : IReportService
         return result;
     }
 
-    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsWordAsync(
+    public async Task<Result> GenerateItemPurchaseHistoryAsWordAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
@@ -414,13 +414,13 @@ public class ReportLoggingDecorator : IReportService
         return result;
     }
 
-    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsPdfAsync(
+    public async Task<Result> GenerateItemPurchaseHistoryAsPdfAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {

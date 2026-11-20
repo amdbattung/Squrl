@@ -19,7 +19,7 @@ public class ImportService : IImportService
         _createSupplierValidator = createSupplierValidator;
     }
     
-    public async Task<Result<bool>> ImportSuppliersAsync(
+    public async Task<Result> ImportSuppliersAsync(
         Stream csvStream,
         CancellationToken cancellationToken = default)
     {
@@ -93,7 +93,7 @@ public class ImportService : IImportService
             await SaveSuppliersAsync(suppliers, result, cancellationToken);
         }
 
-        return Result<bool>.Ok(true);
+        return Result.Ok();
     }
 
     private async Task SaveSuppliersAsync(

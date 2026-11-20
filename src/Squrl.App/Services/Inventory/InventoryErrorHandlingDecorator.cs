@@ -213,11 +213,11 @@ public class InventoryErrorHandlingDecorator : IInventoryService
         }
     }
 
-    public async Task<Result<bool>> ExportItemsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportItemsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
     {
         try
         {
-            Result<bool> result = await _inventoryService
+            Result result = await _inventoryService
                 .ExportItemsAsCsvAsync(destination, cancellationToken);
             
             return result.Exception is null
@@ -230,17 +230,17 @@ public class InventoryErrorHandlingDecorator : IInventoryService
         }
         catch (Exception)
         {
-            return Result<bool>
+            return Result
                 .Fail("Failed to export items, something went wrong.")
                 .WithFailureType(FailureType.Unexpected);
         }
     }
 
-    public async Task<Result<bool>> ExportItemsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportItemsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
     {
         try
         {
-            Result<bool> result = await _inventoryService
+            Result result = await _inventoryService
                 .ExportItemsAsExcelAsync(destination, cancellationToken);
             
             return result.Exception is null
@@ -253,7 +253,7 @@ public class InventoryErrorHandlingDecorator : IInventoryService
         }
         catch (Exception)
         {
-            return Result<bool>
+            return Result
                 .Fail("Failed to export items, something went wrong.")
                 .WithFailureType(FailureType.Unexpected);
         }

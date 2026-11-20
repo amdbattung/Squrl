@@ -846,9 +846,9 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
         return result;
     }
 
-    public async Task<Result<bool>> ExportPoDetailsAsCsvAsync(Guid purchaseOrderId, Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportPoDetailsAsCsvAsync(Guid purchaseOrderId, Stream destination, CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
@@ -896,10 +896,10 @@ public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
         return result;
     }
 
-    public async Task<Result<bool>> ExportPoDetailsAsExcelAsync(Guid purchaseOrderId, Stream destination,
+    public async Task<Result> ExportPoDetailsAsExcelAsync(Guid purchaseOrderId, Stream destination,
         CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {

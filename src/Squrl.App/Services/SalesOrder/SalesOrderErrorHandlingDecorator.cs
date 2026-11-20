@@ -259,11 +259,11 @@ public class SalesOrderErrorHandlingDecorator : ISalesOrderService
         }
     }
 
-    public async Task<Result<bool>> ExportSoDetailsAsCsvAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportSoDetailsAsCsvAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
     {
         try
         {
-            Result<bool> result = await _salesOrderService
+            Result result = await _salesOrderService
                 .ExportSoDetailsAsCsvAsync(salesOrderId, destination, cancellationToken);
             
             return result.Exception is null
@@ -276,17 +276,17 @@ public class SalesOrderErrorHandlingDecorator : ISalesOrderService
         }
         catch (Exception)
         {
-            return Result<bool>
+            return Result
                 .Fail("Failed to export SO detail, something went wrong.")
                 .WithFailureType(FailureType.Unexpected);
         }
     }
 
-    public async Task<Result<bool>> ExportSoDetailsAsExcelAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportSoDetailsAsExcelAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
     {
         try
         {
-            Result<bool> result = await _salesOrderService
+            Result result = await _salesOrderService
                 .ExportSoDetailsAsExcelAsync(salesOrderId, destination, cancellationToken);
             
             return result.Exception is null
@@ -299,7 +299,7 @@ public class SalesOrderErrorHandlingDecorator : ISalesOrderService
         }
         catch (Exception)
         {
-            return Result<bool>
+            return Result
                 .Fail("Failed to export SO detail, something went wrong.")
                 .WithFailureType(FailureType.Unexpected);
         }

@@ -230,7 +230,7 @@
         {
             await using MemoryStream stream = new();
 
-            Result<bool> result = await UomService.ExportUomsAsCsvAsync(stream);
+            Result result = await UomService.ExportUomsAsCsvAsync(stream);
 
             if (!result.IsSuccess)
             {
@@ -278,7 +278,7 @@
         {
             await using MemoryStream stream = new();
 
-            Result<bool> result = await UomService.ExportUomsAsExcelAsync(stream);
+            Result result = await UomService.ExportUomsAsExcelAsync(stream);
 
             if (!result.IsSuccess)
             {

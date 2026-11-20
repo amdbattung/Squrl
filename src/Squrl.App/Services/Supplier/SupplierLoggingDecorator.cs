@@ -274,10 +274,10 @@ public class SupplierLoggingDecorator : ISupplierService
         return result;
     }
 
-    public async Task<Result<bool>> ExportSuppliersAsCsvAsync(Stream destination,
+    public async Task<Result> ExportSuppliersAsCsvAsync(Stream destination,
         CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
@@ -324,9 +324,9 @@ public class SupplierLoggingDecorator : ISupplierService
         return result;
     }
 
-    public async Task<Result<bool>> ExportSuppliersAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportSuppliersAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {

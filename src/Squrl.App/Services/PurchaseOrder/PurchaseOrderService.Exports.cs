@@ -7,7 +7,7 @@ namespace Squrl.App.Services.PurchaseOrder;
 
 public partial class PurchaseOrderService
 {
-    public async Task<Result<bool>> ExportPoDetailsAsCsvAsync(Guid purchaseOrderId, Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportPoDetailsAsCsvAsync(Guid purchaseOrderId, Stream destination, CancellationToken cancellationToken = default)
     {
         IAsyncEnumerable<PurchaseOrderDetail> existingPoDetails = _dataContext.PurchaseOrderDetails
             .AsNoTracking()
@@ -22,10 +22,10 @@ public partial class PurchaseOrderService
             destination,
             cancellationToken);
 
-        return Result<bool>.Ok(true);
+        return Result.Ok();
     }
 
-    public async Task<Result<bool>> ExportPoDetailsAsExcelAsync(Guid purchaseOrderId, Stream destination,
+    public async Task<Result> ExportPoDetailsAsExcelAsync(Guid purchaseOrderId, Stream destination,
         CancellationToken cancellationToken = default)
     {
         IAsyncEnumerable<PurchaseOrderDetail> existingPoDetails = _dataContext.PurchaseOrderDetails
@@ -42,6 +42,6 @@ public partial class PurchaseOrderService
             $"PO Details For Purchase Order {purchaseOrderId.ToString()}",
             cancellationToken);
 
-        return Result<bool>.Ok(true);
+        return Result.Ok();
     }
 }

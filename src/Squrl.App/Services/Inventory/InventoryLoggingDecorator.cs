@@ -436,9 +436,9 @@ public class InventoryLoggingDecorator : IInventoryService
         return result;
     }
 
-    public async Task<Result<bool>> ExportItemsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportItemsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
@@ -485,9 +485,9 @@ public class InventoryLoggingDecorator : IInventoryService
         return result;
     }
 
-    public async Task<Result<bool>> ExportItemsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportItemsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {

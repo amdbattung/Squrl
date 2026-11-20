@@ -105,7 +105,7 @@
 
             using MemoryStream stream = new MemoryStream(_processedFile);
             
-            Result<bool> result = await ImportService.ImportSuppliersAsync(stream);
+            Result result = await ImportService.ImportSuppliersAsync(stream);
 
             if (!result.IsSuccess)
             {

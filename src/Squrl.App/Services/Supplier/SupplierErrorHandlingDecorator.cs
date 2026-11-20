@@ -137,12 +137,12 @@ public class SupplierErrorHandlingDecorator : ISupplierService
         }
     }
 
-    public async Task<Result<bool>> ExportSuppliersAsCsvAsync(Stream destination,
+    public async Task<Result> ExportSuppliersAsCsvAsync(Stream destination,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            Result<bool> result = await _supplierService
+            Result result = await _supplierService
                 .ExportSuppliersAsCsvAsync(destination, cancellationToken);
             
             return result.Exception is null
@@ -155,17 +155,17 @@ public class SupplierErrorHandlingDecorator : ISupplierService
         }
         catch (Exception)
         {
-            return Result<bool>
+            return Result
                 .Fail("Failed to export suppliers, something went wrong.")
                 .WithFailureType(FailureType.Unexpected);
         }
     }
 
-    public async Task<Result<bool>> ExportSuppliersAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportSuppliersAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
     {
         try
         {
-            Result<bool> result = await _supplierService
+            Result result = await _supplierService
                 .ExportSuppliersAsExcelAsync(destination, cancellationToken);
             
             return result.Exception is null
@@ -178,7 +178,7 @@ public class SupplierErrorHandlingDecorator : ISupplierService
         }
         catch (Exception)
         {
-            return Result<bool>
+            return Result
                 .Fail("Failed to export suppliers, something went wrong.")
                 .WithFailureType(FailureType.Unexpected);
         }

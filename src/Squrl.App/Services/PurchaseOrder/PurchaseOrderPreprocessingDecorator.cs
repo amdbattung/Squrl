@@ -304,17 +304,17 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
             .UncancelPurchaseOrderAsync(id, cancellationToken);
     }
 
-    public async Task<Result<bool>> ExportPoDetailsAsCsvAsync(Guid purchaseOrderId, Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportPoDetailsAsCsvAsync(Guid purchaseOrderId, Stream destination, CancellationToken cancellationToken = default)
     {
         if (purchaseOrderId == Guid.Empty)
         {
-            return Result<bool>.Fail("Null or invalid ID.")
+            return Result.Fail("Null or invalid ID.")
                 .WithFailureType(FailureType.Validation);
         }
         
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
         
@@ -322,18 +322,18 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
             .ExportPoDetailsAsCsvAsync(purchaseOrderId, destination, cancellationToken);
     }
 
-    public async Task<Result<bool>> ExportPoDetailsAsExcelAsync(Guid purchaseOrderId, Stream destination,
+    public async Task<Result> ExportPoDetailsAsExcelAsync(Guid purchaseOrderId, Stream destination,
         CancellationToken cancellationToken = default)
     {
         if (purchaseOrderId == Guid.Empty)
         {
-            return Result<bool>.Fail("Null or invalid ID.")
+            return Result.Fail("Null or invalid ID.")
                 .WithFailureType(FailureType.Validation);
         }
         
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
         

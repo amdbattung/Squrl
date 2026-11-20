@@ -170,7 +170,7 @@ else
         {
             await using MemoryStream stream = new();
 
-            Result<bool> result = await PurchaseOrderService.ExportPoDetailsAsCsvAsync(PurchaseOrderId, stream);
+            Result result = await PurchaseOrderService.ExportPoDetailsAsCsvAsync(PurchaseOrderId, stream);
 
             if (!result.IsSuccess)
             {
@@ -219,7 +219,7 @@ else
         {
             await using MemoryStream stream = new();
 
-            Result<bool> result = await PurchaseOrderService.ExportPoDetailsAsExcelAsync(PurchaseOrderId, stream);
+            Result result = await PurchaseOrderService.ExportPoDetailsAsExcelAsync(PurchaseOrderId, stream);
 
             if (!result.IsSuccess)
             {

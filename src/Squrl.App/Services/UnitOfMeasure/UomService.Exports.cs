@@ -6,7 +6,7 @@ namespace Squrl.App.Services.UnitOfMeasure;
 
 public partial class UomService : IUomService
 {
-    public async Task<Result<bool>> ExportUomsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportUomsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
     {
         IAsyncEnumerable<Models.UnitOfMeasure> existingUoms = _dataContext.UnitOfMeasures
             .AsNoTracking()
@@ -16,10 +16,10 @@ public partial class UomService : IUomService
         
         await _csvExporter.ExportAsync(existingUoms, destination, cancellationToken);
 
-        return Result<bool>.Ok(true);
+        return Result.Ok();
     }
 
-    public async Task<Result<bool>> ExportUomsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportUomsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
     {
         IAsyncEnumerable<Models.UnitOfMeasure> existingUoms = _dataContext.UnitOfMeasures
             .AsNoTracking()
@@ -29,6 +29,6 @@ public partial class UomService : IUomService
         
         await _excelExporter.ExportAsync(existingUoms, destination, cancellationToken);
 
-        return Result<bool>.Ok(true);
+        return Result.Ok();
     }
 }
