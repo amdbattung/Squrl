@@ -164,6 +164,9 @@ try
     builder.Services.Decorate<ISupplierService, SupplierErrorHandlingDecorator>();
     
     builder.Services.AddScoped<IImportService, ImportService>();
+    builder.Services.Decorate<IImportService, ImportPreprocessingDecorator>();
+    builder.Services.Decorate<IImportService, ImportLoggingDecorator>();
+    builder.Services.Decorate<IImportService, ImportErrorHandlingDecorator>();
     
     builder.Services.AddScoped<IReportService, ReportService>();
     builder.Services.Decorate<IReportService, ReportPreprocessingDecorator>();

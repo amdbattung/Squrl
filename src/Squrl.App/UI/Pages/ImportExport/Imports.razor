@@ -54,7 +54,7 @@ Qux,Bar</code></pre>
 <button class="btn btn-secondary"
         disabled="@(_isDownloadingTemplate || _isImporting)"
         @onclick="HandleDownloadTemplate">
-    @(_isImporting ? "Downloading..." : "Download Template")
+    @(_isDownloadingTemplate ? "Downloading..." : "Download Template")
 </button>
 
 @code {
@@ -134,7 +134,7 @@ Qux,Bar</code></pre>
                 _errorMessages = result.Errors;
             }
         }
-        catch (Exception e)
+        catch (Exception)
         {
             _errorMessages =
             [
@@ -149,27 +149,49 @@ Qux,Bar</code></pre>
 
     private async Task HandleDownloadTemplate()
     {
-        MemoryStream stream = new();
+        if (_isDownloadingTemplate || _isImporting)
+        {
+            return;
+        }
 
-        await using StreamWriter writer = new(
-            stream,
-            leaveOpen: true);
+        _isDownloadingTemplate = true;
+        _errorMessages = [];
 
-        await writer.WriteLineAsync("Foo,Bar");
-        await writer.WriteLineAsync("Boom,Baz");
-        await writer.WriteLineAsync("Qux,Bar");
+        try
+        {
+            MemoryStream stream = new();
 
-        await writer.FlushAsync();
+            await using StreamWriter writer = new(
+                stream,
+                leaveOpen: true);
 
-        stream.Position = 0;
+            await writer.WriteLineAsync("Foo,Bar");
+            await writer.WriteLineAsync("Boom,Baz");
+            await writer.WriteLineAsync("Qux,Bar");
 
-        string fileName = "suppliers-import-template.csv";
+            await writer.FlushAsync();
+
+            stream.Position = 0;
+
+            string fileName = "suppliers-import-template.csv";
         
-        using DotNetStreamReference streamReference = new(stream);
+            using DotNetStreamReference streamReference = new(stream);
 
-        await Js.InvokeVoidAsync(
-            "downloadFileFromStream",
-            fileName,
-            streamReference);
+            await Js.InvokeVoidAsync(
+                "downloadFileFromStream",
+                fileName,
+                streamReference);
+        }
+        catch (Exception)
+        {
+            _errorMessages =
+            [
+                "An unexpected error occurred while downloading template."
+            ];
+        }
+        finally
+        {
+            _isDownloadingTemplate = false;
+        }
     }
 }
