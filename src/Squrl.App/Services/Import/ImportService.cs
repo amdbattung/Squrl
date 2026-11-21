@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
 using nietras.SeparatedValues;
 using Squrl.App.Common;
@@ -19,42 +20,52 @@ public class ImportService : IImportService
         _createSupplierValidator = createSupplierValidator;
     }
     
-    public async Task<Result> ImportSuppliersAsync(
+    public async Task<Result<ImportInfo>> ImportSuppliersAsync(
         Stream csvStream,
         CancellationToken cancellationToken = default)
     {
-        using var reader = new StreamReader(csvStream, leaveOpen: true);
-        using var csv = Sep.Reader().From(reader);
+        using StreamReader reader = new(csvStream, leaveOpen: true);
+        
+        using SepReader csv = Sep.New(',')
+            .Reader(options => options with {
+                HasHeader = false
+            }).From(reader);
+        
+        int totalRows = 0;
+        int successfulRows = 0;
+        int failedRows = 0;
+        List<ImportError> importErrors = new();
+        
+        List<(int RowNumber, Models.Supplier Supplier)> suppliers = new();
 
-        var result = new ImportResult();
-        var suppliers = new List<(int RowNumber, Models.Supplier Supplier)>();
+        var rowNumber = 0;
 
-        var rowNumber = 1; // Header
-
-        foreach (var row in csv)
+        foreach (SepReader.Row row in csv)
         {
             cancellationToken.ThrowIfCancellationRequested();
             rowNumber++;
-            result.TotalRows++;
+            totalRows++;
 
             try
             {
                 // Map CSV row to DTO
-                var dto = new CreateSupplierDto
+                CreateSupplierDto dto = new()
                 {
-                    Name = row["Name"].ToString().Trim(),
-                    Description = row["Description"].ToString().Trim()
+                    Name = row[0].ToString().Trim(),
+                    Description = row[1].ToString().Trim()
+                        is { Length: > 0 } description
+                        ? description
+                        : null
                 };
-
-                // Validate using FluentValidation
-                var validation = await _createSupplierValidator.ValidateAsync(
-                    dto, cancellationToken);
+                
+                ValidationResult? validation = await _createSupplierValidator
+                    .ValidateAsync(dto, cancellationToken);
 
                 if (!validation.IsValid)
                 {
-                    result.FailedRows++;
+                    failedRows++;
 
-                    result.Errors.Add(new ImportError
+                    importErrors.Add(new ImportError
                     {
                         RowNumber = rowNumber,
                         Message = string.Join(
@@ -66,7 +77,7 @@ public class ImportService : IImportService
                 }
 
                 // Map validated DTO to entity
-                var supplier = new Models.Supplier
+                Models.Supplier supplier = new Models.Supplier
                 {
                     Id = Guid.NewGuid(),
                     Name = dto.Name,
@@ -75,32 +86,18 @@ public class ImportService : IImportService
 
                 suppliers.Add((rowNumber, supplier));
             }
-            catch (Exception ex) when (
-                ex is FormatException or OverflowException)
+            catch (Exception e) when (e is FormatException or OverflowException)
             {
-                result.FailedRows++;
+                failedRows++;
 
-                result.Errors.Add(new ImportError
+                importErrors.Add(new ImportError
                 {
                     RowNumber = rowNumber,
-                    Message = ex.Message
+                    Message = e.Message
                 });
             }
         }
-
-        if (suppliers.Count > 0)
-        {
-            await SaveSuppliersAsync(suppliers, result, cancellationToken);
-        }
-
-        return Result.Ok();
-    }
-
-    private async Task SaveSuppliersAsync(
-        List<(int RowNumber, Models.Supplier Supplier)> suppliers,
-        ImportResult result,
-        CancellationToken cancellationToken)
-    {
+        
         try
         {
             _dataContext.Suppliers.AddRange(
@@ -108,7 +105,7 @@ public class ImportService : IImportService
 
             await _dataContext.SaveChangesAsync(cancellationToken);
 
-            result.SuccessfulRows += suppliers.Count;
+            successfulRows += suppliers.Count;
         }
         catch (DbUpdateException)
         {
@@ -130,37 +127,31 @@ public class ImportService : IImportService
 
                     await _dataContext.SaveChangesAsync(cancellationToken);
 
-                    result.SuccessfulRows++;
+                    successfulRows++;
                 }
-                catch (DbUpdateException ex)
+                catch (DbUpdateException)
                 {
-                    _dataContext.Entry(item.Supplier).State =
-                        EntityState.Detached;
+                    _dataContext.Entry(item.Supplier).State = EntityState.Detached;
 
-                    result.FailedRows++;
+                    failedRows++;
 
-                    result.Errors.Add(new ImportError
+                    importErrors.Add(new ImportError
                     {
                         RowNumber = item.RowNumber,
-                        Message = ex.InnerException?.Message ?? ex.Message
+                        Message = "Failed to save supplier."
                     });
                 }
             }
         }
-    }
-    
-    private class ImportResult
-    {
-        public int TotalRows { get; set; }
-        public int SuccessfulRows { get; set; }
-        public int FailedRows { get; set; }
 
-        public List<ImportError> Errors { get; set; } = [];
-    }
+        ImportInfo importInfo = new()
+        {
+            TotalRows = totalRows,
+            SuccessfulRows = successfulRows,
+            FailedRows = failedRows,
+            Errors = importErrors
+        };
 
-    private class ImportError
-    {
-        public int RowNumber { get; set; }
-        public string Message { get; set; } = string.Empty;
+        return Result<ImportInfo>.Ok(importInfo);
     }
 }

@@ -4,7 +4,7 @@ namespace Squrl.App.Services.Import;
 
 public interface IImportService
 {
-    Task<Result> ImportSuppliersAsync(
+    Task<Result<ImportInfo>> ImportSuppliersAsync(
         Stream csv,
         CancellationToken cancellationToken = default);
 }

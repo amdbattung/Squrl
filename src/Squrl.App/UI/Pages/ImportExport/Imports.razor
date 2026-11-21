@@ -1,12 +1,12 @@
 ﻿@page "/imports"
-@using Squrl.App.Services.Import
 @rendermode InteractiveServer
 @inject IImportService ImportService
+@inject IJSRuntime Js
 
-<h1>Imports</h1>
+<h1>Import</h1>
 
 <div>
-    <label>Template</label>
+    <label>File</label>
     <InputFile @key="_inputFileKey"
                OnChange="HandleFileUpload"
                accept=".csv"
@@ -30,10 +30,31 @@
     </div>
 }
 
+<div class="alert alert-light border mb-3">
+    <strong>Format:</strong> Name<span class="text-danger">*</span>, Description
+
+    <div class="border rounded overflow-hidden">
+        <div class="bg-light border-bottom px-3 py-2">
+            <small class="text-muted fw-semibold">suppliers-import.csv</small>
+        </div>
+        
+<pre class="p-3 mb-0"><code>Foo,Bar
+Boom,Baz
+Qux,Bar</code></pre>
+        
+    </div>
+</div>
+
 <button class="btn btn-primary"
-        disabled="@(_isImporting)"
+        disabled="@(_isImporting || _isDownloadingTemplate)"
         @onclick="HandleImport">
-    @(_isImporting ? "Handle Import" : "Import")
+    @(_isImporting ? "Importing..." : "Import")
+</button>
+
+<button class="btn btn-secondary"
+        disabled="@(_isDownloadingTemplate || _isImporting)"
+        @onclick="HandleDownloadTemplate">
+    @(_isImporting ? "Downloading..." : "Download Template")
 </button>
 
 @code {
@@ -41,6 +62,7 @@
     private string? _fileError;
     
     private bool _isImporting;
+    private bool _isDownloadingTemplate;
     
     private IReadOnlyList<string> _errorMessages = [];
     
@@ -87,7 +109,7 @@
 
     private async Task HandleImport()
     {
-        if (_isImporting)
+        if (_isImporting || _isDownloadingTemplate)
         {
             return;
         }
@@ -105,7 +127,7 @@
 
             using MemoryStream stream = new MemoryStream(_processedFile);
             
-            Result result = await ImportService.ImportSuppliersAsync(stream);
+            Result<ImportInfo> result = await ImportService.ImportSuppliersAsync(stream);
 
             if (!result.IsSuccess)
             {
@@ -123,5 +145,31 @@
         {
             _isImporting = false;
         }
+    }
+
+    private async Task HandleDownloadTemplate()
+    {
+        MemoryStream stream = new();
+
+        await using StreamWriter writer = new(
+            stream,
+            leaveOpen: true);
+
+        await writer.WriteLineAsync("Foo,Bar");
+        await writer.WriteLineAsync("Boom,Baz");
+        await writer.WriteLineAsync("Qux,Bar");
+
+        await writer.FlushAsync();
+
+        stream.Position = 0;
+
+        string fileName = "suppliers-import-template.csv";
+        
+        using DotNetStreamReference streamReference = new(stream);
+
+        await Js.InvokeVoidAsync(
+            "downloadFileFromStream",
+            fileName,
+            streamReference);
     }
 }
