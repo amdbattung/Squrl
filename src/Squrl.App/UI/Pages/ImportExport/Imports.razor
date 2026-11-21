@@ -1,197 +1,39 @@
 ﻿@page "/imports"
 @rendermode InteractiveServer
-@inject IImportService ImportService
-@inject IJSRuntime Js
 
 <h1>Import</h1>
 
-<div>
-    <label>File</label>
-    <InputFile @key="_inputFileKey"
-               OnChange="HandleFileUpload"
-               accept=".csv"
-               class="form-control" />
-    
-    @if (!string.IsNullOrWhiteSpace(_fileError))
-    {
-        <div class="alert alert-danger"> @_fileError </div>
-    }
+<div class="mb-3">
+    <InputSelect @bind-Value="_selectedResource">
+        <option value="item">
+            Item
+        </option>
+        <option value="uom">
+            Unit of Measure
+        </option>
+        <option value="supplier">
+            Supplier
+        </option>
+    </InputSelect>
 </div>
 
-@if (_errorMessages.Count > 0)
+<hr />
+
+@switch (_selectedResource)
 {
-    <div class="alert alert-danger mt-3" role="alert">
-        <ul class="mb-0">
-            @foreach (string error in _errorMessages)
-            {
-                <li>@error</li>
-            }
-        </ul>
-    </div>
+    case "uom":
+        <ImportUomsFromCsv />
+        break;
+
+    case "supplier":
+        <ImportSuppliersFromCsv />
+        break;
+
+    default:
+        <p class="text-muted">Please select a resource to import.</p>
+        break;
 }
 
-<div class="alert alert-light border mb-3">
-    <strong>Format:</strong> Name<span class="text-danger">*</span>, Description
-
-    <div class="border rounded overflow-hidden">
-        <div class="bg-light border-bottom px-3 py-2">
-            <small class="text-muted fw-semibold">suppliers-import.csv</small>
-        </div>
-        
-<pre class="p-3 mb-0"><code>Foo,Bar
-Boom,Baz
-Qux,Bar</code></pre>
-        
-    </div>
-</div>
-
-<button class="btn btn-primary"
-        disabled="@(_isImporting || _isDownloadingTemplate)"
-        @onclick="HandleImport">
-    @(_isImporting ? "Importing..." : "Import")
-</button>
-
-<button class="btn btn-secondary"
-        disabled="@(_isDownloadingTemplate || _isImporting)"
-        @onclick="HandleDownloadTemplate">
-    @(_isDownloadingTemplate ? "Downloading..." : "Download Template")
-</button>
-
 @code {
-    private byte[]? _processedFile;
-    private string? _fileError;
-    
-    private bool _isImporting;
-    private bool _isDownloadingTemplate;
-    
-    private IReadOnlyList<string> _errorMessages = [];
-    
-    private Guid _inputFileKey = Guid.NewGuid();
-    
-    private async Task HandleFileUpload(InputFileChangeEventArgs e)
-    {
-        _processedFile = null;
-        
-        _fileError = null;
-
-        try
-        {
-            IBrowserFile file = e.File;
-            
-            if (!file.Name.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
-            {
-                _fileError = "Upload failed: Please upload a CSV file.";
-                return;
-            }
-
-            await using Stream stream = file.OpenReadStream(maxAllowedSize: 10 * 1024 * 1024);
-
-            using MemoryStream memory = new MemoryStream();
-
-            await stream.CopyToAsync(memory);
-
-            _processedFile = memory.ToArray();
-
-            if (_processedFile.Length == 0)
-            {
-                _processedFile = null;
-
-                _fileError = "Upload failed: The uploaded file is empty.";
-            }
-        }
-        catch (Exception ex)
-        {
-            _processedFile = null;
-
-            _fileError = $"Upload failed: {ex.Message}";
-        }
-    }
-
-    private async Task HandleImport()
-    {
-        if (_isImporting || _isDownloadingTemplate)
-        {
-            return;
-        }
-
-        _isImporting = true;
-        _errorMessages = [];
-
-        try
-        {
-            if (_processedFile == null)
-            {
-                _errorMessages = ["No file selected."];
-                return;
-            }
-
-            using MemoryStream stream = new MemoryStream(_processedFile);
-            
-            Result<ImportInfo> result = await ImportService.ImportSuppliersAsync(stream);
-
-            if (!result.IsSuccess)
-            {
-                _errorMessages = result.Errors;
-            }
-        }
-        catch (Exception)
-        {
-            _errorMessages =
-            [
-                "An unexpected error occurred while importing file."
-            ];
-        }
-        finally
-        {
-            _isImporting = false;
-        }
-    }
-
-    private async Task HandleDownloadTemplate()
-    {
-        if (_isDownloadingTemplate || _isImporting)
-        {
-            return;
-        }
-
-        _isDownloadingTemplate = true;
-        _errorMessages = [];
-
-        try
-        {
-            MemoryStream stream = new();
-
-            await using StreamWriter writer = new(
-                stream,
-                leaveOpen: true);
-
-            await writer.WriteLineAsync("Foo,Bar");
-            await writer.WriteLineAsync("Boom,Baz");
-            await writer.WriteLineAsync("Qux,Bar");
-
-            await writer.FlushAsync();
-
-            stream.Position = 0;
-
-            string fileName = "suppliers-import-template.csv";
-        
-            using DotNetStreamReference streamReference = new(stream);
-
-            await Js.InvokeVoidAsync(
-                "downloadFileFromStream",
-                fileName,
-                streamReference);
-        }
-        catch (Exception)
-        {
-            _errorMessages =
-            [
-                "An unexpected error occurred while downloading template."
-            ];
-        }
-        finally
-        {
-            _isDownloadingTemplate = false;
-        }
-    }
+    private string? _selectedResource;
 }

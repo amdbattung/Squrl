@@ -11,8 +11,13 @@ public class ImportPreprocessingDecorator : IImportService
     {
         _importService = importService;
     }
-    
-    public async Task<Result<ImportInfo>> ImportSuppliersAsync(Stream csv, CancellationToken cancellationToken = default)
+
+    public Task<Result<ImportInfo>> ImportItemsFromCsvAsync(Stream csv, CancellationToken cancellationToken = default)
+    {
+        throw new NotImplementedException();
+    }
+
+    public async Task<Result<ImportInfo>> ImportUomsFromCsvAsync(Stream csv, CancellationToken cancellationToken = default)
     {
         if (!csv.CanRead)
         {
@@ -34,6 +39,31 @@ public class ImportPreprocessingDecorator : IImportService
         }
 
         return await _importService
-            .ImportSuppliersAsync(csv, cancellationToken);
+            .ImportUomsFromCsvAsync(csv, cancellationToken);
+    }
+
+    public async Task<Result<ImportInfo>> ImportSuppliersFromCsvAsync(Stream csv, CancellationToken cancellationToken = default)
+    {
+        if (!csv.CanRead)
+        {
+            return Result<ImportInfo>.Fail("CSV is not readable.")
+                .WithFailureType(FailureType.Validation);
+        }
+        
+        long maxTemplateSize = 5 * 1024L * 1024L; // 5 MB
+
+        if (csv.CanSeek)
+        {
+            if (csv.Length > maxTemplateSize)
+            {
+                return Result<ImportInfo>.Fail("CSV is too large.")
+                    .WithFailureType(FailureType.Validation);
+            }
+
+            csv.Position = 0;
+        }
+
+        return await _importService
+            .ImportSuppliersFromCsvAsync(csv, cancellationToken);
     }
 }
