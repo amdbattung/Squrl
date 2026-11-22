@@ -6,7 +6,7 @@ using Squrl.App.Features.UnitOfMeasures.DTOs;
 
 namespace Squrl.App.Services.UnitOfMeasure;
 
-public class UomPreprocessingDecorator : IUomService
+public sealed class UomPreprocessingDecorator : IUomService
 {
     private readonly IUomService _uomService;
     private readonly IValidator<CreateUomDto> _createUomValidator;
@@ -115,11 +115,11 @@ public class UomPreprocessingDecorator : IUomService
             .DeleteUomAsync(id, cancellationToken);
     }
 
-    public async Task<Result<bool>> ExportUomsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportUomsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
     {
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
         
@@ -127,11 +127,11 @@ public class UomPreprocessingDecorator : IUomService
             .ExportUomsAsCsvAsync(destination, cancellationToken);
     }
 
-    public async Task<Result<bool>> ExportUomsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportUomsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
     {
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
         

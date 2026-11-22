@@ -6,7 +6,7 @@ using Squrl.App.Features.Suppliers.DTOs;
 
 namespace Squrl.App.Services.Supplier;
 
-public class SupplierPreprocessingDecorator : ISupplierService
+public sealed class SupplierPreprocessingDecorator : ISupplierService
 {
     private readonly ISupplierService _supplierService;
     private readonly IValidator<CreateSupplierDto> _createSupplierValidator;
@@ -114,12 +114,12 @@ public class SupplierPreprocessingDecorator : ISupplierService
             .DeleteSupplierAsync(id, cancellationToken);
     }
 
-    public async Task<Result<bool>> ExportSuppliersAsCsvAsync(Stream destination,
+    public async Task<Result> ExportSuppliersAsCsvAsync(Stream destination,
         CancellationToken cancellationToken = default)
     {
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
         
@@ -127,11 +127,11 @@ public class SupplierPreprocessingDecorator : ISupplierService
             .ExportSuppliersAsCsvAsync(destination, cancellationToken);
     }
 
-    public async Task<Result<bool>> ExportSuppliersAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportSuppliersAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
     {
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
         

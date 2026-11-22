@@ -3,7 +3,7 @@ using Squrl.App.Enums;
 
 namespace Squrl.App.Services.Report;
 
-public class ReportPreprocessingDecorator : IReportService
+public sealed class ReportPreprocessingDecorator : IReportService
 {
     private readonly IReportService _reportService;
     private readonly long _maxTemplateSize;
@@ -14,7 +14,7 @@ public class ReportPreprocessingDecorator : IReportService
         _maxTemplateSize = 10 * 1024L * 1024L; // 10 MB
     }
     
-    public async Task<Result<bool>> GenerateCustomerItemSalesAsWord(
+    public async Task<Result> GenerateCustomerItemSalesAsWordAsync(
         string customer,
         Stream destination,
         Stream? template = null,
@@ -24,13 +24,13 @@ public class ReportPreprocessingDecorator : IReportService
         
         if (string.IsNullOrWhiteSpace(customer))
         {
-            return Result<bool>.Fail("Null or invalid customer.")
+            return Result.Fail("Null or invalid customer.")
                 .WithFailureType(FailureType.Validation);
         }
         
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
 
@@ -38,7 +38,7 @@ public class ReportPreprocessingDecorator : IReportService
         {
             if (!template.CanRead)
             {
-                return Result<bool>.Fail("Template is not readable.")
+                return Result.Fail("Template is not readable.")
                     .WithFailureType(FailureType.Validation);
             }
 
@@ -46,7 +46,7 @@ public class ReportPreprocessingDecorator : IReportService
             {
                 if (template.Length > _maxTemplateSize)
                 {
-                    return Result<bool>.Fail("Template is too large.")
+                    return Result.Fail("Template is too large.")
                         .WithFailureType(FailureType.Validation);
                 }
 
@@ -55,10 +55,10 @@ public class ReportPreprocessingDecorator : IReportService
         }
 
         return await _reportService
-            .GenerateCustomerItemSalesAsWord(customer, destination, template, cancellationToken);
+            .GenerateCustomerItemSalesAsWordAsync(customer, destination, template, cancellationToken);
     }
 
-    public async Task<Result<bool>> GenerateCustomerItemSalesAsPdf(
+    public async Task<Result> GenerateCustomerItemSalesAsPdfAsync(
         string customer,
         Stream destination,
         Stream? template = null,
@@ -68,13 +68,13 @@ public class ReportPreprocessingDecorator : IReportService
         
         if (string.IsNullOrWhiteSpace(customer))
         {
-            return Result<bool>.Fail("Null or invalid customer.")
+            return Result.Fail("Null or invalid customer.")
                 .WithFailureType(FailureType.Validation);
         }
         
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
 
@@ -82,7 +82,7 @@ public class ReportPreprocessingDecorator : IReportService
         {
             if (!template.CanRead)
             {
-                return Result<bool>.Fail("Template is not readable.")
+                return Result.Fail("Template is not readable.")
                     .WithFailureType(FailureType.Validation);
             }
 
@@ -90,7 +90,7 @@ public class ReportPreprocessingDecorator : IReportService
             {
                 if (template.Length > _maxTemplateSize)
                 {
-                    return Result<bool>.Fail("Template is too large.")
+                    return Result.Fail("Template is too large.")
                         .WithFailureType(FailureType.Validation);
                 }
 
@@ -99,10 +99,10 @@ public class ReportPreprocessingDecorator : IReportService
         }
 
         return await _reportService
-            .GenerateCustomerItemSalesAsPdf(customer, destination, template, cancellationToken);
+            .GenerateCustomerItemSalesAsPdfAsync(customer, destination, template, cancellationToken);
     }
 
-    public async Task<Result<bool>> GenerateSupplierItemPurchasesAsWord(
+    public async Task<Result> GenerateSupplierItemPurchasesAsWordAsync(
         Guid supplierId,
         Stream destination,
         Stream? template = null,
@@ -110,13 +110,13 @@ public class ReportPreprocessingDecorator : IReportService
     {
         if (supplierId == Guid.Empty)
         {
-            return Result<bool>.Fail("Null or invalid ID.")
+            return Result.Fail("Null or invalid ID.")
                 .WithFailureType(FailureType.Validation);
         }
         
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
 
@@ -124,7 +124,7 @@ public class ReportPreprocessingDecorator : IReportService
         {
             if (!template.CanRead)
             {
-                return Result<bool>.Fail("Template is not readable.")
+                return Result.Fail("Template is not readable.")
                     .WithFailureType(FailureType.Validation);
             }
 
@@ -132,7 +132,7 @@ public class ReportPreprocessingDecorator : IReportService
             {
                 if (template.Length > _maxTemplateSize)
                 {
-                    return Result<bool>.Fail("Template is too large.")
+                    return Result.Fail("Template is too large.")
                         .WithFailureType(FailureType.Validation);
                 }
 
@@ -141,10 +141,10 @@ public class ReportPreprocessingDecorator : IReportService
         }
 
         return await _reportService
-            .GenerateSupplierItemPurchasesAsWord(supplierId, destination, template, cancellationToken);
+            .GenerateSupplierItemPurchasesAsWordAsync(supplierId, destination, template, cancellationToken);
     }
 
-    public async Task<Result<bool>> GenerateSupplierItemPurchasesAsPdf(
+    public async Task<Result> GenerateSupplierItemPurchasesAsPdfAsync(
         Guid supplierId,
         Stream destination,
         Stream? template = null,
@@ -152,13 +152,13 @@ public class ReportPreprocessingDecorator : IReportService
     {
         if (supplierId == Guid.Empty)
         {
-            return Result<bool>.Fail("Null or invalid ID.")
+            return Result.Fail("Null or invalid ID.")
                 .WithFailureType(FailureType.Validation);
         }
         
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
 
@@ -166,7 +166,7 @@ public class ReportPreprocessingDecorator : IReportService
         {
             if (!template.CanRead)
             {
-                return Result<bool>.Fail("Template is not readable.")
+                return Result.Fail("Template is not readable.")
                     .WithFailureType(FailureType.Validation);
             }
 
@@ -174,7 +174,7 @@ public class ReportPreprocessingDecorator : IReportService
             {
                 if (template.Length > _maxTemplateSize)
                 {
-                    return Result<bool>.Fail("Template is too large.")
+                    return Result.Fail("Template is too large.")
                         .WithFailureType(FailureType.Validation);
                 }
 
@@ -183,10 +183,10 @@ public class ReportPreprocessingDecorator : IReportService
         }
 
         return await _reportService
-            .GenerateSupplierItemPurchasesAsPdf(supplierId, destination, template, cancellationToken);
+            .GenerateSupplierItemPurchasesAsPdfAsync(supplierId, destination, template, cancellationToken);
     }
 
-    public async Task<Result<bool>> GenerateItemSalesHistoryAsWord(
+    public async Task<Result> GenerateItemSalesHistoryAsWordAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
@@ -194,13 +194,13 @@ public class ReportPreprocessingDecorator : IReportService
     {
         if (itemId == Guid.Empty)
         {
-            return Result<bool>.Fail("Null or invalid ID.")
+            return Result.Fail("Null or invalid ID.")
                 .WithFailureType(FailureType.Validation);
         }
         
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
 
@@ -208,7 +208,7 @@ public class ReportPreprocessingDecorator : IReportService
         {
             if (!template.CanRead)
             {
-                return Result<bool>.Fail("Template is not readable.")
+                return Result.Fail("Template is not readable.")
                     .WithFailureType(FailureType.Validation);
             }
 
@@ -216,7 +216,7 @@ public class ReportPreprocessingDecorator : IReportService
             {
                 if (template.Length > _maxTemplateSize)
                 {
-                    return Result<bool>.Fail("Template is too large.")
+                    return Result.Fail("Template is too large.")
                         .WithFailureType(FailureType.Validation);
                 }
 
@@ -225,10 +225,10 @@ public class ReportPreprocessingDecorator : IReportService
         }
 
         return await _reportService
-            .GenerateItemSalesHistoryAsWord(itemId, destination, template, cancellationToken);
+            .GenerateItemSalesHistoryAsWordAsync(itemId, destination, template, cancellationToken);
     }
 
-    public async Task<Result<bool>> GenerateItemSalesHistoryAsPdf(
+    public async Task<Result> GenerateItemSalesHistoryAsPdfAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
@@ -236,13 +236,13 @@ public class ReportPreprocessingDecorator : IReportService
     {
         if (itemId == Guid.Empty)
         {
-            return Result<bool>.Fail("Null or invalid ID.")
+            return Result.Fail("Null or invalid ID.")
                 .WithFailureType(FailureType.Validation);
         }
         
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
 
@@ -250,7 +250,7 @@ public class ReportPreprocessingDecorator : IReportService
         {
             if (!template.CanRead)
             {
-                return Result<bool>.Fail("Template is not readable.")
+                return Result.Fail("Template is not readable.")
                     .WithFailureType(FailureType.Validation);
             }
 
@@ -258,7 +258,7 @@ public class ReportPreprocessingDecorator : IReportService
             {
                 if (template.Length > _maxTemplateSize)
                 {
-                    return Result<bool>.Fail("Template is too large.")
+                    return Result.Fail("Template is too large.")
                         .WithFailureType(FailureType.Validation);
                 }
 
@@ -267,10 +267,10 @@ public class ReportPreprocessingDecorator : IReportService
         }
 
         return await _reportService
-            .GenerateItemSalesHistoryAsPdf(itemId, destination, template, cancellationToken);
+            .GenerateItemSalesHistoryAsPdfAsync(itemId, destination, template, cancellationToken);
     }
 
-    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsWord(
+    public async Task<Result> GenerateItemPurchaseHistoryAsWordAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
@@ -278,13 +278,13 @@ public class ReportPreprocessingDecorator : IReportService
     {
         if (itemId == Guid.Empty)
         {
-            return Result<bool>.Fail("Null or invalid ID.")
+            return Result.Fail("Null or invalid ID.")
                 .WithFailureType(FailureType.Validation);
         }
         
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
 
@@ -292,7 +292,7 @@ public class ReportPreprocessingDecorator : IReportService
         {
             if (!template.CanRead)
             {
-                return Result<bool>.Fail("Template is not readable.")
+                return Result.Fail("Template is not readable.")
                     .WithFailureType(FailureType.Validation);
             }
 
@@ -300,7 +300,7 @@ public class ReportPreprocessingDecorator : IReportService
             {
                 if (template.Length > _maxTemplateSize)
                 {
-                    return Result<bool>.Fail("Template is too large.")
+                    return Result.Fail("Template is too large.")
                         .WithFailureType(FailureType.Validation);
                 }
 
@@ -309,10 +309,10 @@ public class ReportPreprocessingDecorator : IReportService
         }
 
         return await _reportService
-            .GenerateItemPurchaseHistoryAsWord(itemId, destination, template, cancellationToken);
+            .GenerateItemPurchaseHistoryAsWordAsync(itemId, destination, template, cancellationToken);
     }
 
-    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsPdf(
+    public async Task<Result> GenerateItemPurchaseHistoryAsPdfAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
@@ -320,13 +320,13 @@ public class ReportPreprocessingDecorator : IReportService
     {
         if (itemId == Guid.Empty)
         {
-            return Result<bool>.Fail("Null or invalid ID.")
+            return Result.Fail("Null or invalid ID.")
                 .WithFailureType(FailureType.Validation);
         }
         
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
 
@@ -334,7 +334,7 @@ public class ReportPreprocessingDecorator : IReportService
         {
             if (!template.CanRead)
             {
-                return Result<bool>.Fail("Template is not readable.")
+                return Result.Fail("Template is not readable.")
                     .WithFailureType(FailureType.Validation);
             }
 
@@ -342,7 +342,7 @@ public class ReportPreprocessingDecorator : IReportService
             {
                 if (template.Length > _maxTemplateSize)
                 {
-                    return Result<bool>.Fail("Template is too large.")
+                    return Result.Fail("Template is too large.")
                         .WithFailureType(FailureType.Validation);
                 }
 
@@ -351,6 +351,6 @@ public class ReportPreprocessingDecorator : IReportService
         }
 
         return await _reportService
-            .GenerateItemPurchaseHistoryAsPdf(itemId, destination, template, cancellationToken);
+            .GenerateItemPurchaseHistoryAsPdfAsync(itemId, destination, template, cancellationToken);
     }
 }

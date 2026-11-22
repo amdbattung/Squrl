@@ -7,7 +7,7 @@ using Squrl.App.Features.PurchaseOrders.DTOs;
 
 namespace Squrl.App.Services.PurchaseOrder;
 
-public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
+public sealed class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
 {
     private readonly IPurchaseOrderService _purchaseOrderService;
     private readonly IValidator<CreatePurchaseOrderDto> _createPurchaseOrderValidator;
@@ -63,13 +63,21 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
     public async Task<Result<GetPurchaseOrderDto>> CreatePurchaseOrderAsync(CreatePurchaseOrderDto purchaseOrder, CancellationToken cancellationToken = default)
     {
         purchaseOrder.Status ??= PurchaseOrderStatus.Pending;
-            
-        ValidationResult poValidationResult = await _createPurchaseOrderValidator
-            .ValidateAsync(purchaseOrder, cancellationToken);
-            
-        if (!poValidationResult.IsValid)
+        
+        ValidationContext<CreatePurchaseOrderDto> validationContext = new(purchaseOrder)
         {
-            return Result<GetPurchaseOrderDto>.Fail(poValidationResult.Errors
+            RootContextData =
+            {
+                ["SkipPurchaseOrderIdValidation"] = true
+            }
+        };
+
+        ValidationResult validationResult = await _createPurchaseOrderValidator
+            .ValidateAsync(validationContext, cancellationToken);
+            
+        if (!validationResult.IsValid)
+        {
+            return Result<GetPurchaseOrderDto>.Fail(validationResult.Errors
                     .Select(e => e.ErrorMessage)
                     .ToArray())
                 .WithFailureType(FailureType.Validation);
@@ -101,13 +109,21 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
             return Result<GetPurchaseOrderDto>.Fail("Null or invalid ID.")
                 .WithFailureType(FailureType.Validation);
         }
-            
-        ValidationResult poValidationResult = await _updatePurchaseOrderValidator
-            .ValidateAsync(purchaseOrder, cancellationToken);
-            
-        if (!poValidationResult.IsValid)
+        
+        ValidationContext<UpdatePurchaseOrderDto> validationContext = new(purchaseOrder)
         {
-            return Result<GetPurchaseOrderDto>.Fail(poValidationResult.Errors
+            RootContextData =
+            {
+                ["SkipPurchaseOrderIdValidation"] = true
+            }
+        };
+
+        ValidationResult validationResult = await _updatePurchaseOrderValidator
+            .ValidateAsync(validationContext, cancellationToken);
+            
+        if (!validationResult.IsValid)
+        {
+            return Result<GetPurchaseOrderDto>.Fail(validationResult.Errors
                     .Select(e => e.ErrorMessage)
                     .ToArray())
                 .WithFailureType(FailureType.Validation);
@@ -288,17 +304,17 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
             .UncancelPurchaseOrderAsync(id, cancellationToken);
     }
 
-    public async Task<Result<bool>> ExportPoDetailsAsCsvAsync(Guid purchaseOrderId, Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportPoDetailsAsCsvAsync(Guid purchaseOrderId, Stream destination, CancellationToken cancellationToken = default)
     {
         if (purchaseOrderId == Guid.Empty)
         {
-            return Result<bool>.Fail("Null or invalid ID.")
+            return Result.Fail("Null or invalid ID.")
                 .WithFailureType(FailureType.Validation);
         }
         
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
         
@@ -306,18 +322,18 @@ public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
             .ExportPoDetailsAsCsvAsync(purchaseOrderId, destination, cancellationToken);
     }
 
-    public async Task<Result<bool>> ExportPoDetailsAsExcelAsync(Guid purchaseOrderId, Stream destination,
+    public async Task<Result> ExportPoDetailsAsExcelAsync(Guid purchaseOrderId, Stream destination,
         CancellationToken cancellationToken = default)
     {
         if (purchaseOrderId == Guid.Empty)
         {
-            return Result<bool>.Fail("Null or invalid ID.")
+            return Result.Fail("Null or invalid ID.")
                 .WithFailureType(FailureType.Validation);
         }
         
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
         

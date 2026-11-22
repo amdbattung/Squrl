@@ -3,7 +3,7 @@ using Squrl.App.Enums;
 
 namespace Squrl.App.Services.Report;
 
-public class ReportLoggingDecorator : IReportService
+public sealed class ReportLoggingDecorator : IReportService
 {
     private readonly IReportService _reportService;
     private readonly ILogger<ReportLoggingDecorator> _logger;
@@ -15,17 +15,17 @@ public class ReportLoggingDecorator : IReportService
         _logger = logger;
     }
     
-    public async Task<Result<bool>> GenerateCustomerItemSalesAsWord(
+    public async Task<Result> GenerateCustomerItemSalesAsWordAsync(
         string customer,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
-            result = await _reportService.GenerateCustomerItemSalesAsWord(
+            result = await _reportService.GenerateCustomerItemSalesAsWordAsync(
                 customer,
                 destination,
                 template,
@@ -72,17 +72,17 @@ public class ReportLoggingDecorator : IReportService
         return result;
     }
 
-    public async Task<Result<bool>> GenerateCustomerItemSalesAsPdf(
+    public async Task<Result> GenerateCustomerItemSalesAsPdfAsync(
         string customer,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
-            result = await _reportService.GenerateCustomerItemSalesAsPdf(
+            result = await _reportService.GenerateCustomerItemSalesAsPdfAsync(
                 customer,
                 destination,
                 template,
@@ -129,17 +129,17 @@ public class ReportLoggingDecorator : IReportService
         return result;
     }
 
-    public async Task<Result<bool>> GenerateSupplierItemPurchasesAsWord(
+    public async Task<Result> GenerateSupplierItemPurchasesAsWordAsync(
         Guid supplierId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
-            result = await _reportService.GenerateSupplierItemPurchasesAsWord(
+            result = await _reportService.GenerateSupplierItemPurchasesAsWordAsync(
                 supplierId,
                 destination,
                 template,
@@ -186,17 +186,17 @@ public class ReportLoggingDecorator : IReportService
         return result;
     }
 
-    public async Task<Result<bool>> GenerateSupplierItemPurchasesAsPdf(
+    public async Task<Result> GenerateSupplierItemPurchasesAsPdfAsync(
         Guid supplierId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
-            result = await _reportService.GenerateSupplierItemPurchasesAsPdf(
+            result = await _reportService.GenerateSupplierItemPurchasesAsPdfAsync(
                 supplierId,
                 destination,
                 template,
@@ -243,17 +243,17 @@ public class ReportLoggingDecorator : IReportService
         return result;
     }
 
-    public async Task<Result<bool>> GenerateItemSalesHistoryAsWord(
+    public async Task<Result> GenerateItemSalesHistoryAsWordAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
-            result = await _reportService.GenerateItemSalesHistoryAsWord(
+            result = await _reportService.GenerateItemSalesHistoryAsWordAsync(
                 itemId,
                 destination,
                 template,
@@ -300,17 +300,17 @@ public class ReportLoggingDecorator : IReportService
         return result;
     }
 
-    public async Task<Result<bool>> GenerateItemSalesHistoryAsPdf(
+    public async Task<Result> GenerateItemSalesHistoryAsPdfAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
-            result = await _reportService.GenerateItemSalesHistoryAsPdf(
+            result = await _reportService.GenerateItemSalesHistoryAsPdfAsync(
                 itemId,
                 destination,
                 template,
@@ -357,17 +357,17 @@ public class ReportLoggingDecorator : IReportService
         return result;
     }
 
-    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsWord(
+    public async Task<Result> GenerateItemPurchaseHistoryAsWordAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
-            result = await _reportService.GenerateItemPurchaseHistoryAsWord(
+            result = await _reportService.GenerateItemPurchaseHistoryAsWordAsync(
                 itemId,
                 destination,
                 template,
@@ -414,17 +414,17 @@ public class ReportLoggingDecorator : IReportService
         return result;
     }
 
-    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsPdf(
+    public async Task<Result> GenerateItemPurchaseHistoryAsPdfAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
-            result = await _reportService.GenerateItemPurchaseHistoryAsPdf(
+            result = await _reportService.GenerateItemPurchaseHistoryAsPdfAsync(
                 itemId,
                 destination,
                 template,

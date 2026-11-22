@@ -1,0 +1,43 @@
+﻿@page "/imports"
+@rendermode InteractiveServer
+
+<h1>Import</h1>
+
+<div class="mb-3">
+    <InputSelect @bind-Value="_selectedResource">
+        <option value="item">
+            Item
+        </option>
+        <option value="uom">
+            Unit of Measure
+        </option>
+        <option value="supplier">
+            Supplier
+        </option>
+    </InputSelect>
+</div>
+
+<hr />
+
+@switch (_selectedResource)
+{
+    case "item":
+        <ImportItemsFromCsv />
+        break;
+        
+    case "uom":
+        <ImportUomsFromCsv />
+        break;
+
+    case "supplier":
+        <ImportSuppliersFromCsv />
+        break;
+
+    default:
+        <p class="text-muted">Please select a resource to import.</p>
+        break;
+}
+
+@code {
+    private string? _selectedResource = "item";
+}

@@ -4,49 +4,49 @@ namespace Squrl.App.Services.Report;
 
 public interface IReportService
 {
-    Task<Result<bool>> GenerateCustomerItemSalesAsWord(
+    Task<Result> GenerateCustomerItemSalesAsWordAsync(
         string customer,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default);
     
-    Task<Result<bool>> GenerateCustomerItemSalesAsPdf(
+    Task<Result> GenerateCustomerItemSalesAsPdfAsync(
         string customer,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default);
     
-    Task<Result<bool>> GenerateSupplierItemPurchasesAsWord(
+    Task<Result> GenerateSupplierItemPurchasesAsWordAsync(
         Guid supplierId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default);
     
-    Task<Result<bool>> GenerateSupplierItemPurchasesAsPdf(
+    Task<Result> GenerateSupplierItemPurchasesAsPdfAsync(
         Guid supplierId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default);
     
-    Task<Result<bool>> GenerateItemSalesHistoryAsWord(
+    Task<Result> GenerateItemSalesHistoryAsWordAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default);
     
-    Task<Result<bool>> GenerateItemSalesHistoryAsPdf(
+    Task<Result> GenerateItemSalesHistoryAsPdfAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default);
     
-    Task<Result<bool>> GenerateItemPurchaseHistoryAsWord(
+    Task<Result> GenerateItemPurchaseHistoryAsWordAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
         CancellationToken cancellationToken = default);
     
-    Task<Result<bool>> GenerateItemPurchaseHistoryAsPdf(
+    Task<Result> GenerateItemPurchaseHistoryAsPdfAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,

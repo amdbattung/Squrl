@@ -8,7 +8,7 @@ using Squrl.App.Models;
 
 namespace Squrl.App.Services.SalesOrder;
 
-public partial class SalesOrderService
+public sealed partial class SalesOrderService
 {
     public async Task<Result<GetManySoDetailsDto>> GetSoDetailsAsync(
         Guid salesOrderId,

@@ -279,7 +279,7 @@
         {
             await using MemoryStream stream = new();
 
-            Result<bool> result = await InventoryService.ExportItemsAsCsvAsync(stream);
+            Result result = await InventoryService.ExportItemsAsCsvAsync(stream);
 
             if (!result.IsSuccess)
             {
@@ -327,7 +327,7 @@
         {
             await using MemoryStream stream = new();
 
-            Result<bool> result = await InventoryService.ExportItemsAsExcelAsync(stream);
+            Result result = await InventoryService.ExportItemsAsExcelAsync(stream);
 
             if (!result.IsSuccess)
             {

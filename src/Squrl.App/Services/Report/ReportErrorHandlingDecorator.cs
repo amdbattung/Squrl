@@ -3,7 +3,7 @@ using Squrl.App.Enums;
 
 namespace Squrl.App.Services.Report;
 
-public class ReportErrorHandlingDecorator : IReportService
+public sealed class ReportErrorHandlingDecorator : IReportService
 {
     private readonly IReportService _reportService;
 
@@ -12,7 +12,7 @@ public class ReportErrorHandlingDecorator : IReportService
         _reportService = reportService;
     }
 
-    public async Task<Result<bool>> GenerateCustomerItemSalesAsWord(
+    public async Task<Result> GenerateCustomerItemSalesAsWordAsync(
         string customer,
         Stream destination,
         Stream? template = null,
@@ -20,8 +20,8 @@ public class ReportErrorHandlingDecorator : IReportService
     {
         try
         {
-            Result<bool> result = await _reportService
-                .GenerateCustomerItemSalesAsWord(
+            Result result = await _reportService
+                .GenerateCustomerItemSalesAsWordAsync(
                     customer,
                     destination,
                     template,
@@ -37,13 +37,13 @@ public class ReportErrorHandlingDecorator : IReportService
         }
         catch (Exception)
         {
-            return Result<bool>
+            return Result
                 .Fail("Failed to generate report, something went wrong.")
                 .WithFailureType(FailureType.Unexpected);
         }
     }
 
-    public async Task<Result<bool>> GenerateCustomerItemSalesAsPdf(
+    public async Task<Result> GenerateCustomerItemSalesAsPdfAsync(
         string customer,
         Stream destination,
         Stream? template = null,
@@ -51,8 +51,8 @@ public class ReportErrorHandlingDecorator : IReportService
     {
         try
         {
-            Result<bool> result = await _reportService
-                .GenerateCustomerItemSalesAsPdf(
+            Result result = await _reportService
+                .GenerateCustomerItemSalesAsPdfAsync(
                     customer,
                     destination,
                     template,
@@ -68,13 +68,13 @@ public class ReportErrorHandlingDecorator : IReportService
         }
         catch (Exception)
         {
-            return Result<bool>
+            return Result
                 .Fail("Failed to generate report, something went wrong.")
                 .WithFailureType(FailureType.Unexpected);
         }
     }
 
-    public async Task<Result<bool>> GenerateSupplierItemPurchasesAsWord(
+    public async Task<Result> GenerateSupplierItemPurchasesAsWordAsync(
         Guid supplierId,
         Stream destination,
         Stream? template = null,
@@ -82,8 +82,8 @@ public class ReportErrorHandlingDecorator : IReportService
     {
         try
         {
-            Result<bool> result = await _reportService
-                .GenerateSupplierItemPurchasesAsWord(
+            Result result = await _reportService
+                .GenerateSupplierItemPurchasesAsWordAsync(
                     supplierId,
                     destination,
                     template,
@@ -99,13 +99,13 @@ public class ReportErrorHandlingDecorator : IReportService
         }
         catch (Exception)
         {
-            return Result<bool>
+            return Result
                 .Fail("Failed to generate report, something went wrong.")
                 .WithFailureType(FailureType.Unexpected);
         }
     }
 
-    public async Task<Result<bool>> GenerateSupplierItemPurchasesAsPdf(
+    public async Task<Result> GenerateSupplierItemPurchasesAsPdfAsync(
         Guid supplierId,
         Stream destination,
         Stream? template = null,
@@ -113,8 +113,8 @@ public class ReportErrorHandlingDecorator : IReportService
     {
         try
         {
-            Result<bool> result = await _reportService
-                .GenerateSupplierItemPurchasesAsPdf(
+            Result result = await _reportService
+                .GenerateSupplierItemPurchasesAsPdfAsync(
                     supplierId,
                     destination,
                     template,
@@ -130,13 +130,13 @@ public class ReportErrorHandlingDecorator : IReportService
         }
         catch (Exception)
         {
-            return Result<bool>
+            return Result
                 .Fail("Failed to generate report, something went wrong.")
                 .WithFailureType(FailureType.Unexpected);
         }
     }
 
-    public async Task<Result<bool>> GenerateItemSalesHistoryAsWord(
+    public async Task<Result> GenerateItemSalesHistoryAsWordAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
@@ -144,8 +144,8 @@ public class ReportErrorHandlingDecorator : IReportService
     {
         try
         {
-            Result<bool> result = await _reportService
-                .GenerateItemSalesHistoryAsWord(
+            Result result = await _reportService
+                .GenerateItemSalesHistoryAsWordAsync(
                     itemId,
                     destination,
                     template,
@@ -161,13 +161,13 @@ public class ReportErrorHandlingDecorator : IReportService
         }
         catch (Exception)
         {
-            return Result<bool>
+            return Result
                 .Fail("Failed to generate report, something went wrong.")
                 .WithFailureType(FailureType.Unexpected);
         }
     }
 
-    public async Task<Result<bool>> GenerateItemSalesHistoryAsPdf(
+    public async Task<Result> GenerateItemSalesHistoryAsPdfAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
@@ -175,8 +175,8 @@ public class ReportErrorHandlingDecorator : IReportService
     {
         try
         {
-            Result<bool> result = await _reportService
-                .GenerateItemSalesHistoryAsPdf(
+            Result result = await _reportService
+                .GenerateItemSalesHistoryAsPdfAsync(
                     itemId,
                     destination,
                     template,
@@ -192,13 +192,13 @@ public class ReportErrorHandlingDecorator : IReportService
         }
         catch (Exception)
         {
-            return Result<bool>
+            return Result
                 .Fail("Failed to generate report, something went wrong.")
                 .WithFailureType(FailureType.Unexpected);
         }
     }
 
-    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsWord(
+    public async Task<Result> GenerateItemPurchaseHistoryAsWordAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
@@ -206,8 +206,8 @@ public class ReportErrorHandlingDecorator : IReportService
     {
         try
         {
-            Result<bool> result = await _reportService
-                .GenerateItemPurchaseHistoryAsWord(
+            Result result = await _reportService
+                .GenerateItemPurchaseHistoryAsWordAsync(
                     itemId,
                     destination,
                     template,
@@ -223,13 +223,13 @@ public class ReportErrorHandlingDecorator : IReportService
         }
         catch (Exception)
         {
-            return Result<bool>
+            return Result
                 .Fail("Failed to generate report, something went wrong.")
                 .WithFailureType(FailureType.Unexpected);
         }
     }
 
-    public async Task<Result<bool>> GenerateItemPurchaseHistoryAsPdf(
+    public async Task<Result> GenerateItemPurchaseHistoryAsPdfAsync(
         Guid itemId,
         Stream destination,
         Stream? template = null,
@@ -237,8 +237,8 @@ public class ReportErrorHandlingDecorator : IReportService
     {
         try
         {
-            Result<bool> result = await _reportService
-                .GenerateItemPurchaseHistoryAsPdf(
+            Result result = await _reportService
+                .GenerateItemPurchaseHistoryAsPdfAsync(
                     itemId,
                     destination,
                     template,
@@ -254,7 +254,7 @@ public class ReportErrorHandlingDecorator : IReportService
         }
         catch (Exception)
         {
-            return Result<bool>
+            return Result
                 .Fail("Failed to generate report, something went wrong.")
                 .WithFailureType(FailureType.Unexpected);
         }

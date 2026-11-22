@@ -9,9 +9,9 @@ using Squrl.App.Models;
 
 namespace Squrl.App.Services.Report;
 
-public partial class ReportService
+public sealed partial class ReportService
 {
-    public async Task<Result<bool>> GenerateCustomerItemSalesAsWord(
+    public async Task<Result> GenerateCustomerItemSalesAsWordAsync(
         string customer,
         Stream destination,
         Stream? template = null,
@@ -29,7 +29,7 @@ public partial class ReportService
 
             if (bodyBookmark == null)
             {
-                return Result<bool>.Fail("Template must contain a BODY bookmark.")
+                return Result.Fail("Template must contain a BODY bookmark.")
                     .WithFailureType(FailureType.Validation);
             }
 
@@ -216,10 +216,10 @@ public partial class ReportService
 
         await destination.FlushAsync(cancellationToken);
 
-        return Result<bool>.Ok(true);
+        return Result.Ok();
     }
     
-    public async Task<Result<bool>> GenerateCustomerItemSalesAsPdf(
+    public async Task<Result> GenerateCustomerItemSalesAsPdfAsync(
         string customer,
         Stream destination,
         Stream? template = null,
@@ -228,8 +228,8 @@ public partial class ReportService
         // Generate Word document first.
         using MemoryStream wordStream = new();
 
-        Result<bool> wordGeneration =
-            await GenerateCustomerItemSalesAsWord(
+        Result wordGeneration =
+            await GenerateCustomerItemSalesAsWordAsync(
                 customer,
                 wordStream,
                 template,
@@ -237,7 +237,7 @@ public partial class ReportService
 
         if (!wordGeneration.IsSuccess)
         {
-            return Result<bool>.Fail(wordGeneration.Message ?? "Something went wrong");
+            return Result.Fail(wordGeneration.Message ?? "Something went wrong");
         }
 
         cancellationToken.ThrowIfCancellationRequested();
@@ -248,6 +248,6 @@ public partial class ReportService
 
         await destination.FlushAsync(cancellationToken);
 
-        return Result<bool>.Ok(true);
+        return Result.Ok();
     }
 }

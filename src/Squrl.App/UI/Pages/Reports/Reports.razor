@@ -6,7 +6,7 @@
 <div class="mb-3">
     <InputSearchableSelect TItem="ReportOption"
                            TValue="string"
-                           @bind-Value="SelectedReport"
+                           @bind-Value="_selectedReport"
                            LoadItems="LoadReports"
                            GetValue="@(item => item.Value)"
                            GetText="@(item => item.Text)"
@@ -16,21 +16,21 @@
 
 <hr />
 
-@switch (SelectedReport)
+@switch (_selectedReport)
 {
-    case "Report1":
+    case "report1":
         <CustomerItemSales />
         break;
 
-    case "Report2":
+    case "report2":
         <SupplierItemPurchases />
         break;
         
-    case "Report3":
+    case "report3":
         <ItemSalesHistory />
         break;
         
-    case "Report4":
+    case "report4":
         <ItemPurchaseHistory />
         break;
 
@@ -40,21 +40,21 @@
 }
 
 @code {
-    private string? SelectedReport { get; set; }
+    private string? _selectedReport;
+    
+    private readonly List<ReportOption> _reportsList =
+    [
+        new() { Value = "report1", Text = "Customer Item Sales Summary" },
+        new() { Value = "report2", Text = "Supplier Item Purchases Summary" },
+        new() { Value = "report3", Text = "Item Sales History" },
+        new() { Value = "report4", Text = "Item Purchase History" }
+    ];
 
     private class ReportOption
     {
         public string Value { get; init; } = "";
         public string Text { get; init; } = "";
     }
-
-    private readonly List<ReportOption> _reportsList =
-    [
-        new() { Value = "Report1", Text = "Customer Item Sales Summary" },
-        new() { Value = "Report2", Text = "Supplier Item Purchases Summary" },
-        new() { Value = "Report3", Text = "Item Sales History" },
-        new() { Value = "Report4", Text = "Item Purchase History" }
-    ];
 
     private Task<InputSearchableSelect<ReportOption, string>
         .PagedResult<ReportOption>> LoadReports(

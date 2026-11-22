@@ -4,7 +4,7 @@ using Squrl.App.Features.UnitOfMeasures.DTOs;
 
 namespace Squrl.App.Services.UnitOfMeasure;
 
-public class UomLoggingDecorator : IUomService
+public sealed class UomLoggingDecorator : IUomService
 {
     private readonly IUomService _uomService;
     private readonly ILogger<UomLoggingDecorator> _logger;
@@ -276,9 +276,9 @@ public class UomLoggingDecorator : IUomService
         return result;
     }
 
-    public async Task<Result<bool>> ExportUomsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportUomsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
@@ -325,9 +325,9 @@ public class UomLoggingDecorator : IUomService
         return result;
     }
 
-    public async Task<Result<bool>> ExportUomsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportUomsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {

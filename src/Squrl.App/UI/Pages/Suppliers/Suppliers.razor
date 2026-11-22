@@ -230,7 +230,7 @@
         {
             await using MemoryStream stream = new();
 
-            Result<bool> result = await SupplierService.ExportSuppliersAsCsvAsync(stream);
+            Result result = await SupplierService.ExportSuppliersAsCsvAsync(stream);
 
             if (!result.IsSuccess)
             {
@@ -279,7 +279,7 @@
         {
             await using MemoryStream stream = new();
 
-            Result<bool> result = await SupplierService.ExportSuppliersAsExcelAsync(stream);
+            Result result = await SupplierService.ExportSuppliersAsExcelAsync(stream);
 
             if (!result.IsSuccess)
             {

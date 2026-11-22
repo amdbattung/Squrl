@@ -76,6 +76,16 @@ public class MenuItems
             },
             new()
             {
+                Text = "Import/Export",
+                Url = "/imports",
+                Children =
+                [
+                    new() { Text = "Imports", Url = "/imports" },
+                    new() { Text = "Exports", Url = "/exports" }
+                ]
+            },
+            new()
+            {
                 Text = "Reports",
                 Url = "/reports"
             },

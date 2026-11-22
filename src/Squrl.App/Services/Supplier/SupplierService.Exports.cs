@@ -4,9 +4,9 @@ using Squrl.App.Common;
 
 namespace Squrl.App.Services.Supplier;
 
-public partial class SupplierService
+public sealed partial class SupplierService
 {
-    public async Task<Result<bool>> ExportSuppliersAsCsvAsync(Stream destination,
+    public async Task<Result> ExportSuppliersAsCsvAsync(Stream destination,
         CancellationToken cancellationToken = default)
     {
         IAsyncEnumerable<Models.Supplier> existingSuppliers = _dataContext.Suppliers
@@ -17,10 +17,10 @@ public partial class SupplierService
         
         await _csvExporter.ExportAsync(existingSuppliers, destination, cancellationToken);
 
-        return Result<bool>.Ok(true);
+        return Result.Ok();
     }
 
-    public async Task<Result<bool>> ExportSuppliersAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportSuppliersAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
     {
         IAsyncEnumerable<Models.Supplier> existingSuppliers = _dataContext.Suppliers
             .AsNoTracking()
@@ -30,6 +30,6 @@ public partial class SupplierService
         
         await _excelExporter.ExportAsync(existingSuppliers, destination, cancellationToken);
 
-        return Result<bool>.Ok(true);
+        return Result.Ok();
     }
 }

@@ -13,6 +13,7 @@ using Squrl.App.Infrastructure.ImageStorage;
 using Squrl.App.Infrastructure.PlatformDialog;
 using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Services.Alert;
+using Squrl.App.Services.Import;
 using Squrl.App.Services.Inventory;
 using Squrl.App.Services.PurchaseOrder;
 using Squrl.App.Services.Report;
@@ -161,6 +162,11 @@ try
     builder.Services.Decorate<ISupplierService, SupplierPreprocessingDecorator>();
     builder.Services.Decorate<ISupplierService, SupplierLoggingDecorator>();
     builder.Services.Decorate<ISupplierService, SupplierErrorHandlingDecorator>();
+    
+    builder.Services.AddScoped<IImportService, ImportService>();
+    builder.Services.Decorate<IImportService, ImportPreprocessingDecorator>();
+    builder.Services.Decorate<IImportService, ImportLoggingDecorator>();
+    builder.Services.Decorate<IImportService, ImportErrorHandlingDecorator>();
     
     builder.Services.AddScoped<IReportService, ReportService>();
     builder.Services.Decorate<IReportService, ReportPreprocessingDecorator>();

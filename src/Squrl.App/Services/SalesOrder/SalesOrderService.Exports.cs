@@ -5,9 +5,9 @@ using Squrl.App.Models;
 
 namespace Squrl.App.Services.SalesOrder;
 
-public partial class SalesOrderService
+public sealed partial class SalesOrderService
 {
-    public async Task<Result<bool>> ExportSoDetailsAsCsvAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportSoDetailsAsCsvAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
     {
         IAsyncEnumerable<SalesOrderDetail> existingSoDetails = _dataContext.SalesOrderDetails
             .AsNoTracking()
@@ -22,10 +22,10 @@ public partial class SalesOrderService
             destination,
             cancellationToken);
 
-        return Result<bool>.Ok(true);
+        return Result.Ok();
     }
 
-    public async Task<Result<bool>> ExportSoDetailsAsExcelAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportSoDetailsAsExcelAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
     {
         IAsyncEnumerable<SalesOrderDetail> existingSoDetails = _dataContext.SalesOrderDetails
             .AsNoTracking()
@@ -41,6 +41,6 @@ public partial class SalesOrderService
             $"SO Details For Sales Order {salesOrderId.ToString()}",
             cancellationToken);
 
-        return Result<bool>.Ok(true);
+        return Result.Ok();
     }
 }

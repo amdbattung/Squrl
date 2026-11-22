@@ -5,7 +5,7 @@ using Squrl.App.Features.PurchaseOrders.DTOs;
 
 namespace Squrl.App.Services.PurchaseOrder;
 
-public class PurchaseOrderErrorHandlingDecorator : IPurchaseOrderService
+public sealed class PurchaseOrderErrorHandlingDecorator : IPurchaseOrderService
 {
     private readonly IPurchaseOrderService _purchaseOrderService;
 
@@ -410,11 +410,11 @@ public class PurchaseOrderErrorHandlingDecorator : IPurchaseOrderService
         }
     }
 
-    public async Task<Result<bool>> ExportPoDetailsAsCsvAsync(Guid purchaseOrderId, Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportPoDetailsAsCsvAsync(Guid purchaseOrderId, Stream destination, CancellationToken cancellationToken = default)
     {
         try
         {
-            Result<bool> result = await _purchaseOrderService
+            Result result = await _purchaseOrderService
                 .ExportPoDetailsAsCsvAsync(purchaseOrderId, destination, cancellationToken);
             
             return result.Exception is null
@@ -427,18 +427,18 @@ public class PurchaseOrderErrorHandlingDecorator : IPurchaseOrderService
         }
         catch (Exception)
         {
-            return Result<bool>
+            return Result
                 .Fail("Failed to export PO detail, something went wrong.")
                 .WithFailureType(FailureType.Unexpected);
         }
     }
 
-    public async Task<Result<bool>> ExportPoDetailsAsExcelAsync(Guid purchaseOrderId, Stream destination,
+    public async Task<Result> ExportPoDetailsAsExcelAsync(Guid purchaseOrderId, Stream destination,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            Result<bool> result = await _purchaseOrderService
+            Result result = await _purchaseOrderService
                 .ExportPoDetailsAsExcelAsync(purchaseOrderId, destination, cancellationToken);
             
             return result.Exception is null
@@ -451,7 +451,7 @@ public class PurchaseOrderErrorHandlingDecorator : IPurchaseOrderService
         }
         catch (Exception)
         {
-            return Result<bool>
+            return Result
                 .Fail("Failed to export PO detail, something went wrong.")
                 .WithFailureType(FailureType.Unexpected);
         }

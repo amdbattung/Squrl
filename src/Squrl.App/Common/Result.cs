@@ -2,83 +2,78 @@
 
 namespace Squrl.App.Common;
 
-public class Result<T>
+public class Result
 {
     public bool IsSuccess { get; }
-    public T? Value { get; }
     public string? Message { get; }
     public IReadOnlyList<string> Errors { get; }
     public Exception? Exception { get; }
     public FailureType? FailureType { get; }
 
-    private Result(
+    protected Result(
         bool isSuccess,
-        T? value = default,
         string? message = null,
         IReadOnlyList<string>? errors = null,
         Exception? exception = null,
         FailureType? failureType = null)
     {
         IsSuccess = isSuccess;
-        Value = value;
         Message = message;
         Errors = errors ?? Array.Empty<string>();
         Exception = exception;
         FailureType = failureType;
     }
 
-    public static SuccessBuilder<T> Ok(T value)
+    public static SuccessBuilder Ok()
     {
-        return new SuccessBuilder<T>(
-            new Result<T>(isSuccess: true, value: value));
+        return new SuccessBuilder(
+            new Result(isSuccess: true));
     }
 
-    public static FailureBuilder<T> Fail(params string[] errors)
+    public static FailureBuilder Fail(params string[] errors)
     {
-        return new FailureBuilder<T>(
-            new Result<T>(
+        return new FailureBuilder(
+            new Result(
                 isSuccess: false,
                 errors: errors,
                 message: errors.FirstOrDefault()));
     }
-    
-    public static FailureBuilder<T> Fail(IEnumerable<string> errors)
+
+    public static FailureBuilder Fail(IEnumerable<string> errors)
     {
         string[] errorArray = errors as string[] ?? errors.ToArray();
-        
-        return new FailureBuilder<T>(
-            new Result<T>(
+
+        return new FailureBuilder(
+            new Result(
                 isSuccess: false,
                 errors: errorArray,
                 message: errorArray.FirstOrDefault()));
     }
-    
-    public Result<T> WithoutException()
+
+    public Result WithoutException()
     {
-        return new Result<T>(
+        return new Result(
             isSuccess: IsSuccess,
-            value: Value,
             message: Message,
             errors: Errors,
             exception: null,
             failureType: FailureType);
     }
-    
-    // Success Builder
-    public sealed class SuccessBuilder<TValue>
-    {
-        private Result<TValue> _result;
 
-        internal SuccessBuilder(Result<TValue> result)
+    // Success Builder
+    public sealed class SuccessBuilder
+    {
+        private Result _result;
+
+        internal SuccessBuilder(Result result)
         {
             _result = result;
         }
 
-        public SuccessBuilder<TValue> WithMessage(string message)
+        public SuccessBuilder WithMessage(string message)
         {
-            _result = new Result<TValue>(
+            _result = new Result(
                 _result.IsSuccess,
-                _result.Value,
                 message,
                 _result.Errors,
                 _result.Exception,
@@ -87,32 +82,31 @@ public class Result<T>
             return this;
         }
 
-        private Result<TValue> Build()
+        private Result Build()
         {
             return _result;
         }
 
-        public static implicit operator Result<TValue>(SuccessBuilder<TValue> builder)
+        public static implicit operator Result(SuccessBuilder builder)
         {
             return builder.Build();
         }
     }
-    
-    // Failure Builder
-    public sealed class FailureBuilder<TValue>
-    {
-        private Result<TValue> _result;
 
-        internal FailureBuilder(Result<TValue> result)
+    // Failure Builder
+    public sealed class FailureBuilder
+    {
+        private Result _result;
+
+        internal FailureBuilder(Result result)
         {
             _result = result;
         }
 
-        public FailureBuilder<TValue> WithMessage(string message)
+        public FailureBuilder WithMessage(string message)
         {
-            _result = new Result<TValue>(
+            _result = new Result(
                 _result.IsSuccess,
-                _result.Value,
                 message,
                 _result.Errors,
                 _result.Exception,
@@ -120,12 +114,11 @@ public class Result<T>
 
             return this;
         }
-        
-        public FailureBuilder<TValue> WithException(Exception? e)
+
+        public FailureBuilder WithException(Exception? e)
         {
-            _result = new Result<TValue>(
+            _result = new Result(
                 _result.IsSuccess,
-                _result.Value,
                 _result.Message,
                 _result.Errors,
                 e,
@@ -134,11 +127,10 @@ public class Result<T>
             return this;
         }
 
-        public FailureBuilder<TValue> WithFailureType(FailureType? failureType)
+        public FailureBuilder WithFailureType(FailureType? failureType)
         {
-            _result = new Result<TValue>(
+            _result = new Result(
                 _result.IsSuccess,
-                _result.Value,
                 _result.Message,
                 _result.Errors,
                 _result.Exception,
@@ -147,12 +139,12 @@ public class Result<T>
             return this;
         }
 
-        private Result<TValue> Build()
+        private Result Build()
         {
             return _result;
         }
 
-        public static implicit operator Result<TValue>(FailureBuilder<TValue> builder)
+        public static implicit operator Result(FailureBuilder builder)
         {
             return builder.Build();
         }

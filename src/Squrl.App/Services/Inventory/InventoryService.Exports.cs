@@ -5,9 +5,9 @@ using Squrl.App.Models;
 
 namespace Squrl.App.Services.Inventory;
 
-public partial class InventoryService
+public sealed partial class InventoryService
 {
-    public async Task<Result<bool>> ExportItemsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportItemsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
     {
         IAsyncEnumerable<Item> existingItems = _dataContext.Items
             .AsNoTracking()
@@ -20,10 +20,10 @@ public partial class InventoryService
             destination,
             cancellationToken);
 
-        return Result<bool>.Ok(true);
+        return Result.Ok();
     }
 
-    public async Task<Result<bool>> ExportItemsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportItemsAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
     {
         IAsyncEnumerable<Item> existingItems = _dataContext.Items
             .AsNoTracking()
@@ -36,6 +36,6 @@ public partial class InventoryService
             destination,
             cancellationToken);
 
-        return Result<bool>.Ok(true);
+        return Result.Ok();
     }
 }

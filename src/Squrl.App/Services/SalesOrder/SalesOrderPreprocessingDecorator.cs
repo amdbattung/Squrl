@@ -7,7 +7,7 @@ using Squrl.App.Features.SalesOrders.DTOs;
 
 namespace Squrl.App.Services.SalesOrder;
 
-public class SalesOrderPreprocessingDecorator : ISalesOrderService
+public sealed class SalesOrderPreprocessingDecorator : ISalesOrderService
 {
     private readonly ISalesOrderService _salesOrderService;
     private readonly IValidator<CreateSalesOrderDto> _createSalesOrderValidator;
@@ -52,12 +52,20 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
 
     public async Task<Result<GetSalesOrderDto>> CreateSalesOrderAsync(CreateSalesOrderDto salesOrder, CancellationToken cancellationToken = default)
     {
-        ValidationResult soValidationResult = await _createSalesOrderValidator
-            .ValidateAsync(salesOrder, cancellationToken);
-        
-        if (!soValidationResult.IsValid)
+        ValidationContext<CreateSalesOrderDto> validationContext = new(salesOrder)
         {
-            return Result<GetSalesOrderDto>.Fail(soValidationResult.Errors
+            RootContextData =
+            {
+                ["SkipSalesOrderIdValidation"] = true
+            }
+        };
+
+        ValidationResult validationResult = await _createSalesOrderValidator
+            .ValidateAsync(validationContext, cancellationToken);
+        
+        if (!validationResult.IsValid)
+        {
+            return Result<GetSalesOrderDto>.Fail(validationResult.Errors
                     .Select(e => e.ErrorMessage)
                     .ToArray())
                 .WithFailureType(FailureType.Validation);
@@ -87,12 +95,20 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
                 .WithFailureType(FailureType.Validation);
         }
             
-        ValidationResult soValidationResult = await _updateSalesOrderValidator
-            .ValidateAsync(salesOrder, cancellationToken);
-            
-        if (!soValidationResult.IsValid)
+        ValidationContext<UpdateSalesOrderDto> validationContext = new(salesOrder)
         {
-            return Result<GetSalesOrderDto>.Fail(soValidationResult.Errors
+            RootContextData =
+            {
+                ["SkipSalesOrderIdValidation"] = true
+            }
+        };
+
+        ValidationResult validationResult = await _updateSalesOrderValidator
+            .ValidateAsync(validationContext, cancellationToken);
+            
+        if (!validationResult.IsValid)
+        {
+            return Result<GetSalesOrderDto>.Fail(validationResult.Errors
                     .Select(e => e.ErrorMessage)
                     .ToArray())
                 .WithFailureType(FailureType.Validation);
@@ -205,17 +221,17 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
             .RemoveSoDetailAsync(id, cancellationToken);
     }
 
-    public async Task<Result<bool>> ExportSoDetailsAsCsvAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportSoDetailsAsCsvAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
     {
         if (salesOrderId == Guid.Empty)
         {
-            return Result<bool>.Fail("Null or invalid ID.")
+            return Result.Fail("Null or invalid ID.")
                 .WithFailureType(FailureType.Validation);
         }
         
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
         
@@ -223,17 +239,17 @@ public class SalesOrderPreprocessingDecorator : ISalesOrderService
             .ExportSoDetailsAsCsvAsync(salesOrderId, destination, cancellationToken);
     }
 
-    public async Task<Result<bool>> ExportSoDetailsAsExcelAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportSoDetailsAsExcelAsync(Guid salesOrderId, Stream destination, CancellationToken cancellationToken = default)
     {
         if (salesOrderId == Guid.Empty)
         {
-            return Result<bool>.Fail("Null or invalid ID.")
+            return Result.Fail("Null or invalid ID.")
                 .WithFailureType(FailureType.Validation);
         }
         
         if (!destination.CanWrite)
         {
-            return Result<bool>.Fail("Destination must be writable.")
+            return Result.Fail("Destination must be writable.")
                 .WithFailureType(FailureType.Validation);
         }
         

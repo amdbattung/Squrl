@@ -4,7 +4,7 @@ using Squrl.App.Features.Suppliers.DTOs;
 
 namespace Squrl.App.Services.Supplier;
 
-public class SupplierLoggingDecorator : ISupplierService
+public sealed class SupplierLoggingDecorator : ISupplierService
 {
     private readonly ISupplierService _supplierService;
     private readonly ILogger<SupplierLoggingDecorator> _logger;
@@ -274,10 +274,10 @@ public class SupplierLoggingDecorator : ISupplierService
         return result;
     }
 
-    public async Task<Result<bool>> ExportSuppliersAsCsvAsync(Stream destination,
+    public async Task<Result> ExportSuppliersAsCsvAsync(Stream destination,
         CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
@@ -324,9 +324,9 @@ public class SupplierLoggingDecorator : ISupplierService
         return result;
     }
 
-    public async Task<Result<bool>> ExportSuppliersAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
+    public async Task<Result> ExportSuppliersAsExcelAsync(Stream destination, CancellationToken cancellationToken = default)
     {
-        Result<bool> result;
+        Result result;
 
         try
         {
