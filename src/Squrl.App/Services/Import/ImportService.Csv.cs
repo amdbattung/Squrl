@@ -10,7 +10,7 @@ using Item = Squrl.App.Models.Item;
 
 namespace Squrl.App.Services.Import;
 
-public partial class ImportService
+public sealed partial class ImportService
 {
     public async Task<Result<ImportInfo>> ImportItemsFromCsvAsync(Stream csvStream, CancellationToken cancellationToken = default)
     {

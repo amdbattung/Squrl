@@ -5,7 +5,7 @@ using Squrl.App.Features.PurchaseOrders.DTOs;
 
 namespace Squrl.App.Services.PurchaseOrder;
 
-public class PurchaseOrderErrorHandlingDecorator : IPurchaseOrderService
+public sealed class PurchaseOrderErrorHandlingDecorator : IPurchaseOrderService
 {
     private readonly IPurchaseOrderService _purchaseOrderService;
 

@@ -5,7 +5,7 @@ using Squrl.App.Services.Alert;
 
 namespace Squrl.App.Services.Inventory;
 
-public class InventoryAlertDecorator : IInventoryService
+public sealed class InventoryAlertDecorator : IInventoryService
 {
     private readonly IInventoryService _inventoryService;
     private readonly IAlertService _alertService;

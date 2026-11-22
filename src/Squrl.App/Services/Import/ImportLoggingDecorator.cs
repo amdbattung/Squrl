@@ -3,7 +3,7 @@ using Squrl.App.Enums;
 
 namespace Squrl.App.Services.Import;
 
-public class ImportLoggingDecorator : IImportService
+public sealed class ImportLoggingDecorator : IImportService
 {
     private readonly IImportService _importService;
     private readonly ILogger<ImportLoggingDecorator> _logger;

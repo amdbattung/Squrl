@@ -3,7 +3,7 @@ using Squrl.App.Data;
 
 namespace Squrl.App.Services.Report;
 
-public partial class ReportService : IReportService
+public sealed partial class ReportService : IReportService
 {
     private readonly DataContext _dataContext;
     private readonly IClock _clock;

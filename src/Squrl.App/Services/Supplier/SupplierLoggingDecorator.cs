@@ -4,7 +4,7 @@ using Squrl.App.Features.Suppliers.DTOs;
 
 namespace Squrl.App.Services.Supplier;
 
-public class SupplierLoggingDecorator : ISupplierService
+public sealed class SupplierLoggingDecorator : ISupplierService
 {
     private readonly ISupplierService _supplierService;
     private readonly ILogger<SupplierLoggingDecorator> _logger;

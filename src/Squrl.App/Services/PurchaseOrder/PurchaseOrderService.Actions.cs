@@ -8,7 +8,7 @@ using Squrl.App.Models;
 
 namespace Squrl.App.Services.PurchaseOrder;
 
-public partial class PurchaseOrderService
+public sealed partial class PurchaseOrderService
 {
     public async Task<Result<GetPurchaseOrderDto>> ReceivePurchaseOrderAsync(Guid id, CancellationToken cancellationToken = default)
     {

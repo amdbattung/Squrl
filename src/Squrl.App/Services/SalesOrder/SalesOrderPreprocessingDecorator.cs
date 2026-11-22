@@ -7,7 +7,7 @@ using Squrl.App.Features.SalesOrders.DTOs;
 
 namespace Squrl.App.Services.SalesOrder;
 
-public class SalesOrderPreprocessingDecorator : ISalesOrderService
+public sealed class SalesOrderPreprocessingDecorator : ISalesOrderService
 {
     private readonly ISalesOrderService _salesOrderService;
     private readonly IValidator<CreateSalesOrderDto> _createSalesOrderValidator;

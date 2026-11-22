@@ -5,7 +5,7 @@ using Squrl.App.Features.SalesOrders.DTOs;
 
 namespace Squrl.App.Services.SalesOrder;
 
-public class SalesOrderLoggingDecorator : ISalesOrderService
+public sealed class SalesOrderLoggingDecorator : ISalesOrderService
 {
     private readonly ISalesOrderService _salesOrderService;
     private readonly ILogger<SalesOrderLoggingDecorator> _logger;

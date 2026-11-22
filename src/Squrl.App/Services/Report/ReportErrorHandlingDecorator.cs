@@ -3,7 +3,7 @@ using Squrl.App.Enums;
 
 namespace Squrl.App.Services.Report;
 
-public class ReportErrorHandlingDecorator : IReportService
+public sealed class ReportErrorHandlingDecorator : IReportService
 {
     private readonly IReportService _reportService;
 

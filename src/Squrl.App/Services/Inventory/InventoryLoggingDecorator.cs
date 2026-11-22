@@ -4,7 +4,7 @@ using Squrl.App.Features.Items.DTOs;
 
 namespace Squrl.App.Services.Inventory;
 
-public class InventoryLoggingDecorator : IInventoryService
+public sealed class InventoryLoggingDecorator : IInventoryService
 {
     private readonly IInventoryService _inventoryService;
     private readonly ILogger<InventoryLoggingDecorator> _logger;

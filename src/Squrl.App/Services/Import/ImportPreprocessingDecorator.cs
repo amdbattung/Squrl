@@ -3,7 +3,7 @@ using Squrl.App.Enums;
 
 namespace Squrl.App.Services.Import;
 
-public class ImportPreprocessingDecorator : IImportService
+public sealed class ImportPreprocessingDecorator : IImportService
 {
     private readonly IImportService _importService;
 

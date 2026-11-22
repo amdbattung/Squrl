@@ -7,7 +7,7 @@ using Squrl.App.Features.PurchaseOrders.DTOs;
 
 namespace Squrl.App.Services.PurchaseOrder;
 
-public class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
+public sealed class PurchaseOrderPreprocessingDecorator : IPurchaseOrderService
 {
     private readonly IPurchaseOrderService _purchaseOrderService;
     private readonly IValidator<CreatePurchaseOrderDto> _createPurchaseOrderValidator;

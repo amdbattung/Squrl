@@ -6,7 +6,7 @@ using Squrl.App.Features.Items.DTOs;
 
 namespace Squrl.App.Services.Inventory;
 
-public class InventoryPreprocessingDecorator : IInventoryService
+public sealed class InventoryPreprocessingDecorator : IInventoryService
 {
     private readonly IInventoryService _inventoryService;
     private readonly IValidator<CreateItemDto> _createItemValidator;

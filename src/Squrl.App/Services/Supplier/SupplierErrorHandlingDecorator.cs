@@ -4,7 +4,7 @@ using Squrl.App.Features.Suppliers.DTOs;
 
 namespace Squrl.App.Services.Supplier;
 
-public class SupplierErrorHandlingDecorator : ISupplierService
+public sealed class SupplierErrorHandlingDecorator : ISupplierService
 {
     private readonly ISupplierService _supplierService;
     

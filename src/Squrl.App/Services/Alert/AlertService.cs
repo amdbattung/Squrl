@@ -8,7 +8,7 @@ using AlertObject = Squrl.App.Common.Alert;
 
 namespace Squrl.App.Services.Alert;
 
-public class AlertService : IAlertService
+public sealed class AlertService : IAlertService
 {
     private readonly IServiceScopeFactory _scopeFactory;
     private Dictionary<Guid, AlertObject> _activeAlerts = new();

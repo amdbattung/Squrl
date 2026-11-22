@@ -4,7 +4,7 @@ using Squrl.App.Common;
 
 namespace Squrl.App.Services.UnitOfMeasure;
 
-public partial class UomService : IUomService
+public sealed partial class UomService : IUomService
 {
     public async Task<Result> ExportUomsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
     {

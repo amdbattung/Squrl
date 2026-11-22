@@ -3,7 +3,7 @@ using Squrl.App.Enums;
 
 namespace Squrl.App.Services.Report;
 
-public class ReportPreprocessingDecorator : IReportService
+public sealed class ReportPreprocessingDecorator : IReportService
 {
     private readonly IReportService _reportService;
     private readonly long _maxTemplateSize;

@@ -9,7 +9,7 @@ using Squrl.App.Models;
 
 namespace Squrl.App.Services.Report;
 
-public partial class ReportService
+public sealed partial class ReportService
 {
     public async Task<Result> GenerateCustomerItemSalesAsWordAsync(
         string customer,

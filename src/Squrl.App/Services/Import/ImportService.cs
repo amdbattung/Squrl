@@ -8,7 +8,7 @@ using Squrl.App.Features.UnitOfMeasures.DTOs;
 
 namespace Squrl.App.Services.Import;
 
-public partial class ImportService : IImportService
+public sealed partial class ImportService : IImportService
 {
     private readonly DataContext _dataContext;
     private readonly IValidator<CreateItemDto> _createItemValidator;

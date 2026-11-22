@@ -4,7 +4,7 @@ using Squrl.App.Features.Items.DTOs;
 
 namespace Squrl.App.Services.Inventory;
 
-public class InventoryErrorHandlingDecorator : IInventoryService
+public sealed class InventoryErrorHandlingDecorator : IInventoryService
 {
     private readonly IInventoryService _inventoryService;
 

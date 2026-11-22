@@ -4,7 +4,7 @@ using Squrl.App.Common;
 
 namespace Squrl.App.Services.Supplier;
 
-public partial class SupplierService
+public sealed partial class SupplierService
 {
     public async Task<Result> ExportSuppliersAsCsvAsync(Stream destination,
         CancellationToken cancellationToken = default)

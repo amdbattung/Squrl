@@ -4,7 +4,7 @@ using Squrl.App.Features.UnitOfMeasures.DTOs;
 
 namespace Squrl.App.Services.UnitOfMeasure;
 
-public class UomErrorHandlingDecorator : IUomService
+public sealed class UomErrorHandlingDecorator : IUomService
 {
     private readonly IUomService _uomService;
 

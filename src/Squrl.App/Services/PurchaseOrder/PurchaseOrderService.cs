@@ -13,7 +13,7 @@ using Squrl.App.Services.Inventory;
 
 namespace Squrl.App.Services.PurchaseOrder;
 
-public partial class PurchaseOrderService : IPurchaseOrderService
+public sealed partial class PurchaseOrderService : IPurchaseOrderService
 {
     private readonly DataContext _dataContext;
     private readonly ITransactionManager _transactionManager;

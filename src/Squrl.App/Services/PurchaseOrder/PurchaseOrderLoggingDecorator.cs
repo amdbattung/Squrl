@@ -5,7 +5,7 @@ using Squrl.App.Features.PurchaseOrders.DTOs;
 
 namespace Squrl.App.Services.PurchaseOrder;
 
-public class PurchaseOrderLoggingDecorator : IPurchaseOrderService
+public sealed class PurchaseOrderLoggingDecorator : IPurchaseOrderService
 {
     private readonly IPurchaseOrderService _purchaseOrderService;
     private readonly ILogger<PurchaseOrderLoggingDecorator> _logger;

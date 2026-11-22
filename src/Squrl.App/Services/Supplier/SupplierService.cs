@@ -10,7 +10,7 @@ using Squrl.App.Infrastructure.TransactionManager;
 
 namespace Squrl.App.Services.Supplier;
 
-public partial class SupplierService : ISupplierService
+public sealed partial class SupplierService : ISupplierService
 {
     private readonly DataContext _dataContext;
     private readonly ITransactionManager _transactionManager;

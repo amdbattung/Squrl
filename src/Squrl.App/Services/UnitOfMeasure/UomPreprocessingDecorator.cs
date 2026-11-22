@@ -6,7 +6,7 @@ using Squrl.App.Features.UnitOfMeasures.DTOs;
 
 namespace Squrl.App.Services.UnitOfMeasure;
 
-public class UomPreprocessingDecorator : IUomService
+public sealed class UomPreprocessingDecorator : IUomService
 {
     private readonly IUomService _uomService;
     private readonly IValidator<CreateUomDto> _createUomValidator;

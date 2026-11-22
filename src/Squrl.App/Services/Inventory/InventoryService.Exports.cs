@@ -5,7 +5,7 @@ using Squrl.App.Models;
 
 namespace Squrl.App.Services.Inventory;
 
-public partial class InventoryService
+public sealed partial class InventoryService
 {
     public async Task<Result> ExportItemsAsCsvAsync(Stream destination, CancellationToken cancellationToken = default)
     {

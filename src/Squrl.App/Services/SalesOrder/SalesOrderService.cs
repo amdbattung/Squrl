@@ -14,7 +14,7 @@ using Squrl.App.Services.Inventory;
 
 namespace Squrl.App.Services.SalesOrder;
 
-public partial class SalesOrderService : ISalesOrderService
+public sealed partial class SalesOrderService : ISalesOrderService
 {
     private readonly DataContext _dataContext;
     private readonly ITransactionManager _transactionManager;

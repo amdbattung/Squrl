@@ -5,7 +5,7 @@ using Squrl.App.Models;
 
 namespace Squrl.App.Services.PurchaseOrder;
 
-public partial class PurchaseOrderService
+public sealed partial class PurchaseOrderService
 {
     public async Task<Result> ExportPoDetailsAsCsvAsync(Guid purchaseOrderId, Stream destination, CancellationToken cancellationToken = default)
     {

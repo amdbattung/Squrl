@@ -4,7 +4,7 @@ using Squrl.App.Features.UnitOfMeasures.DTOs;
 
 namespace Squrl.App.Services.UnitOfMeasure;
 
-public class UomLoggingDecorator : IUomService
+public sealed class UomLoggingDecorator : IUomService
 {
     private readonly IUomService _uomService;
     private readonly ILogger<UomLoggingDecorator> _logger;
