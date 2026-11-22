@@ -12,9 +12,27 @@ public class ImportErrorHandlingDecorator : IImportService
         _importService = importService;
     }
 
-    public Task<Result<ImportInfo>> ImportItemsFromCsvAsync(Stream csv, CancellationToken cancellationToken = default)
+    public async Task<Result<ImportInfo>> ImportItemsFromCsvAsync(Stream csv, CancellationToken cancellationToken = default)
     {
-        throw new NotImplementedException();
+        try
+        {
+            Result<ImportInfo> result = await _importService
+                .ImportItemsFromCsvAsync(csv, cancellationToken);
+            
+            return result.Exception is null
+                ? result
+                : result.WithoutException();
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch (Exception)
+        {
+            return Result<ImportInfo>
+                .Fail("Failed to import items, something went wrong.")
+                .WithFailureType(FailureType.Unexpected);
+        }
     }
 
     public async Task<Result<ImportInfo>> ImportUomsFromCsvAsync(Stream csv, CancellationToken cancellationToken = default)

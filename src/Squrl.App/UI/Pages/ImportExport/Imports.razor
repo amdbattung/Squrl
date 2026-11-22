@@ -21,6 +21,10 @@
 
 @switch (_selectedResource)
 {
+    case "item":
+        <ImportItemsFromCsv />
+        break;
+        
     case "uom":
         <ImportUomsFromCsv />
         break;
@@ -35,5 +39,5 @@
 }
 
 @code {
-    private string? _selectedResource;
+    private string? _selectedResource = "item";
 }
