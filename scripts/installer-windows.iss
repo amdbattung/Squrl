@@ -71,61 +71,6 @@ function InitializeSetup(): Boolean;
       Result := True;
   end;
 
-procedure ModifyAppSettings;
-  var
-    FileName: string;
-    UnicodeJson: string;
-    AnsiJson: AnsiString;
-    ConnString: string;
-    LogsPath: string;
-    Changed: Boolean;
-  begin
-    FileName := ExpandConstant('{commonappdata}\{#MyAppName}\appsettings.json');
-
-    if LoadStringFromFile(FileName, AnsiJson) then
-      begin
-        UnicodeJson := string(AnsiJson);
-        Changed := False;
-    
-        // Connection String
-        ConnString := 'Data Source=' + ExpandConstant('{commonappdata}\{#MyAppName}\squrl.db');
-        StringChangeEx(ConnString, '\', '\\', True);
-
-        if StringChangeEx(
-          UnicodeJson,
-          '__CONNECTION_STRING__',
-          ConnString,
-          True) > 0 then
-          begin
-            Changed := True;
-          end;
-        
-        // Logs Path
-        LogsPath := ExpandConstant('{commonappdata}\{#MyAppName}\logs\log.txt');
-        StringChangeEx(LogsPath, '\', '\\', True);
-        
-        if StringChangeEx(
-          UnicodeJson,
-          '__LOGS_PATH__',
-          LogsPath,
-          True) > 0 then
-          begin
-            Changed := True;
-          end;
-        
-        if Changed then
-          begin
-            SaveStringToFile(FileName, AnsiString(UnicodeJson), False);
-          end
-      end;
-  end;
-
-procedure CurStepChanged(CurStep: TSetupStep);
-  begin
-    if (CurStep = ssPostInstall) and ConfigCreated then
-      ModifyAppSettings;
-  end;
-
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"
 Name: "{autodesktop}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; Tasks: desktopicon
