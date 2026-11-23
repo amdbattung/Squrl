@@ -70,15 +70,15 @@ try
                 reloadOnChange: false)
             .Build();
     }
-    
+
     // Get Squrl URL from Configuration
     string? url = configuration["Kestrel:Endpoints:Http:Url"];
-    
+
     url = string.IsNullOrWhiteSpace(url) ? configuration["Urls"] : url;
 
     if (string.IsNullOrWhiteSpace(url))
     {
-        throw new InvalidOperationException( "Squrl URL is not configured.");
+        throw new InvalidOperationException("Squrl URL is not configured.");
     }
 
     // Kestrel binds to 0.0.0.0,
@@ -87,7 +87,7 @@ try
         "0.0.0.0",
         "localhost",
         StringComparison.OrdinalIgnoreCase);
-    
+
     // Start Squrl Server
     Process? process;
 
@@ -107,7 +107,7 @@ try
                 "Squrl.App.dll was not found. Build Squrl.App first.",
                 squrlAppDll);
         }
-        
+
         string dotnetExe = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles),
             "dotnet",
@@ -145,7 +145,7 @@ try
             AppContext.BaseDirectory,
             "server",
             "squrl-server.exe");
-        
+
         if (!File.Exists(squrlAppExe))
         {
             squrlAppExe = Path.Combine(
@@ -176,7 +176,7 @@ try
     {
         throw new InvalidOperationException("Unable to start Squrl Server.");
     }
-    
+
     // Start tray application
     Application.Run(new TrayApplicationContext(
         process,
@@ -189,4 +189,8 @@ catch (Exception ex)
         "Squrl Startup Error",
         MessageBoxButtons.OK,
         MessageBoxIcon.Error);
+}
+finally
+{
+    mutex.ReleaseMutex();
 }

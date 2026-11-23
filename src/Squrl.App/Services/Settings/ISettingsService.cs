@@ -9,5 +9,5 @@ public interface ISettingsService
 
     event EventHandler<UserSettings>? SettingsChanged;
 
-    Task UpdateAsync(UserSettings settings, CancellationToken cancellationToken = default);
+    Task<Result> UpdateAsync(UserSettings settings, CancellationToken cancellationToken = default);
 }

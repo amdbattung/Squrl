@@ -1,6 +1,8 @@
 ﻿using System.Text.Json;
 using FluentValidation;
+using FluentValidation.Results;
 using Squrl.App.Common;
+using Squrl.App.Enums;
 
 namespace Squrl.App.Services.Settings;
 
@@ -53,13 +55,18 @@ public sealed class SettingsService : ISettingsService
                ?? new UserSettings();
     }
 
-    public async Task UpdateAsync(UserSettings settings, CancellationToken cancellationToken = default)
+    public async Task<Result> UpdateAsync(UserSettings settings, CancellationToken cancellationToken = default)
     {
-        ArgumentNullException.ThrowIfNull(settings);
-
-        await _settingsValidator.ValidateAndThrowAsync(
-            settings,
-            cancellationToken);
+        ValidationResult validationResult = await _settingsValidator
+            .ValidateAsync(settings, cancellationToken);
+        
+        if (!validationResult.IsValid)
+        {
+            return Result.Fail(validationResult.Errors
+                    .Select(e => e.ErrorMessage)
+                    .ToArray())
+                .WithFailureType(FailureType.Validation);
+        }
 
         await _lock.WaitAsync(cancellationToken);
 
@@ -84,5 +91,7 @@ public sealed class SettingsService : ISettingsService
         }
 
         SettingsChanged?.Invoke(this, settings);
+        
+        return Result.Ok();
     }
 }

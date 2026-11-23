@@ -1,6 +1,115 @@
 ﻿@page "/settings"
-<h3>Settings</h3>
+@rendermode InteractiveServer
+@attribute [StreamRendering]
+@inject ISettingsService SettingsService
+
+<h1>Settings</h1>
+
+@if (UserSettings is null)
+{
+    <p>Loading settings...</p>
+}
+else
+{
+    <EditForm Model="UserSettings" OnValidSubmit="HandleSubmit" FormName="SettingsForm">
+        <FluentValidator />
+
+        <div class="settings-form">
+
+            <div class="mb-3">
+                <label for="currencySymbol" class="form-label">
+                    Currency Symbol
+                </label>
+
+                <InputText id="currencySymbol"
+                           class="form-control"
+                           @bind-Value="UserSettings.CurrencySymbol" />
+
+                <ValidationMessage For="@(() => UserSettings.CurrencySymbol)" />
+            </div>
+
+            <div class="mb-3">
+                <label for="quantityPrecision" class="form-label">
+                    Item Quantity Precision
+                </label>
+
+                <InputNumber id="quantityPrecision"
+                            class="form-control"
+                            @bind-Value="UserSettings.ItemQuantityPrecision"
+                            min="0"
+                            max="6" />
+
+                <ValidationMessage For="@(() => UserSettings.ItemQuantityPrecision)" />
+            </div>
+
+            <div class="form-check mb-3">
+                <InputCheckbox id="openOnStartup"
+                              class="form-check-input"
+                              @bind-Value="UserSettings.OpenOnStartup" />
+
+                <label for="openOnStartup" class="form-check-label">
+                    Open on startup
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary">
+                Save Settings
+            </button>
+        </div>
+    </EditForm>
+
+    @if (!string.IsNullOrWhiteSpace(_successMessage))
+    {
+        <div class="alert alert-success mt-3">
+            @_successMessage
+        </div>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <div class="alert alert-danger mt-3">
+            @_errorMessage
+        </div>
+    }
+}
 
 @code {
+    private SettingsFormModel? UserSettings;
+
+    private string? _successMessage;
+    private string? _errorMessage;
+
+    protected override void OnInitialized()
+    {
+        var current = SettingsService.Current;
+
+        UserSettings = new SettingsFormModel
+        {
+            CurrencySymbol = current.CurrencySymbol,
+            ItemQuantityPrecision = current.ItemQuantityPrecision,
+            OpenOnStartup = current.OpenOnStartup
+        };
+    }
+
+    private async Task HandleSubmit()
+    {
+        if (UserSettings is null)
+            return;
+
+        var updatedSettings = new UserSettings
+        {
+            CurrencySymbol = UserSettings.CurrencySymbol,
+            ItemQuantityPrecision = UserSettings.ItemQuantityPrecision,
+            OpenOnStartup = UserSettings.OpenOnStartup
+        };
+
+        await SettingsService.UpdateAsync(updatedSettings);
+    }
     
+    private sealed class SettingsFormModel
+    {
+        public string CurrencySymbol { get; set; } = "$";
+        public int ItemQuantityPrecision { get; set; } = 2;
+        public bool OpenOnStartup { get; set; }
+    }
 }

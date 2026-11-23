@@ -26,6 +26,11 @@ using Squrl.App.Services.Supplier;
 using Squrl.App.Services.UnitOfMeasure;
 using Squrl.App.UI;
 
+const string mutexName = "Squrl_Server_SingleInstance";
+
+Mutex? mutex = null;
+bool mutexOwned = false;
+
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
     .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
@@ -35,6 +40,19 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
+    mutex = new Mutex(
+        initiallyOwned: true,
+        name: mutexName,
+        out bool createdNew);
+
+    mutexOwned = createdNew;
+
+    if (!mutexOwned)
+    {
+        Log.Warning("Squrl is already running.");
+        return;
+    }
+    
     Log.Information("Starting up Squrl");
 
     WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -279,5 +297,12 @@ catch (Exception ex)
 }
 finally
 {
+    if (mutexOwned)
+    {
+        mutex?.ReleaseMutex();
+    }
+
+    mutex?.Dispose();
+
     Log.CloseAndFlush();
 }
