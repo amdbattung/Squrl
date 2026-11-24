@@ -34,7 +34,7 @@ public class UpdatePoDetailValidator : AbstractValidator<UpdatePoDetailDto>
             .WithMessage("{PropertyName} must not be zero or negative.")
             .Must(x => !x.HasValue ||
                        x.Value == decimal.Round(x.Value, settingsService.Current.ItemQuantityPrecision))
-            .WithMessage("{PropertyName} must be non-negative and have no more than " +
+            .WithMessage("{PropertyName} must have no more than " +
                          $"{settingsService.Current.ItemQuantityPrecision} " +
                          "decimal places.");
         
