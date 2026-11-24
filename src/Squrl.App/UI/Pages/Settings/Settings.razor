@@ -5,13 +5,13 @@
 
 <h1>Settings</h1>
 
-@if (UserSettings is null)
+@if (_userSettings is null)
 {
     <p>Loading settings...</p>
 }
 else
 {
-    <EditForm Model="UserSettings" OnValidSubmit="HandleSubmit" FormName="SettingsForm">
+    <EditForm Model="_userSettings" OnValidSubmit="HandleSubmit" FormName="SettingsForm">
         <FluentValidator />
 
         <div class="settings-form">
@@ -23,9 +23,9 @@ else
 
                 <InputText id="currencySymbol"
                            class="form-control"
-                           @bind-Value="UserSettings.CurrencySymbol" />
+                           @bind-Value="_userSettings.CurrencySymbol" />
 
-                <ValidationMessage For="@(() => UserSettings.CurrencySymbol)" />
+                <ValidationMessage For="@(() => _userSettings.CurrencySymbol)" />
             </div>
 
             <div class="mb-3">
@@ -35,20 +35,20 @@ else
 
                 <InputNumber id="quantityPrecision"
                             class="form-control"
-                            @bind-Value="UserSettings.ItemQuantityPrecision"
+                            @bind-Value="_userSettings.ItemQuantityPrecision"
                             min="0"
                             max="6" />
 
-                <ValidationMessage For="@(() => UserSettings.ItemQuantityPrecision)" />
+                <ValidationMessage For="@(() => _userSettings.ItemQuantityPrecision)" />
             </div>
 
             <div class="form-check mb-3">
                 <InputCheckbox id="openOnStartup"
                               class="form-check-input"
-                              @bind-Value="UserSettings.OpenOnStartup" />
+                              @bind-Value="_userSettings.OpenOnStartup" />
 
                 <label for="openOnStartup" class="form-check-label">
-                    Open on startup
+                    Automatically open Squrl on start up
                 </label>
             </div>
 
@@ -74,16 +74,16 @@ else
 }
 
 @code {
-    private SettingsFormModel? UserSettings;
+    private SettingsFormModel? _userSettings;
 
     private string? _successMessage;
     private string? _errorMessage;
 
     protected override void OnInitialized()
     {
-        var current = SettingsService.Current;
+        UserSettings current = SettingsService.Current;
 
-        UserSettings = new SettingsFormModel
+        _userSettings = new SettingsFormModel
         {
             CurrencySymbol = current.CurrencySymbol,
             ItemQuantityPrecision = current.ItemQuantityPrecision,
@@ -93,17 +93,27 @@ else
 
     private async Task HandleSubmit()
     {
-        if (UserSettings is null)
+        if (_userSettings is null)
             return;
 
-        var updatedSettings = new UserSettings
+        UserSettings updatedSettings = new UserSettings
         {
-            CurrencySymbol = UserSettings.CurrencySymbol,
-            ItemQuantityPrecision = UserSettings.ItemQuantityPrecision,
-            OpenOnStartup = UserSettings.OpenOnStartup
+            CurrencySymbol = _userSettings.CurrencySymbol,
+            ItemQuantityPrecision = _userSettings.ItemQuantityPrecision,
+            OpenOnStartup = _userSettings.OpenOnStartup
         };
 
-        await SettingsService.UpdateAsync(updatedSettings);
+        Result result = await SettingsService.UpdateAsync(updatedSettings);
+        
+        if (result.IsSuccess)
+        {
+            _successMessage = "Settings successfully updated";
+        }
+        else
+        {
+            _errorMessage = "Settings could not be updated";
+            _successMessage = null;
+        }
     }
     
     private sealed class SettingsFormModel

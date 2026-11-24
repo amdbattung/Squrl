@@ -169,13 +169,12 @@ public sealed partial class ReportService
             totalQuantity +=  soDetail.Quantity;
             
             builder.InsertCell();
-            builder.Write(soDetail.UnitPrice
-                .ToString(CultureInfo.InvariantCulture));
+            builder.Write(_decimalFormatter.FormatCurrency(soDetail.UnitPrice));
 
             decimal total = soDetail.Quantity * soDetail.UnitPrice;
             
             builder.InsertCell();
-            builder.Write(total.ToString(CultureInfo.InvariantCulture));
+            builder.Write(_decimalFormatter.FormatCurrency(total));
             
             grandTotal += total;
             
@@ -188,7 +187,7 @@ public sealed partial class ReportService
             builder.InsertCell();
             builder.Write(soDetail.SalesOrder.DateOrdered
                 .InZone(_timeZone)
-                .ToString("yyyy-MMM-dd HH:mm", CultureInfo.InvariantCulture)
+                .ToString("yyyy-MMM-dd", CultureInfo.InvariantCulture)
                 .ToUpperInvariant());
 
             builder.EndRow();
@@ -215,7 +214,7 @@ public sealed partial class ReportService
         builder.InsertCell();
         builder.CellFormat.Borders.LineStyle = LineStyle.Single;
         builder.ParagraphFormat.Alignment = ParagraphAlignment.Left;
-        builder.Write(grandTotal.ToString(CultureInfo.InvariantCulture));
+        builder.Write(_decimalFormatter.FormatCurrency(grandTotal));
 
         builder.Font.Bold = false;
 

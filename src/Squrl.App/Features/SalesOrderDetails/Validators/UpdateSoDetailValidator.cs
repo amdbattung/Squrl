@@ -38,6 +38,9 @@ public class UpdateSoDetailValidator : AbstractValidator<UpdateSoDetailDto>
             .WithMessage("{PropertyName} is required.")
             .GreaterThanOrEqualTo(0m)
             .WithName("Unit Price")
-            .WithMessage("{PropertyName} must not be negative.");
+            .WithMessage("{PropertyName} must not be negative.")
+            .Must(x => !x.HasValue || x.Value == decimal.Round(x.Value, 2))
+            .WithName("Unit Price")
+            .WithMessage("{PropertyName} must have no more than 2 decimal places.");
     }
 }

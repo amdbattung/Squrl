@@ -183,7 +183,9 @@ public sealed partial class PurchaseOrderService : IPurchaseOrderService
                     LineSequence = poDetail.LineSequence ?? 0,
                     Item = item,
                     Quantity = poDetail.Quantity ?? 0m,
-                    UnitPrice = poDetail.UnitPrice ?? 0m
+                    UnitPrice = poDetail.UnitPrice != null
+                        ? Math.Round(poDetail.UnitPrice.Value, 2, MidpointRounding.AwayFromZero)
+                        : 0m
                 };
 
                 await _dataContext.PurchaseOrderDetails.AddAsync(newPoDetail, ct);
@@ -283,7 +285,9 @@ public sealed partial class PurchaseOrderService : IPurchaseOrderService
                         
                         existingPoDetail.Item = item ?? existingPoDetail.Item;
                         existingPoDetail.Quantity = poDetail.Quantity ?? existingPoDetail.Quantity;
-                        existingPoDetail.UnitPrice = poDetail.UnitPrice ?? existingPoDetail.UnitPrice;
+                        existingPoDetail.UnitPrice = poDetail.UnitPrice != null
+                            ? Math.Round(poDetail.UnitPrice.Value, 2, MidpointRounding.AwayFromZero)
+                            : existingPoDetail.UnitPrice;
                     }
                     else
                     {
@@ -304,7 +308,9 @@ public sealed partial class PurchaseOrderService : IPurchaseOrderService
                             LineSequence = poDetail.LineSequence ?? 0,
                             Item = item,
                             Quantity = poDetail.Quantity ?? 0m,
-                            UnitPrice = poDetail.UnitPrice ?? 0m
+                            UnitPrice = poDetail.UnitPrice != null
+                                ? Math.Round(poDetail.UnitPrice.Value, 2, MidpointRounding.AwayFromZero)
+                                : 0m
                         };
                         
                         await _dataContext.PurchaseOrderDetails.AddAsync(newPoDetail, ct);

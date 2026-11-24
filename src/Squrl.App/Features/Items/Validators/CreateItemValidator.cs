@@ -32,17 +32,26 @@ public class CreateItemValidator : AbstractValidator<CreateItemDto>
         RuleFor(x => x.ListPrice)
             .GreaterThanOrEqualTo(0m)
             .WithName("List Price")
-            .WithMessage("{PropertyName} must not be negative.");
+            .WithMessage("{PropertyName} must not be negative.")
+            .Must(x => !x.HasValue || x.Value == decimal.Round(x.Value, 2))
+            .WithName("List Price")
+            .WithMessage("{PropertyName} must have no more than 2 decimal places.");
         
         RuleFor(x => x.RetailPrice)
             .GreaterThanOrEqualTo(0m)
             .WithName("Retail Price")
-            .WithMessage("{PropertyName} must not be negative.");
+            .WithMessage("{PropertyName} must not be negative.")
+            .Must(x => !x.HasValue || x.Value == decimal.Round(x.Value, 2))
+            .WithName("Retail Price")
+            .WithMessage("{PropertyName} must have no more than 2 decimal places.");
         
         RuleFor(x => x.CostPrice)
             .GreaterThanOrEqualTo(0m)
             .WithName("Cost Price")
-            .WithMessage("{PropertyName} must not be negative.");
+            .WithMessage("{PropertyName} must not be negative.")
+            .Must(x => !x.HasValue || x.Value == decimal.Round(x.Value, 2))
+            .WithName("Cost Price")
+            .WithMessage("{PropertyName} must have no more than 2 decimal places.");
         
         RuleFor(x => x.Quantity)
             .NotNull()

@@ -4,6 +4,7 @@
 @inject IInventoryService InventoryService
 @inject IUomService UomService
 @inject NavigationManager Navigation
+@inject IDecimalFormatter DecimalFormatter
 @inject IJSRuntime Js
 
 <h1>Items</h1>
@@ -43,21 +44,12 @@
             ? uom
             : "")
     </TemplateColumn>
-    <TemplateColumn Title="List Price">
-        @(context.ListPrice.HasValue
-            ? ToStringFormatters.FormatDecimal(context.ListPrice.Value)
-            : "")
-    </TemplateColumn>
-    <TemplateColumn Title="Retail Price">
-        @(context.RetailPrice.HasValue
-            ? ToStringFormatters.FormatDecimal(context.RetailPrice.Value)
-            : "")
-    </TemplateColumn>
-    <TemplateColumn Title="Cost Price">
-        @(context.CostPrice.HasValue
-            ? ToStringFormatters.FormatDecimal(context.CostPrice.Value)
-            : "")
-    </TemplateColumn>
+    <PropertyColumn Title="List Price"
+                    Property="i => DecimalFormatter.FormatCurrency(i.ListPrice)" />
+    <PropertyColumn Title="Retail Price"
+                    Property="i => DecimalFormatter.FormatCurrency(i.RetailPrice)" />
+    <PropertyColumn Title="Cost Price"
+                    Property="i => DecimalFormatter.FormatCurrency(i.CostPrice)" />
     <TemplateColumn Title="Low Stock Threshold">
         @(context.LowQuantityAlertThreshold.HasValue
             ? ToStringFormatters.FormatDecimal(context.LowQuantityAlertThreshold.Value)

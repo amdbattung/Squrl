@@ -20,4 +20,11 @@ public class DecimalFormatter : IDecimalFormatter
     {
         return $"{_settingsService.Current.CurrencySymbol}{value:N2}";
     }
+    
+    public string FormatCurrency(decimal? value)
+    {
+        return value == null
+            ? string.Empty
+            : $"{_settingsService.Current.CurrencySymbol}{value:N2}";
+    }
 }

@@ -96,6 +96,9 @@ Copy-Item `
     -Destination $settingsDestination `
     -Force
 
+Get-ChildItem $serverOutput -Filter "appsettings.*.json" |
+    Remove-Item -Force
+
 Write-Host "  Windows configuration applied." -ForegroundColor Green
 
 

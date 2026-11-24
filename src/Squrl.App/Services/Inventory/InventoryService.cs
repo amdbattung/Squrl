@@ -129,9 +129,15 @@ public sealed partial class InventoryService : IInventoryService
                 Image = !string.IsNullOrWhiteSpace(uploadedImage)
                     ? uploadedImage
                     : null,
-                ListPrice = item.ListPrice,
-                RetailPrice = item.RetailPrice,
-                CostPrice = item.CostPrice,
+                ListPrice = item.ListPrice != null
+                    ? Math.Round(item.ListPrice.Value, 2, MidpointRounding.AwayFromZero)
+                    : null,
+                RetailPrice = item.RetailPrice != null
+                    ? Math.Round(item.RetailPrice.Value, 2, MidpointRounding.AwayFromZero)
+                    : null,
+                CostPrice = item.CostPrice != null
+                    ? Math.Round(item.CostPrice.Value, 2, MidpointRounding.AwayFromZero)
+                    : null,
                 Quantity = item.Quantity ?? 0m,
                 LowQuantityAlertThreshold =  item.LowQuantityAlertThreshold,
                 Locations = item.Locations ?? new List<string>()
@@ -222,9 +228,15 @@ public sealed partial class InventoryService : IInventoryService
             existingItem.Uom = uom ?? existingItem.Uom;
             existingItem.Description = item.Description ?? existingItem.Description;
             existingItem.Image = uploadedImage ?? existingItem.Image;
-            existingItem.ListPrice = item.ListPrice ?? existingItem.ListPrice;
-            existingItem.RetailPrice = item.RetailPrice ?? existingItem.RetailPrice;
-            existingItem.CostPrice = item.CostPrice ?? existingItem.CostPrice;
+            existingItem.ListPrice = item.ListPrice != null
+                ? Math.Round(item.ListPrice.Value, 2, MidpointRounding.AwayFromZero)
+                : existingItem.ListPrice;
+            existingItem.RetailPrice = item.RetailPrice != null
+                ? Math.Round(item.RetailPrice.Value, 2, MidpointRounding.AwayFromZero)
+                : existingItem.RetailPrice;
+            existingItem.CostPrice = item.CostPrice != null
+                ? Math.Round(item.CostPrice.Value, 2, MidpointRounding.AwayFromZero)
+                : existingItem.CostPrice;
             existingItem.Quantity = item.Quantity ?? existingItem.Quantity;
             existingItem.LowQuantityAlertThreshold = item.LowQuantityAlertThreshold ?? existingItem.LowQuantityAlertThreshold;
             existingItem.Locations = item.Locations ?? existingItem.Locations;

@@ -177,8 +177,7 @@ public sealed partial class ReportService
                 .ToString(CultureInfo.InvariantCulture)} {item.Value.Uom}");
             
             builder.InsertCell();
-            builder.Write(item.Value.TotalPrice
-                .ToString(CultureInfo.InvariantCulture));
+            builder.Write(_decimalFormatter.FormatCurrency(item.Value.TotalPrice));
 
             builder.EndRow();
         }
@@ -202,7 +201,7 @@ public sealed partial class ReportService
         builder.InsertCell();
         builder.CellFormat.Borders.LineStyle = LineStyle.Single;
         builder.ParagraphFormat.Alignment = ParagraphAlignment.Left;
-        builder.Write(grandTotal.ToString(CultureInfo.InvariantCulture));
+        builder.Write(_decimalFormatter.FormatCurrency(grandTotal));
 
         builder.Font.Bold = false;
 

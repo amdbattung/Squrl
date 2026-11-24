@@ -3,6 +3,7 @@
 @inject NavigationManager Navigation
 @inject ISalesOrderService SalesOrderService
 @inject IInventoryService InventoryService
+@inject IDecimalFormatter DecimalFormatter
 @inject IJSRuntime Js
 
 <h1>Sales Order</h1>
@@ -37,8 +38,10 @@
                 : "")
         </TemplateColumn>
         <PropertyColumn Title="Quantity" Property="s => s.Quantity" />
-        <PropertyColumn Title="Unit Price" Property="s => s.UnitPrice" />
-        <PropertyColumn Title="Total Price" Property="s => s.Quantity * s.UnitPrice" />
+        <PropertyColumn Title="Unit Price"
+                        Property="p => DecimalFormatter.FormatCurrency(p.UnitPrice)" />
+        <PropertyColumn Title="Total Price"
+                        Property="s => DecimalFormatter.FormatCurrency(s.Quantity * s.UnitPrice)" />
     </QuickGrid>
 }
 else
