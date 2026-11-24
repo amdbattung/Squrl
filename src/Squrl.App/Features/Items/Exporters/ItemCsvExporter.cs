@@ -10,7 +10,7 @@ public sealed class ItemCsvExporter : CsvExporter<Item>
     public ItemCsvExporter(IDecimalFormatter decimalFormatter) : base(
         new DataColumn<Item>("Item", x => x.Name),
         new DataColumn<Item>("Description", x => x.Description),
-        new DataColumn<Item>("On-hand", x => x.Quantity),
+        new DataColumn<Item>("On-hand", x => decimalFormatter.FormatQuantity(x.Quantity)),
         new DataColumn<Item>("UOM", x => x.Uom.Code),
         new DataColumn<Item>("Cost", x => decimalFormatter.FormatCurrency(x.CostPrice)),
         new DataColumn<Item>("List Price", x => decimalFormatter.FormatCurrency(x.ListPrice)),

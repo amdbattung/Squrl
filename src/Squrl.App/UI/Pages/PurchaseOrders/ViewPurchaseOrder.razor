@@ -41,7 +41,8 @@
                 ? item
                 : "")
         </TemplateColumn>
-        <PropertyColumn Title="Quantity" Property="p => p.Quantity" />
+        <PropertyColumn Title="Quantity"
+                        Property="p => DecimalFormatter.FormatQuantity(p.Quantity)" />
         <PropertyColumn Title="Unit Price"
                         Property="p => DecimalFormatter.FormatCurrency(p.UnitPrice)" />
         <PropertyColumn Title="Total Price"

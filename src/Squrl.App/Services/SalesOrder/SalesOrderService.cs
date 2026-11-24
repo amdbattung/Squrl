@@ -11,6 +11,7 @@ using Squrl.App.Infrastructure.DataExporter;
 using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Models;
 using Squrl.App.Services.Inventory;
+using Squrl.App.Services.Settings;
 
 namespace Squrl.App.Services.SalesOrder;
 
@@ -18,6 +19,7 @@ public sealed partial class SalesOrderService : ISalesOrderService
 {
     private readonly DataContext _dataContext;
     private readonly ITransactionManager _transactionManager;
+    private readonly ISettingsService _settingsService;
     private readonly IInventoryService _inventoryService;
     private readonly ICsvExporter<SalesOrderDetail> _csvExporter;
     private readonly IExcelExporter<SalesOrderDetail> _excelExporter;
@@ -25,6 +27,7 @@ public sealed partial class SalesOrderService : ISalesOrderService
 
     public SalesOrderService(DataContext dataContext,
         ITransactionManager transactionManager,
+        ISettingsService settingsService,
         IInventoryService inventoryService,
         ICsvExporter<SalesOrderDetail> csvExporter,
         IExcelExporter<SalesOrderDetail> excelExporter,
@@ -32,6 +35,7 @@ public sealed partial class SalesOrderService : ISalesOrderService
     {
         _dataContext = dataContext;
         _transactionManager = transactionManager;
+        _settingsService = settingsService;
         _inventoryService = inventoryService;
         _csvExporter = csvExporter;
         _excelExporter = excelExporter;
@@ -125,8 +129,15 @@ public sealed partial class SalesOrderService : ISalesOrderService
                     SalesOrder = newSalesOrder,
                     LineSequence = soDetail.LineSequence ?? 0,
                     Item = item,
-                    Quantity = soDetail.Quantity ?? 0m,
-                    UnitPrice = soDetail.UnitPrice ?? 0m
+                    Quantity = soDetail.Quantity != null
+                        ? Math.Round(
+                            soDetail.Quantity.Value,
+                            _settingsService.Current.ItemQuantityPrecision,
+                            MidpointRounding.AwayFromZero)
+                        : 0m,
+                    UnitPrice = soDetail.UnitPrice != null
+                        ? Math.Round(soDetail.UnitPrice.Value, 2, MidpointRounding.AwayFromZero)
+                        : 0m
                 };
 
                 await _dataContext.SalesOrderDetails.AddAsync(newSoDetail, ct);
@@ -222,8 +233,15 @@ public sealed partial class SalesOrderService : ISalesOrderService
                     }
                     
                     existingSoDetail.Item = item ?? existingSoDetail.Item;
-                    existingSoDetail.Quantity = soDetail.Quantity ?? existingSoDetail.Quantity;
-                    existingSoDetail.UnitPrice = soDetail.UnitPrice ?? existingSoDetail.UnitPrice;
+                    existingSoDetail.Quantity = soDetail.Quantity != null
+                        ? Math.Round(
+                            soDetail.Quantity.Value,
+                            _settingsService.Current.ItemQuantityPrecision,
+                            MidpointRounding.AwayFromZero)
+                        : existingSoDetail.Quantity;
+                    existingSoDetail.UnitPrice = soDetail.UnitPrice != null
+                        ? Math.Round(soDetail.UnitPrice.Value, 2, MidpointRounding.AwayFromZero)
+                        : existingSoDetail.UnitPrice;
                 }
                 else
                 {
@@ -243,8 +261,15 @@ public sealed partial class SalesOrderService : ISalesOrderService
                         SalesOrder = existingSalesOrder,
                         LineSequence = soDetail.LineSequence ?? 0,
                         Item = item,
-                        Quantity = soDetail.Quantity ?? 0m,
-                        UnitPrice = soDetail.UnitPrice ?? 0m
+                        Quantity = soDetail.Quantity != null
+                            ? Math.Round(
+                                soDetail.Quantity.Value,
+                                _settingsService.Current.ItemQuantityPrecision,
+                                MidpointRounding.AwayFromZero)
+                            : 0m,
+                        UnitPrice = soDetail.UnitPrice != null
+                            ? Math.Round(soDetail.UnitPrice.Value, 2, MidpointRounding.AwayFromZero)
+                            : 0m
                     };
                     
                     await _dataContext.SalesOrderDetails.AddAsync(newSoDetail, ct);

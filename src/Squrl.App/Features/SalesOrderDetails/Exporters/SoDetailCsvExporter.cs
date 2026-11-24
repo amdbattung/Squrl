@@ -10,7 +10,8 @@ public sealed class SoDetailCsvExporter : CsvExporter<SalesOrderDetail>
     public SoDetailCsvExporter(IDecimalFormatter decimalFormatter) : base(
         new DataColumn<SalesOrderDetail>("#", x => x.LineSequence),
         new DataColumn<SalesOrderDetail>("Item", x => x.Item.Name),
-        new DataColumn<SalesOrderDetail>("Quantity", x => x.Quantity),
+        new DataColumn<SalesOrderDetail>("Quantity",
+            x => decimalFormatter.FormatQuantity(x.Quantity)),
         new DataColumn<SalesOrderDetail>("Unit Price",
             x => decimalFormatter.FormatCurrency(x.UnitPrice)),
         new DataColumn<SalesOrderDetail>("Total Price",

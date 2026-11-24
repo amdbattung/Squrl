@@ -10,6 +10,7 @@ using Squrl.App.Infrastructure.DataExporter;
 using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Models;
 using Squrl.App.Services.Inventory;
+using Squrl.App.Services.Settings;
 
 namespace Squrl.App.Services.PurchaseOrder;
 
@@ -17,6 +18,7 @@ public sealed partial class PurchaseOrderService : IPurchaseOrderService
 {
     private readonly DataContext _dataContext;
     private readonly ITransactionManager _transactionManager;
+    private readonly ISettingsService _settingsService;
     private readonly IInventoryService _inventoryService;
     private readonly ICsvExporter<PurchaseOrderDetail> _csvExporter;
     private readonly IExcelExporter<PurchaseOrderDetail> _excelExporter;
@@ -24,6 +26,7 @@ public sealed partial class PurchaseOrderService : IPurchaseOrderService
 
     public PurchaseOrderService(DataContext dataContext,
         ITransactionManager transactionManager,
+        ISettingsService settingsService,
         IInventoryService inventoryService,
         ICsvExporter<PurchaseOrderDetail> csvExporter,
         IExcelExporter<PurchaseOrderDetail> excelExporter,
@@ -31,6 +34,7 @@ public sealed partial class PurchaseOrderService : IPurchaseOrderService
     {
         _dataContext = dataContext;
         _transactionManager = transactionManager;
+        _settingsService = settingsService;
         _inventoryService = inventoryService;
         _csvExporter = csvExporter;
         _excelExporter = excelExporter;
@@ -182,7 +186,12 @@ public sealed partial class PurchaseOrderService : IPurchaseOrderService
                     PurchaseOrder = newPurchaseOrder,
                     LineSequence = poDetail.LineSequence ?? 0,
                     Item = item,
-                    Quantity = poDetail.Quantity ?? 0m,
+                    Quantity = poDetail.Quantity != null
+                        ? Math.Round(
+                            poDetail.Quantity.Value,
+                            _settingsService.Current.ItemQuantityPrecision,
+                            MidpointRounding.AwayFromZero)
+                        : 0m,
                     UnitPrice = poDetail.UnitPrice != null
                         ? Math.Round(poDetail.UnitPrice.Value, 2, MidpointRounding.AwayFromZero)
                         : 0m
@@ -284,7 +293,12 @@ public sealed partial class PurchaseOrderService : IPurchaseOrderService
                         }
                         
                         existingPoDetail.Item = item ?? existingPoDetail.Item;
-                        existingPoDetail.Quantity = poDetail.Quantity ?? existingPoDetail.Quantity;
+                        existingPoDetail.Quantity = poDetail.Quantity != null
+                            ? Math.Round(
+                                poDetail.Quantity.Value,
+                                _settingsService.Current.ItemQuantityPrecision,
+                                MidpointRounding.AwayFromZero)
+                            : existingPoDetail.Quantity;
                         existingPoDetail.UnitPrice = poDetail.UnitPrice != null
                             ? Math.Round(poDetail.UnitPrice.Value, 2, MidpointRounding.AwayFromZero)
                             : existingPoDetail.UnitPrice;
@@ -307,7 +321,12 @@ public sealed partial class PurchaseOrderService : IPurchaseOrderService
                             PurchaseOrder = existingPurchaseOrder,
                             LineSequence = poDetail.LineSequence ?? 0,
                             Item = item,
-                            Quantity = poDetail.Quantity ?? 0m,
+                            Quantity = poDetail.Quantity != null
+                                ? Math.Round(
+                                    poDetail.Quantity.Value,
+                                    _settingsService.Current.ItemQuantityPrecision,
+                                    MidpointRounding.AwayFromZero)
+                                : 0m,
                             UnitPrice = poDetail.UnitPrice != null
                                 ? Math.Round(poDetail.UnitPrice.Value, 2, MidpointRounding.AwayFromZero)
                                 : 0m

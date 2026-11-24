@@ -118,7 +118,7 @@ public sealed class CreatePurchaseOrderTests : IntegrationTest
             .Include(p => p.PurchaseOrder)
             .Include(p => p.Item)
             .Where(p => p.PurchaseOrder.Id == actual.Value.Id)
-            .ToListAsync();;
+            .ToListAsync();
         
         Assert.NotNull(createdPoDetails);
         Assert.NotEmpty(createdPoDetails);

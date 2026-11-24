@@ -34,11 +34,8 @@
            Pagination="@_pagination">
     <PropertyColumn Property="i => i.Name" />
     <PropertyColumn Property="i => i.Description" />
-    <TemplateColumn Title="Onhand">
-        @(context.Quantity.HasValue
-            ? ToStringFormatters.FormatDecimal(context.Quantity.Value)
-            : "")
-    </TemplateColumn>
+    <PropertyColumn Title="On-hand"
+                    Property="i => DecimalFormatter.FormatQuantity(i.Quantity)" />
     <TemplateColumn Title="UOM">
         @(_uomCache.TryGetValue(context.UomId ?? Guid.Empty, out string? uom)
             ? uom
@@ -50,11 +47,8 @@
                     Property="i => DecimalFormatter.FormatCurrency(i.RetailPrice)" />
     <PropertyColumn Title="Cost Price"
                     Property="i => DecimalFormatter.FormatCurrency(i.CostPrice)" />
-    <TemplateColumn Title="Low Stock Threshold">
-        @(context.LowQuantityAlertThreshold.HasValue
-            ? ToStringFormatters.FormatDecimal(context.LowQuantityAlertThreshold.Value)
-            : "")
-    </TemplateColumn>
+    <PropertyColumn Title="Low Stock Threshold"
+                    Property="i => DecimalFormatter.RemoveTrailingZeros(i.LowQuantityAlertThreshold)" />
     <TemplateColumn Title="Location(s)">
         @string.Join(", ", context.Locations ?? Array.Empty<string>())
     </TemplateColumn>

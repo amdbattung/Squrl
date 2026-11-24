@@ -10,7 +10,8 @@ public class PoDetailCsvExporter : CsvExporter<PurchaseOrderDetail>
     public PoDetailCsvExporter(IDecimalFormatter decimalFormatter) : base(
         new DataColumn<PurchaseOrderDetail>("#", x => x.LineSequence),
         new DataColumn<PurchaseOrderDetail>("Item", x => x.Item.Name),
-        new DataColumn<PurchaseOrderDetail>("Quantity", x => x.Quantity),
+        new DataColumn<PurchaseOrderDetail>("Quantity",
+            x => decimalFormatter.FormatQuantity(x.Quantity)),
         new DataColumn<PurchaseOrderDetail>("Unit Price",
             x => decimalFormatter.FormatCurrency(x.UnitPrice)),
         new DataColumn<PurchaseOrderDetail>("Total Price",

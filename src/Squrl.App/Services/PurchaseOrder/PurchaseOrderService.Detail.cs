@@ -105,7 +105,12 @@ public sealed partial class PurchaseOrderService
                 PurchaseOrder = existingPurchaseOrder,
                 LineSequence = poDetail.LineSequence ?? 0,
                 Item = item,
-                Quantity = poDetail.Quantity ?? 0m,
+                Quantity = poDetail.Quantity != null
+                    ? Math.Round(
+                        poDetail.Quantity.Value,
+                        _settingsService.Current.ItemQuantityPrecision,
+                        MidpointRounding.AwayFromZero)
+                    : 0m,
                 UnitPrice = poDetail.UnitPrice != null
                     ? Math.Round(poDetail.UnitPrice.Value, 2, MidpointRounding.AwayFromZero)
                     : 0m
@@ -241,7 +246,12 @@ public sealed partial class PurchaseOrderService
             
             existingPoDetail.PurchaseOrder = purchaseOrder ?? existingPoDetail.PurchaseOrder;
             existingPoDetail.Item = item ?? existingPoDetail.Item;
-            existingPoDetail.Quantity = poDetail.Quantity ?? existingPoDetail.Quantity;
+            existingPoDetail.Quantity = poDetail.Quantity != null
+                ? Math.Round(
+                    poDetail.Quantity.Value,
+                    _settingsService.Current.ItemQuantityPrecision,
+                    MidpointRounding.AwayFromZero)
+                : existingPoDetail.Quantity;
             existingPoDetail.UnitPrice = poDetail.UnitPrice != null
                 ? Math.Round(poDetail.UnitPrice.Value, 2, MidpointRounding.AwayFromZero)
                 : existingPoDetail.UnitPrice;

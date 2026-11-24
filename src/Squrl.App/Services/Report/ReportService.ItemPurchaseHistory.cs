@@ -165,8 +165,8 @@ public sealed partial class ReportService
             builder.Write(poDetail.PurchaseOrder.Supplier?.Name ?? string.Empty);
             
             builder.InsertCell();
-            builder.Write($"{poDetail.Quantity
-                .ToString(CultureInfo.InvariantCulture)} {existingItem.Uom.Code}");
+            builder.Write($"{_decimalFormatter.FormatQuantity(poDetail.Quantity)} " +
+                          $"{existingItem.Uom.Code}");
             
             totalQuantity +=  poDetail.Quantity;
             
@@ -204,8 +204,8 @@ public sealed partial class ReportService
         builder.InsertCell();
         builder.CellFormat.Borders.LineStyle = LineStyle.Single;
         builder.ParagraphFormat.Alignment = ParagraphAlignment.Left;
-        builder.Write($"{totalQuantity
-            .ToString(CultureInfo.InvariantCulture)} {existingItem.Uom.Code}");
+        builder.Write($"{_decimalFormatter.FormatQuantity(totalQuantity)} " +
+                      $"{existingItem.Uom.Code}");
 
         builder.InsertCell();
         builder.CellFormat.Borders.LineStyle = LineStyle.None;

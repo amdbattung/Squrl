@@ -1,11 +1,12 @@
 ﻿using FluentValidation;
 using Squrl.App.Features.SalesOrderDetails.DTOs;
+using Squrl.App.Services.Settings;
 
 namespace Squrl.App.Features.SalesOrderDetails.Validators;
 
 public class UpdateSoDetailValidator : AbstractValidator<UpdateSoDetailDto>
 {
-    public UpdateSoDetailValidator()
+    public UpdateSoDetailValidator(ISettingsService settingsService)
     {
         RuleFor(x => x.SalesOrderId)
             .NotEmpty()
@@ -30,7 +31,12 @@ public class UpdateSoDetailValidator : AbstractValidator<UpdateSoDetailDto>
             .NotNull()
             .WithMessage("{PropertyName} is required.")
             .GreaterThan(0m)
-            .WithMessage("{PropertyName} must not be zero or negative.");
+            .WithMessage("{PropertyName} must not be zero or negative.")
+            .Must(x => !x.HasValue ||
+                       x.Value == decimal.Round(x.Value, settingsService.Current.ItemQuantityPrecision))
+            .WithMessage("{PropertyName} must be non-negative and have no more than " +
+                         $"{settingsService.Current.ItemQuantityPrecision} " +
+                         "decimal places.");
         
         RuleFor(x => x.UnitPrice)
             .NotNull()

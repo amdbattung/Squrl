@@ -11,6 +11,7 @@ using Squrl.App.Infrastructure.ImageProcessor;
 using Squrl.App.Infrastructure.ImageStorage;
 using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Models;
+using Squrl.App.Services.Settings;
 
 namespace Squrl.App.Services.Inventory;
 
@@ -18,6 +19,7 @@ public sealed partial class InventoryService : IInventoryService
 {
     private readonly DataContext _dataContext;
     private readonly ITransactionManager _transactionManager;
+    private readonly ISettingsService _settingsService;
     private readonly IBackgroundTaskQueue _queue;
     private readonly IImageProcessor _imageProcessor;
     private readonly IImageStorage _imageStorage;
@@ -27,6 +29,7 @@ public sealed partial class InventoryService : IInventoryService
     public InventoryService(
         DataContext dataContext,
         ITransactionManager transactionManager,
+        ISettingsService settingsService,
         IBackgroundTaskQueue queue,
         IImageProcessor imageProcessor,
         IImageStorage imageStorage,
@@ -35,6 +38,7 @@ public sealed partial class InventoryService : IInventoryService
     {
         _dataContext = dataContext;
         _transactionManager = transactionManager;
+        _settingsService = settingsService;
         _queue = queue;
         _imageProcessor = imageProcessor;
         _imageStorage = imageStorage;
@@ -138,7 +142,12 @@ public sealed partial class InventoryService : IInventoryService
                 CostPrice = item.CostPrice != null
                     ? Math.Round(item.CostPrice.Value, 2, MidpointRounding.AwayFromZero)
                     : null,
-                Quantity = item.Quantity ?? 0m,
+                Quantity = item.Quantity != null
+                    ? Math.Round(
+                        item.Quantity.Value,
+                        _settingsService.Current.ItemQuantityPrecision,
+                        MidpointRounding.AwayFromZero)
+                    : 0m,
                 LowQuantityAlertThreshold =  item.LowQuantityAlertThreshold,
                 Locations = item.Locations ?? new List<string>()
             };
@@ -237,7 +246,12 @@ public sealed partial class InventoryService : IInventoryService
             existingItem.CostPrice = item.CostPrice != null
                 ? Math.Round(item.CostPrice.Value, 2, MidpointRounding.AwayFromZero)
                 : existingItem.CostPrice;
-            existingItem.Quantity = item.Quantity ?? existingItem.Quantity;
+            existingItem.Quantity = item.Quantity != null
+                ? Math.Round(
+                    item.Quantity.Value,
+                    _settingsService.Current.ItemQuantityPrecision,
+                    MidpointRounding.AwayFromZero)
+                : existingItem.Quantity;
             existingItem.LowQuantityAlertThreshold = item.LowQuantityAlertThreshold ?? existingItem.LowQuantityAlertThreshold;
             existingItem.Locations = item.Locations ?? existingItem.Locations;
             
@@ -308,7 +322,8 @@ public sealed partial class InventoryService : IInventoryService
             int affected = await _dataContext.Database.ExecuteSqlInterpolatedAsync(
                 $"""
                  UPDATE Items
-                 SET Quantity = Quantity + {quantity}
+                 SET Quantity = ROUND(Quantity + {quantity},
+                    {_settingsService.Current.ItemQuantityPrecision})
                  WHERE Id = {itemId}
                  """,
                 ct);
@@ -349,7 +364,8 @@ public sealed partial class InventoryService : IInventoryService
             int affected = await _dataContext.Database.ExecuteSqlInterpolatedAsync(
                 $"""
                  UPDATE Items
-                 SET Quantity = Quantity - {quantity}
+                 SET Quantity = ROUND(Quantity - {quantity},
+                    {_settingsService.Current.ItemQuantityPrecision})
                  WHERE Id = {itemId}
                     AND CAST(Quantity AS REAL) >= {quantity}
                  """,
@@ -421,7 +437,9 @@ public sealed partial class InventoryService : IInventoryService
                 affected = await _dataContext.Database.ExecuteSqlInterpolatedAsync(
                     $"""
                      UPDATE Items
-                     SET Quantity = {value}
+                     SET Quantity = {Math.Round(value,
+                         _settingsService.Current.ItemQuantityPrecision,
+                         MidpointRounding.AwayFromZero)}
                      WHERE Id = {itemId}
                      """,
                     ct);
@@ -460,7 +478,8 @@ public sealed partial class InventoryService : IInventoryService
                     affected = await _dataContext.Database.ExecuteSqlInterpolatedAsync(
                         $"""
                          UPDATE Items
-                         SET Quantity = Quantity * {value}
+                         SET Quantity = ROUND(Quantity * {value},
+                            {_settingsService.Current.ItemQuantityPrecision})
                          WHERE Id = {itemId}
                          """,
                         ct);
@@ -478,7 +497,8 @@ public sealed partial class InventoryService : IInventoryService
                     affected = await _dataContext.Database.ExecuteSqlInterpolatedAsync(
                         $"""
                          UPDATE Items
-                         SET Quantity = Quantity / {value}
+                         SET Quantity = ROUND(Quantity / {value},
+                            {_settingsService.Current.ItemQuantityPrecision})
                          WHERE Id = {itemId}
                          """,
                         ct);
@@ -501,7 +521,9 @@ public sealed partial class InventoryService : IInventoryService
                     affected = await _dataContext.Database.ExecuteSqlInterpolatedAsync(
                         $"""
                          UPDATE Items
-                         SET Quantity = {value}
+                         SET Quantity = {Math.Round(value,
+                             _settingsService.Current.ItemQuantityPrecision,
+                             MidpointRounding.AwayFromZero)}
                          WHERE Id = {itemId}
                          """,
                         ct);

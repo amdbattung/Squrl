@@ -185,8 +185,8 @@ public sealed partial class ReportService
             builder.Write(item.Value.Description);
             
             builder.InsertCell();
-            builder.Write($"{item.Value.TotalQuantity
-                .ToString(CultureInfo.InvariantCulture)} {item.Value.Uom}");
+            builder.Write($"{_decimalFormatter.FormatQuantity(item.Value.TotalQuantity)} " +
+                          $"{item.Value.Uom}");
             
             builder.InsertCell();
             builder.Write(_decimalFormatter.FormatCurrency(item.Value.TotalPrice));
