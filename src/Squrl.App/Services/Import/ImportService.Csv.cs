@@ -117,10 +117,21 @@ public sealed partial class ImportService
                     Name = dto.Name,
                     Uom = uom,
                     Description = dto.Description,
-                    ListPrice = dto.ListPrice,
-                    RetailPrice = dto.RetailPrice,
-                    CostPrice = dto.CostPrice,
-                    Quantity = dto.Quantity ?? 0m,
+                    ListPrice = dto.ListPrice != null
+                        ? Math.Round(dto.ListPrice.Value, 2, MidpointRounding.AwayFromZero)
+                        : null,
+                    RetailPrice = dto.RetailPrice != null
+                        ? Math.Round(dto.RetailPrice.Value, 2, MidpointRounding.AwayFromZero)
+                        : null,
+                    CostPrice = dto.CostPrice != null
+                        ? Math.Round(dto.CostPrice.Value, 2, MidpointRounding.AwayFromZero)
+                        : null,
+                    Quantity = dto.Quantity != null
+                        ? Math.Round(
+                            dto.Quantity.Value,
+                            _settingsService.Current.ItemQuantityPrecision,
+                            MidpointRounding.AwayFromZero)
+                        : 0m,
                     LowQuantityAlertThreshold =  dto.LowQuantityAlertThreshold,
                     Locations = dto.Locations
                 };
