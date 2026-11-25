@@ -143,11 +143,6 @@ try
         return new NullStartupRunner();
     });
     
-    builder.Services.AddSingleton<ISettingsService>(
-        provider => new SettingsService(
-            settingsFilePath,
-            provider.GetRequiredService<IStartupRunner>()));
-    
     builder.Services.AddSerilog((services, lc) => lc
         .ReadFrom.Configuration(builder.Configuration)
         .ReadFrom.Services(services));
@@ -237,6 +232,13 @@ try
     builder.Services.Decorate<IReportService, ReportPreprocessingDecorator>();
     builder.Services.Decorate<IReportService, ReportLoggingDecorator>();
     builder.Services.Decorate<IReportService, ReportErrorHandlingDecorator>();
+    
+    builder.Services.AddSingleton<ISettingsService>(
+        provider => new SettingsService(
+            settingsFilePath,
+            provider.GetRequiredService<IStartupRunner>()));
+    builder.Services.Decorate<ISettingsService, SettingsLoggingDecorator>();
+    builder.Services.Decorate<ISettingsService, SettingsErrorHandlingDecorator>();
     
     builder.Services.AddSingleton<IAlertService, AlertService>();
 

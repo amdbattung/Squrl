@@ -29,7 +29,7 @@ public sealed partial class ImportService
         
         List<(int RowNumber, Item Item)> items = new();
 
-        var rowNumber = 0;
+        int rowNumber = 0;
         
         Dictionary<string, Models.UnitOfMeasure> uomCache = new(StringComparer.OrdinalIgnoreCase);
 
@@ -159,6 +159,13 @@ public sealed partial class ImportService
             await _dataContext.SaveChangesAsync(cancellationToken);
 
             successfulRows += items.Count;
+            
+            foreach (var item in items)
+            {
+                await AlertHelper(
+                    item.Item,
+                    cancellationToken);
+            }
         }
         catch (DbUpdateException)
         {
@@ -181,6 +188,10 @@ public sealed partial class ImportService
                     await _dataContext.SaveChangesAsync(cancellationToken);
 
                     successfulRows++;
+                    
+                    await AlertHelper(
+                        item.Item,
+                        cancellationToken);
                 }
                 catch (DbUpdateException e) when (IsUniqueConstraintViolation(e))
                 {
@@ -238,7 +249,7 @@ public sealed partial class ImportService
         
         List<(int RowNumber, Models.UnitOfMeasure Uom)> uoms = new();
 
-        var rowNumber = 0;
+        int rowNumber = 0;
 
         foreach (SepReader.Row row in csv)
         {
@@ -389,7 +400,7 @@ public sealed partial class ImportService
         
         List<(int RowNumber, Models.Supplier Supplier)> suppliers = new();
 
-        var rowNumber = 0;
+        int rowNumber = 0;
 
         foreach (SepReader.Row row in csv)
         {
