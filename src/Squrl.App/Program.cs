@@ -14,6 +14,7 @@ using Squrl.App.Infrastructure.DecimalFormatter;
 using Squrl.App.Infrastructure.ImageProcessor;
 using Squrl.App.Infrastructure.ImageStorage;
 using Squrl.App.Infrastructure.PlatformDialog;
+using Squrl.App.Infrastructure.StartupRunner;
 using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Services.Alert;
 using Squrl.App.Services.Import;
@@ -87,8 +88,9 @@ try
         }
         
         Directory.CreateDirectory(dataDirectory);
-        Directory.CreateDirectory(Path.Combine(dataDirectory, "images"));
+        Directory.CreateDirectory(Path.Combine(dataDirectory, "backups"));
         Directory.CreateDirectory(Path.Combine(dataDirectory, "logs"));
+        Directory.CreateDirectory(Path.Combine(dataDirectory, "images"));
         
         settingsFilePath = Path.Combine(
             dataDirectory,
@@ -128,7 +130,23 @@ try
     }
 
     // Add services to the container.
-    builder.Services.AddSingleton<ISettingsService>(_ => new SettingsService(settingsFilePath));
+    builder.Services.AddSingleton<IStartupRunner>(_ =>
+    {
+        if (builder.Environment.IsProduction())
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                return new WindowsStartupRunner(builder.Configuration);
+            }
+        }
+
+        return new NullStartupRunner();
+    });
+    
+    builder.Services.AddSingleton<ISettingsService>(
+        provider => new SettingsService(
+            settingsFilePath,
+            provider.GetRequiredService<IStartupRunner>()));
     
     builder.Services.AddSerilog((services, lc) => lc
         .ReadFrom.Configuration(builder.Configuration)

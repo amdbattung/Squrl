@@ -3,6 +3,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using Squrl.App.Common;
 using Squrl.App.Enums;
+using Squrl.App.Infrastructure.StartupRunner;
 
 namespace Squrl.App.Services.Settings;
 
@@ -14,6 +15,7 @@ public sealed class SettingsService : ISettingsService
     };
 
     private readonly string _filePath;
+    private readonly IStartupRunner _startupRunner;
     private readonly SemaphoreSlim _lock = new(1, 1);
     private readonly InlineValidator<UserSettings> _settingsValidator;
 
@@ -23,10 +25,12 @@ public sealed class SettingsService : ISettingsService
 
     public UserSettings Current => Volatile.Read(ref _current);
 
-    public SettingsService(string filePath)
+    public SettingsService(string filePath,
+        IStartupRunner startupRunner)
     {
         _filePath = filePath;
-        
+        _startupRunner = startupRunner;
+
         _settingsValidator = new InlineValidator<UserSettings>();
 
         _settingsValidator.RuleFor(x => x.CurrencySymbol)
@@ -40,6 +44,15 @@ public sealed class SettingsService : ISettingsService
             .WithMessage("{PropertyName} must be between 0 and 6.");
         
         _current = Load();
+        
+        try
+        {
+            _startupRunner.SetEnabled(_current.OpenOnStartup);
+        }
+        catch (Exception)
+        {
+            // Ignore
+        }
     }
 
     private UserSettings Load()
@@ -84,6 +97,15 @@ public sealed class SettingsService : ISettingsService
             File.Move(tempFile, _filePath, overwrite: true);
 
             Volatile.Write(ref _current, settings);
+
+            try
+            {
+                _startupRunner.SetEnabled(settings.OpenOnStartup);
+            }
+            catch (Exception )
+            {
+                // Ignore
+            }
         }
         finally
         {

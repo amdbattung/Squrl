@@ -58,9 +58,8 @@ try
     else
     {
         squrlAppDirectory = Path.Combine(
-            Environment.GetFolderPath(
-                Environment.SpecialFolder.CommonApplicationData),
-            "Squrl");
+            AppContext.BaseDirectory,
+            "server");
 
         configuration = new ConfigurationBuilder()
             .SetBasePath(squrlAppDirectory)
@@ -142,15 +141,13 @@ try
     {
         // Run the production squrl-server.exe.
         string squrlAppExe = Path.Combine(
-            AppContext.BaseDirectory,
-            "server",
+            squrlAppDirectory,
             "squrl-server.exe");
 
         if (!File.Exists(squrlAppExe))
         {
             squrlAppExe = Path.Combine(
-                AppContext.BaseDirectory,
-                "server",
+                squrlAppDirectory,
                 "Squrl.App.exe");
         }
 

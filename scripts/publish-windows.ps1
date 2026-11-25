@@ -121,33 +121,6 @@ if ($LASTEXITCODE -ne 0) {
 
 
 # ----------------------------------------
-# Build installer
-# ----------------------------------------
-$installerOutputDir = Join-Path $root "artifacts"
-
-Write-Host ""
-Write-Host "Building installer..." -ForegroundColor Yellow
-
-if (-not (Test-Path $iscc)) {
-    throw "Inno Setup compiler not found: $iscc"
-}
-
-if (-not (Test-Path $installerScript)) {
-    throw "Inno Setup script not found: $installerScript"
-}
-
-& $iscc `
-    "/DMyAppVersion=$appVersion" `
-    "/DOutputDir=$installerOutputDir" `
-    "/DSourceDir=$publishRoot" `
-    $installerScript
-
-if ($LASTEXITCODE -ne 0) {
-    throw "Inno Setup compilation failed."
-}
-
-
-# ----------------------------------------
 # Rename Squrl.App executable
 # ----------------------------------------
 
@@ -199,6 +172,33 @@ Rename-Item `
 Write-Host "  $hostExe" -ForegroundColor DarkGray
 Write-Host "       ->" -ForegroundColor DarkGray
 Write-Host "  $hostExeRenamed" -ForegroundColor Green
+
+
+# ----------------------------------------
+# Build installer
+# ----------------------------------------
+$installerOutputDir = Join-Path $root "artifacts"
+
+Write-Host ""
+Write-Host "Building installer..." -ForegroundColor Yellow
+
+if (-not (Test-Path $iscc)) {
+    throw "Inno Setup compiler not found: $iscc"
+}
+
+if (-not (Test-Path $installerScript)) {
+    throw "Inno Setup script not found: $installerScript"
+}
+
+& $iscc `
+    "/DMyAppVersion=$appVersion" `
+    "/DOutputDir=$installerOutputDir" `
+    "/DSourceDir=$publishRoot" `
+    $installerScript
+
+if ($LASTEXITCODE -ne 0) {
+    throw "Inno Setup compilation failed."
+}
 
 
 # ----------------------------------------
