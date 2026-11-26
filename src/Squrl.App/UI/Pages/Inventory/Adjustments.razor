@@ -1,6 +1,7 @@
 ﻿@page "/inventory/adjustments"
 @rendermode InteractiveServer
 @inject IInventoryService InventoryService
+@inject IDecimalFormatter DecimalFormatter
 
 <h1>Adjust Item Stock</h1>
 
@@ -27,9 +28,7 @@
         <label>Adjustment</label>
         <InputText @bind-Value="_adjustment.Adjustment" />
     </div>
-    <p>Current Stock: @(_currentStock.HasValue
-                          ? ToStringFormatters.FormatDecimal(_currentStock.Value)
-                          : string.Empty)</p>
+    <p>Current Stock: @DecimalFormatter.FormatQuantity(_currentStock)</p>
     <button type="submit">Submit</button>
 </EditForm>
 
@@ -103,7 +102,7 @@
         }
     }
     
-    private class StockAdjustmentFormModel
+    private sealed class StockAdjustmentFormModel
     {
         public Guid? ItemId { get; set; }
         public string? Adjustment { get; set; }

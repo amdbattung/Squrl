@@ -165,19 +165,18 @@ public sealed partial class ReportService
             builder.Write(poDetail.PurchaseOrder.Supplier?.Name ?? string.Empty);
             
             builder.InsertCell();
-            builder.Write($"{poDetail.Quantity
-                .ToString(CultureInfo.InvariantCulture)} {existingItem.Uom.Code}");
+            builder.Write($"{_decimalFormatter.FormatQuantity(poDetail.Quantity)} " +
+                          $"{existingItem.Uom.Code}");
             
             totalQuantity +=  poDetail.Quantity;
             
             builder.InsertCell();
-            builder.Write(poDetail.UnitPrice
-                .ToString(CultureInfo.InvariantCulture));
+            builder.Write(_decimalFormatter.FormatCurrency(poDetail.UnitPrice));
 
             decimal total = poDetail.Quantity * poDetail.UnitPrice;
             
             builder.InsertCell();
-            builder.Write(total.ToString(CultureInfo.InvariantCulture));
+            builder.Write(_decimalFormatter.FormatCurrency(total));
             
             grandTotal += total;
             
@@ -190,7 +189,7 @@ public sealed partial class ReportService
             builder.InsertCell();
             builder.Write(poDetail.PurchaseOrder.DateShipped?
                 .InZone(_timeZone)
-                .ToString("yyyy-MMM-dd HH:mm", CultureInfo.InvariantCulture)
+                .ToString("yyyy-MMM-dd", CultureInfo.InvariantCulture)
                 .ToUpperInvariant() ?? string.Empty);
 
             builder.EndRow();
@@ -205,8 +204,8 @@ public sealed partial class ReportService
         builder.InsertCell();
         builder.CellFormat.Borders.LineStyle = LineStyle.Single;
         builder.ParagraphFormat.Alignment = ParagraphAlignment.Left;
-        builder.Write($"{totalQuantity
-            .ToString(CultureInfo.InvariantCulture)} {existingItem.Uom.Code}");
+        builder.Write($"{_decimalFormatter.FormatQuantity(totalQuantity)} " +
+                      $"{existingItem.Uom.Code}");
 
         builder.InsertCell();
         builder.CellFormat.Borders.LineStyle = LineStyle.None;
@@ -217,7 +216,7 @@ public sealed partial class ReportService
         builder.InsertCell();
         builder.CellFormat.Borders.LineStyle = LineStyle.Single;
         builder.ParagraphFormat.Alignment = ParagraphAlignment.Left;
-        builder.Write(grandTotal.ToString(CultureInfo.InvariantCulture));
+        builder.Write(_decimalFormatter.FormatCurrency(grandTotal));
 
         builder.Font.Bold = false;
 

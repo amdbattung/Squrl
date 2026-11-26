@@ -1,6 +1,7 @@
 ﻿using Squrl.App.Common;
 using Squrl.App.Enums;
 using Squrl.App.Features.Items.DTOs;
+using Squrl.App.Infrastructure.DecimalFormatter;
 using Squrl.App.Services.Alert;
 
 namespace Squrl.App.Services.Inventory;
@@ -9,13 +10,16 @@ public sealed class InventoryAlertDecorator : IInventoryService
 {
     private readonly IInventoryService _inventoryService;
     private readonly IAlertService _alertService;
-    
+    private readonly IDecimalFormatter _decimalFormatter;
+
     public InventoryAlertDecorator(
         IInventoryService inventoryService,
-        IAlertService alertService)
+        IAlertService alertService,
+        IDecimalFormatter decimalFormatter)
     {
         _inventoryService = inventoryService;
         _alertService = alertService;
+        _decimalFormatter = decimalFormatter;
     }
     
     public Task<Result<GetManyItemsDto>> GetManyItemsAsync(
@@ -151,8 +155,9 @@ public sealed class InventoryAlertDecorator : IInventoryService
         {
             await _alertService.SetAlertAsync(item.Id ?? Guid.Empty,
                 $"Low stock warning for item {item.Name}. " +
-                $"Current stock of {item.Quantity:#,##0.##} " +
-                $"is on or below the threshold of {item.LowQuantityAlertThreshold:#,##0.##}.",
+                $"Current stock of {_decimalFormatter.FormatQuantity(item.Quantity)} " +
+                $"is on or below the threshold of {_decimalFormatter
+                    .RemoveTrailingZeros(item.LowQuantityAlertThreshold)}.",
                 cancellationToken);
         }
         else

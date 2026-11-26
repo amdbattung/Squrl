@@ -70,6 +70,37 @@ if ($LASTEXITCODE -ne 0) {
     throw "Squrl.App publish failed."
 }
 
+# ----------------------------------------
+# Apply appsettings.json
+# ----------------------------------------
+
+Write-Host ""
+Write-Host "Applying Windows configuration..." -ForegroundColor Yellow
+
+$settingsSource = Join-Path $PSScriptRoot "appsettings.Windows.json"
+$settingsDestination = Join-Path $serverOutput "appsettings.json"
+
+if (-not (Test-Path $settingsSource)) {
+    throw "Windows configuration not found: $settingsSource"
+}
+
+try {
+    Get-Content $settingsSource -Raw | ConvertFrom-Json | Out-Null
+}
+catch {
+    throw "Invalid JSON configuration: $settingsSource"
+}
+
+Copy-Item `
+    -Path $settingsSource `
+    -Destination $settingsDestination `
+    -Force
+
+Get-ChildItem $serverOutput -Filter "appsettings.*.json" |
+    Remove-Item -Force
+
+Write-Host "  Windows configuration applied." -ForegroundColor Green
+
 
 # ----------------------------------------
 # Publish WindowsHost
@@ -86,33 +117,6 @@ dotnet publish $hostProject `
 
 if ($LASTEXITCODE -ne 0) {
     throw "Squrl.WindowsHost publish failed."
-}
-
-
-# ----------------------------------------
-# Build installer
-# ----------------------------------------
-$installerOutputDir = Join-Path $root "artifacts"
-
-Write-Host ""
-Write-Host "Building installer..." -ForegroundColor Yellow
-
-if (-not (Test-Path $iscc)) {
-    throw "Inno Setup compiler not found: $iscc"
-}
-
-if (-not (Test-Path $installerScript)) {
-    throw "Inno Setup script not found: $installerScript"
-}
-
-& $iscc `
-    "/DMyAppVersion=$appVersion" `
-    "/DOutputDir=$installerOutputDir" `
-    "/DSourceDir=$publishRoot" `
-    $installerScript
-
-if ($LASTEXITCODE -ne 0) {
-    throw "Inno Setup compilation failed."
 }
 
 
@@ -168,6 +172,33 @@ Rename-Item `
 Write-Host "  $hostExe" -ForegroundColor DarkGray
 Write-Host "       ->" -ForegroundColor DarkGray
 Write-Host "  $hostExeRenamed" -ForegroundColor Green
+
+
+# ----------------------------------------
+# Build installer
+# ----------------------------------------
+$installerOutputDir = Join-Path $root "artifacts"
+
+Write-Host ""
+Write-Host "Building installer..." -ForegroundColor Yellow
+
+if (-not (Test-Path $iscc)) {
+    throw "Inno Setup compiler not found: $iscc"
+}
+
+if (-not (Test-Path $installerScript)) {
+    throw "Inno Setup script not found: $installerScript"
+}
+
+& $iscc `
+    "/DMyAppVersion=$appVersion" `
+    "/DOutputDir=$installerOutputDir" `
+    "/DSourceDir=$publishRoot" `
+    $installerScript
+
+if ($LASTEXITCODE -ne 0) {
+    throw "Inno Setup compilation failed."
+}
 
 
 # ----------------------------------------

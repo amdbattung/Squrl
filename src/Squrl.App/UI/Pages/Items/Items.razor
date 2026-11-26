@@ -4,6 +4,7 @@
 @inject IInventoryService InventoryService
 @inject IUomService UomService
 @inject NavigationManager Navigation
+@inject IDecimalFormatter DecimalFormatter
 @inject IJSRuntime Js
 
 <h1>Items</h1>
@@ -33,36 +34,21 @@
            Pagination="@_pagination">
     <PropertyColumn Property="i => i.Name" />
     <PropertyColumn Property="i => i.Description" />
-    <TemplateColumn Title="Onhand">
-        @(context.Quantity.HasValue
-            ? ToStringFormatters.FormatDecimal(context.Quantity.Value)
-            : "")
-    </TemplateColumn>
+    <PropertyColumn Title="On-hand"
+                    Property="i => DecimalFormatter.FormatQuantity(i.Quantity)" />
     <TemplateColumn Title="UOM">
         @(_uomCache.TryGetValue(context.UomId ?? Guid.Empty, out string? uom)
             ? uom
             : "")
     </TemplateColumn>
-    <TemplateColumn Title="List Price">
-        @(context.ListPrice.HasValue
-            ? ToStringFormatters.FormatDecimal(context.ListPrice.Value)
-            : "")
-    </TemplateColumn>
-    <TemplateColumn Title="Retail Price">
-        @(context.RetailPrice.HasValue
-            ? ToStringFormatters.FormatDecimal(context.RetailPrice.Value)
-            : "")
-    </TemplateColumn>
-    <TemplateColumn Title="Cost Price">
-        @(context.CostPrice.HasValue
-            ? ToStringFormatters.FormatDecimal(context.CostPrice.Value)
-            : "")
-    </TemplateColumn>
-    <TemplateColumn Title="Low Stock Threshold">
-        @(context.LowQuantityAlertThreshold.HasValue
-            ? ToStringFormatters.FormatDecimal(context.LowQuantityAlertThreshold.Value)
-            : "")
-    </TemplateColumn>
+    <PropertyColumn Title="List Price"
+                    Property="i => DecimalFormatter.FormatCurrency(i.ListPrice)" />
+    <PropertyColumn Title="Retail Price"
+                    Property="i => DecimalFormatter.FormatCurrency(i.RetailPrice)" />
+    <PropertyColumn Title="Cost Price"
+                    Property="i => DecimalFormatter.FormatCurrency(i.CostPrice)" />
+    <PropertyColumn Title="Low Stock Threshold"
+                    Property="i => DecimalFormatter.RemoveTrailingZeros(i.LowQuantityAlertThreshold)" />
     <TemplateColumn Title="Location(s)">
         @string.Join(", ", context.Locations ?? Array.Empty<string>())
     </TemplateColumn>

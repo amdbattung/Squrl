@@ -1,6 +1,9 @@
 ﻿using FluentValidation.Results;
+using Moq;
+using Squrl.App.Common;
 using Squrl.App.Features.PurchaseOrderDetails.DTOs;
 using Squrl.App.Features.PurchaseOrderDetails.Validators;
+using Squrl.App.Services.Settings;
 
 namespace Squrl.App.Tests.ValidatorTests;
 
@@ -10,7 +13,16 @@ public class UpdatePoDetailValidatorTests
 
     public UpdatePoDetailValidatorTests()
     {
-        _validator = new UpdatePoDetailValidator();
+        Mock<ISettingsService> settingsServiceMock = new();
+        
+        settingsServiceMock
+            .Setup(x => x.Current)
+            .Returns(new UserSettings
+            {
+                ItemQuantityPrecision = 2
+            });
+        
+        _validator = new UpdatePoDetailValidator(settingsServiceMock.Object);
     }
     
     [Fact]

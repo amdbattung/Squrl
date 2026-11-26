@@ -1,16 +1,28 @@
 ﻿using FluentValidation.Results;
+using Moq;
+using Squrl.App.Common;
 using Squrl.App.Features.Items.DTOs;
 using Squrl.App.Features.Items.Validators;
+using Squrl.App.Services.Settings;
 
 namespace Squrl.App.Tests.ValidatorTests;
 
 public class CreateItemValidatorTests
 {
     private readonly CreateItemValidator _validator;
-    
+
     public CreateItemValidatorTests()
     {
-        _validator = new CreateItemValidator();
+        Mock<ISettingsService> settingsServiceMock = new();
+        
+        settingsServiceMock
+            .Setup(x => x.Current)
+            .Returns(new UserSettings
+            {
+                ItemQuantityPrecision = 2
+            });
+        
+        _validator = new CreateItemValidator(settingsServiceMock.Object);
     }
     
     [Fact]

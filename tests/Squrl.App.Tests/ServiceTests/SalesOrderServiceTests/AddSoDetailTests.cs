@@ -37,12 +37,12 @@ public sealed class AddSoDetailTests : IntegrationTest
         Item itemSeed = new()
         {
             Id = Guid.NewGuid(),
-            Name = "Test Item",
+            Name = "Test Item B",
             Uom = new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Test UOM",
-                Code = "u"
+                Name = "Test UOM B",
+                Code = "uB"
             },
             Quantity = 10m,
             Locations = ["Shelf A", "Shelf B"]
@@ -55,7 +55,19 @@ public sealed class AddSoDetailTests : IntegrationTest
             Id = Guid.NewGuid(),
             SalesOrder = salesOrderSeed,
             LineSequence = 1,
-            Item = itemSeed,
+            Item = new()
+            {
+                Id = Guid.NewGuid(),
+                Name = "Test Item A",
+                Uom = new()
+                {
+                    Id = Guid.NewGuid(),
+                    Name = "Test UOM A",
+                    Code = "uA"
+                },
+                Quantity = 10m,
+                Locations = ["Shelf A", "Shelf B"]
+            },
             Quantity = 5m,
             UnitPrice = 600m
         };
@@ -215,4 +227,6 @@ public sealed class AddSoDetailTests : IntegrationTest
 
         Assert.False(exists);
     }
+    
+    // TODO: Fail unconsecutive line sequence and duplicate items
 }

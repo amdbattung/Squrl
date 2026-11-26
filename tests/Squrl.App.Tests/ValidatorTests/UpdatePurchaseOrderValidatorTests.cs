@@ -1,10 +1,13 @@
 ﻿using FluentValidation.Results;
+using Moq;
 using NodaTime;
+using Squrl.App.Common;
 using Squrl.App.Enums;
 using Squrl.App.Features.PurchaseOrderDetails.DTOs;
 using Squrl.App.Features.PurchaseOrderDetails.Validators;
 using Squrl.App.Features.PurchaseOrders.DTOs;
 using Squrl.App.Features.PurchaseOrders.Validators;
+using Squrl.App.Services.Settings;
 
 namespace Squrl.App.Tests.ValidatorTests;
 
@@ -14,7 +17,17 @@ public class UpdatePurchaseOrderValidatorTests
 
     public UpdatePurchaseOrderValidatorTests()
     {
-        _validator = new UpdatePurchaseOrderValidator(new UpdatePoDetailValidator());
+        Mock<ISettingsService> settingsServiceMock = new();
+        
+        settingsServiceMock
+            .Setup(x => x.Current)
+            .Returns(new UserSettings
+            {
+                ItemQuantityPrecision = 2
+            });
+        
+        _validator = new UpdatePurchaseOrderValidator(
+            new UpdatePoDetailValidator(settingsServiceMock.Object));
     }
     
     [Fact]
@@ -238,4 +251,6 @@ public class UpdatePurchaseOrderValidatorTests
             DateShipped = Instant.FromUtc(2020, 1, 1, 0, 0)
         };
     }
+    
+    // TODO: Fail unconsecutive line sequence and duplicate items
 }

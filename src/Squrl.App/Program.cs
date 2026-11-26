@@ -1,16 +1,20 @@
+using System.Text.Json;
 using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 using NodaTime;
 using Serilog;
 using Serilog.Events;
+using Squrl.App.Common;
 using Squrl.App.Data;
 using Squrl.App.Extensions;
 using Squrl.App.Features.PurchaseOrders.DTOs;
 using Squrl.App.Features.SalesOrders.DTOs;
 using Squrl.App.Infrastructure.BackgroundTaskQueue;
+using Squrl.App.Infrastructure.DecimalFormatter;
 using Squrl.App.Infrastructure.ImageProcessor;
 using Squrl.App.Infrastructure.ImageStorage;
 using Squrl.App.Infrastructure.PlatformDialog;
+using Squrl.App.Infrastructure.StartupRunner;
 using Squrl.App.Infrastructure.TransactionManager;
 using Squrl.App.Services.Alert;
 using Squrl.App.Services.Import;
@@ -18,9 +22,15 @@ using Squrl.App.Services.Inventory;
 using Squrl.App.Services.PurchaseOrder;
 using Squrl.App.Services.Report;
 using Squrl.App.Services.SalesOrder;
+using Squrl.App.Services.Settings;
 using Squrl.App.Services.Supplier;
 using Squrl.App.Services.UnitOfMeasure;
 using Squrl.App.UI;
+
+const string mutexName = "Squrl_Server_SingleInstance";
+
+Mutex? mutex = null;
+bool mutexOwned = false;
 
 Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft", LogEventLevel.Warning)
@@ -31,51 +41,72 @@ Log.Logger = new LoggerConfiguration()
 
 try
 {
+    mutex = new Mutex(
+        initiallyOwned: true,
+        name: mutexName,
+        out bool createdNew);
+
+    mutexOwned = createdNew;
+
+    if (!mutexOwned)
+    {
+        Log.Warning("Squrl is already running.");
+        return;
+    }
+    
     Log.Information("Starting up Squrl");
 
     WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
     
     // Set up operating system specific files and configuration
+    string settingsFilePath;
+    
     if (builder.Environment.IsProduction())
     {
-        string commonData;
+        string dataDirectory;
 
         if (OperatingSystem.IsWindows())
         {
-            commonData = Path.Combine(
+            dataDirectory = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData),
                 "Squrl");
         }
         else if (OperatingSystem.IsMacOS())
         {
-            commonData = Path.Combine(
+            dataDirectory = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
                 "Squrl");
         }
         else if (OperatingSystem.IsLinux())
         {
-            commonData = Environment.GetEnvironmentVariable("SQURL_DATA_DIR")
-                         ?? Path.Combine("/var", "lib", "squrl");
+            dataDirectory = Environment.GetEnvironmentVariable("SQURL_DATA_DIR")
+                            ?? Path.Combine("/var", "lib", "squrl");
         }
         else
         {
             throw new PlatformNotSupportedException("The current operating system is not supported.");
         }
-
-        Directory.CreateDirectory(commonData);
-
-        builder.Configuration.AddJsonFile(
-            Path.Combine(commonData, "appsettings.json"),
-            optional: false,
-            reloadOnChange: true);
+        
+        Directory.CreateDirectory(dataDirectory);
+        Directory.CreateDirectory(Path.Combine(dataDirectory, "backups"));
+        Directory.CreateDirectory(Path.Combine(dataDirectory, "logs"));
+        Directory.CreateDirectory(Path.Combine(dataDirectory, "images"));
+        
+        settingsFilePath = Path.Combine(
+            dataDirectory,
+            "settings.json");
 
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
-            ["ImageDirectory"] = Path.Combine(commonData, "images")
+            ["ImageDirectory"] = Path.Combine(dataDirectory, "images")
         });
     }
     else
     {
+        settingsFilePath = Path.Combine(
+            builder.Environment.ContentRootPath,
+            "settings.json");
+        
         builder.Configuration.AddInMemoryCollection(new Dictionary<string, string?>
         {
             ["ImageDirectory"] = Path.Combine(
@@ -83,8 +114,35 @@ try
                 "uploads")
         });
     }
+    
+    if (!File.Exists(settingsFilePath))
+    {
+        UserSettings defaultSettings = new();
+
+        string json = JsonSerializer.Serialize(
+            defaultSettings,
+            new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+
+        File.WriteAllText(settingsFilePath, json);
+    }
 
     // Add services to the container.
+    builder.Services.AddSingleton<IStartupRunner>(_ =>
+    {
+        if (builder.Environment.IsProduction())
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                return new WindowsStartupRunner(builder.Configuration);
+            }
+        }
+
+        return new NullStartupRunner();
+    });
+    
     builder.Services.AddSerilog((services, lc) => lc
         .ReadFrom.Configuration(builder.Configuration)
         .ReadFrom.Services(services));
@@ -136,6 +194,8 @@ try
     builder.Services.AddCsvExportersFromAssembly(typeof(Program).Assembly);
     builder.Services.AddExcelExportersFromAssembly(typeof(Program).Assembly);
 
+    builder.Services.AddSingleton<IDecimalFormatter, DecimalFormatter>();
+
     // Custom services.
     builder.Services.AddScoped<IInventoryService, InventoryService>();
     builder.Services.Decorate<IInventoryService, InventoryPreprocessingDecorator>();
@@ -172,6 +232,13 @@ try
     builder.Services.Decorate<IReportService, ReportPreprocessingDecorator>();
     builder.Services.Decorate<IReportService, ReportLoggingDecorator>();
     builder.Services.Decorate<IReportService, ReportErrorHandlingDecorator>();
+    
+    builder.Services.AddSingleton<ISettingsService>(
+        provider => new SettingsService(
+            settingsFilePath,
+            provider.GetRequiredService<IStartupRunner>()));
+    builder.Services.Decorate<ISettingsService, SettingsLoggingDecorator>();
+    builder.Services.Decorate<ISettingsService, SettingsErrorHandlingDecorator>();
     
     builder.Services.AddSingleton<IAlertService, AlertService>();
 
@@ -250,5 +317,12 @@ catch (Exception ex)
 }
 finally
 {
+    if (mutexOwned)
+    {
+        mutex?.ReleaseMutex();
+    }
+
+    mutex?.Dispose();
+
     Log.CloseAndFlush();
 }

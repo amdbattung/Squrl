@@ -1,11 +1,12 @@
 ﻿using FluentValidation;
 using Squrl.App.Features.PurchaseOrderDetails.DTOs;
+using Squrl.App.Services.Settings;
 
 namespace Squrl.App.Features.PurchaseOrderDetails.Validators;
 
 public class UpdatePoDetailValidator : AbstractValidator<UpdatePoDetailDto>
 {
-    public UpdatePoDetailValidator()
+    public UpdatePoDetailValidator(ISettingsService settingsService)
     {
         RuleFor(x => x.PurchaseOrderId)
             .NotEmpty()
@@ -30,7 +31,12 @@ public class UpdatePoDetailValidator : AbstractValidator<UpdatePoDetailDto>
             .NotNull()
             .WithMessage("{PropertyName} is required.")
             .GreaterThan(0m)
-            .WithMessage("{PropertyName} must not be zero or negative.");
+            .WithMessage("{PropertyName} must not be zero or negative.")
+            .Must(x => !x.HasValue ||
+                       x.Value == decimal.Round(x.Value, settingsService.Current.ItemQuantityPrecision))
+            .WithMessage("{PropertyName} must have no more than " +
+                         $"{settingsService.Current.ItemQuantityPrecision} " +
+                         "decimal places.");
         
         RuleFor(x => x.UnitPrice)
             .NotNull()
@@ -38,6 +44,9 @@ public class UpdatePoDetailValidator : AbstractValidator<UpdatePoDetailDto>
             .WithMessage("{PropertyName} is required.")
             .GreaterThanOrEqualTo(0m)
             .WithName("Unit Price")
-            .WithMessage("{PropertyName} must not be negative.");
+            .WithMessage("{PropertyName} must not be negative.")
+            .Must(x => !x.HasValue || x.Value == decimal.Round(x.Value, 2))
+            .WithName("Unit Price")
+            .WithMessage("{PropertyName} must have no more than 2 decimal places.");
     }
 }

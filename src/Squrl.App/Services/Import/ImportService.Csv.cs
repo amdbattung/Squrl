@@ -1,5 +1,4 @@
-﻿using DocumentFormat.OpenXml.Wordprocessing;
-using FluentValidation.Results;
+﻿using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
 using nietras.SeparatedValues;
 using Squrl.App.Common;
@@ -30,7 +29,7 @@ public sealed partial class ImportService
         
         List<(int RowNumber, Item Item)> items = new();
 
-        var rowNumber = 0;
+        int rowNumber = 0;
         
         Dictionary<string, Models.UnitOfMeasure> uomCache = new(StringComparer.OrdinalIgnoreCase);
 
@@ -117,10 +116,21 @@ public sealed partial class ImportService
                     Name = dto.Name,
                     Uom = uom,
                     Description = dto.Description,
-                    ListPrice = dto.ListPrice,
-                    RetailPrice = dto.RetailPrice,
-                    CostPrice = dto.CostPrice,
-                    Quantity = dto.Quantity ?? 0m,
+                    ListPrice = dto.ListPrice != null
+                        ? Math.Round(dto.ListPrice.Value, 2, MidpointRounding.AwayFromZero)
+                        : null,
+                    RetailPrice = dto.RetailPrice != null
+                        ? Math.Round(dto.RetailPrice.Value, 2, MidpointRounding.AwayFromZero)
+                        : null,
+                    CostPrice = dto.CostPrice != null
+                        ? Math.Round(dto.CostPrice.Value, 2, MidpointRounding.AwayFromZero)
+                        : null,
+                    Quantity = dto.Quantity != null
+                        ? Math.Round(
+                            dto.Quantity.Value,
+                            _settingsService.Current.ItemQuantityPrecision,
+                            MidpointRounding.AwayFromZero)
+                        : 0m,
                     LowQuantityAlertThreshold =  dto.LowQuantityAlertThreshold,
                     Locations = dto.Locations
                 };
@@ -149,6 +159,13 @@ public sealed partial class ImportService
             await _dataContext.SaveChangesAsync(cancellationToken);
 
             successfulRows += items.Count;
+            
+            foreach (var item in items)
+            {
+                await AlertHelper(
+                    item.Item,
+                    cancellationToken);
+            }
         }
         catch (DbUpdateException)
         {
@@ -171,6 +188,10 @@ public sealed partial class ImportService
                     await _dataContext.SaveChangesAsync(cancellationToken);
 
                     successfulRows++;
+                    
+                    await AlertHelper(
+                        item.Item,
+                        cancellationToken);
                 }
                 catch (DbUpdateException e) when (IsUniqueConstraintViolation(e))
                 {
@@ -228,7 +249,7 @@ public sealed partial class ImportService
         
         List<(int RowNumber, Models.UnitOfMeasure Uom)> uoms = new();
 
-        var rowNumber = 0;
+        int rowNumber = 0;
 
         foreach (SepReader.Row row in csv)
         {
@@ -379,7 +400,7 @@ public sealed partial class ImportService
         
         List<(int RowNumber, Models.Supplier Supplier)> suppliers = new();
 
-        var rowNumber = 0;
+        int rowNumber = 0;
 
         foreach (SepReader.Row row in csv)
         {

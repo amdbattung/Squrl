@@ -105,8 +105,15 @@ public sealed partial class SalesOrderService
                 SalesOrder = salesOrder,
                 LineSequence = soDetail.LineSequence ?? 0,
                 Item = item,
-                Quantity = soDetail.Quantity ?? 0m,
-                UnitPrice = soDetail.UnitPrice ?? 0m
+                Quantity = soDetail.Quantity != null
+                    ? Math.Round(
+                        soDetail.Quantity.Value,
+                        _settingsService.Current.ItemQuantityPrecision,
+                        MidpointRounding.AwayFromZero)
+                    : 0m,
+                UnitPrice = soDetail.UnitPrice != null
+                    ? Math.Round(soDetail.UnitPrice.Value, 2, MidpointRounding.AwayFromZero)
+                    : 0m
             };
         
             await _dataContext.SalesOrderDetails.AddAsync(newSoDetail, ct);
@@ -239,8 +246,15 @@ public sealed partial class SalesOrderService
             
             existingSoDetail.SalesOrder = salesOrder ?? existingSoDetail.SalesOrder;
             existingSoDetail.Item = item ?? existingSoDetail.Item;
-            existingSoDetail.Quantity = soDetail.Quantity ?? existingSoDetail.Quantity;
-            existingSoDetail.UnitPrice = soDetail.UnitPrice ?? existingSoDetail.UnitPrice;
+            existingSoDetail.Quantity = soDetail.Quantity != null
+                ? Math.Round(
+                    soDetail.Quantity.Value,
+                    _settingsService.Current.ItemQuantityPrecision,
+                    MidpointRounding.AwayFromZero)
+                : existingSoDetail.Quantity;
+            existingSoDetail.UnitPrice = soDetail.UnitPrice != null
+                ? Math.Round(soDetail.UnitPrice.Value, 2, MidpointRounding.AwayFromZero)
+                : existingSoDetail.UnitPrice;
 
             return Result<GetSoDetailDto>.Ok(SoDetailMapper.ToDto(existingSoDetail));
         };

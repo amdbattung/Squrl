@@ -4,6 +4,7 @@
 @inject IPurchaseOrderService PurchaseOrderService
 @inject ISupplierService SupplierService
 @inject IInventoryService InventoryService
+@inject IDecimalFormatter DecimalFormatter
 @inject IJSRuntime Js
 
 <h1>Purchase Order</h1>
@@ -40,9 +41,12 @@
                 ? item
                 : "")
         </TemplateColumn>
-        <PropertyColumn Title="Quantity" Property="p => p.Quantity" />
-        <PropertyColumn Title="Unit Price" Property="p => p.UnitPrice" />
-        <PropertyColumn Title="Total Price" Property="p => p.Quantity * p.UnitPrice" />
+        <PropertyColumn Title="Quantity"
+                        Property="p => DecimalFormatter.FormatQuantity(p.Quantity)" />
+        <PropertyColumn Title="Unit Price"
+                        Property="p => DecimalFormatter.FormatCurrency(p.UnitPrice)" />
+        <PropertyColumn Title="Total Price"
+                        Property="p => DecimalFormatter.FormatCurrency(p.Quantity * p.UnitPrice)" />
     </QuickGrid>
 }
 else

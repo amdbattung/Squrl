@@ -3,6 +3,7 @@
 @implements IDisposable
 @inject IInventoryService InventoryService
 @inject IUomService UomService
+@inject IDecimalFormatter DecimalFormatter
 
 <h1>Stocks</h1>
 
@@ -24,10 +25,9 @@
         }
     </TemplateColumn>
     <PropertyColumn Property="i => i.Name" Title="Item"/>
-    @* <PropertyColumn Property="i => i.Quantity" Title="Onhand" Format="#,##0.##" /> *@
-    <TemplateColumn Title="Onhand">
+    <TemplateColumn Title="On-hand">
         @(context.Quantity.HasValue
-            ? $"{ToStringFormatters.FormatDecimal(context.Quantity.Value)} " +
+            ? $"{DecimalFormatter.FormatQuantity(context.Quantity.Value)} " +
               $"{(_uomCache.TryGetValue(context.UomId ?? Guid.Empty, out string? uom)
                       ? uom
                       : "")}"
