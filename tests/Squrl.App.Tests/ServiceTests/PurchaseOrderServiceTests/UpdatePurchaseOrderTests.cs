@@ -55,66 +55,43 @@ public sealed class UpdatePurchaseOrderTests : IntegrationTest
         Item itemSeed = new()
         {
             Id = Guid.NewGuid(),
-            Name = "Test Item",
+            Name = "Test Item B",
             Uom = new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Test UOM",
-                Code = "u"
+                Name = "Test UOM B",
+                Code = "uB"
             },
             Quantity = 10m,
             Locations = ["Shelf A", "Shelf B"]
         };
         
         dataContext.Items.Add(itemSeed);
-        
-        List<PurchaseOrderDetail> poDetailSeed = [
-            new()
+
+        PurchaseOrderDetail poDetailSeed = new()
+        {
+            Id = Guid.NewGuid(),
+            PurchaseOrder = seed,
+            LineSequence = 1,
+            Item = new()
             {
                 Id = Guid.NewGuid(),
-                PurchaseOrder = seed,
-                LineSequence = 1,
-                Item = new()
+                Name = "Test Item A",
+                Uom = new()
                 {
                     Id = Guid.NewGuid(),
-                    Name = "Test Item A",
-                    Uom = new()
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "Test UOM A",
-                        Code = "uA"
-                    },
-                    Quantity = 10m,
-                    Locations = ["Shelf A", "Shelf B"]
+                    Name = "Test UOM A",
+                    Code = "uA"
                 },
-                Quantity = 5m,
-                UnitPrice = 600m
+                Quantity = 10m,
+                Locations = ["Shelf A", "Shelf B"]
             },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                PurchaseOrder = seed,
-                LineSequence = 2,
-                Item = new()
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Test Item B",
-                    Uom = new()
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "Test UOM B",
-                        Code = "uB"
-                    },
-                    Quantity = 10m,
-                    Locations = ["Shelf A", "Shelf B"]
-                },
-                Quantity = 5m,
-                UnitPrice = 600m
-            }
-        ];
+            Quantity = 5m,
+            UnitPrice = 600m
+        };
         
         dataContext.PurchaseOrders.Add(seed);
-        dataContext.PurchaseOrderDetails.AddRange(poDetailSeed);
+        dataContext.PurchaseOrderDetails.Add(poDetailSeed);
         await dataContext.SaveChangesAsync();
         
         UpdatePurchaseOrderDto dto = new()
@@ -127,14 +104,6 @@ public sealed class UpdatePurchaseOrderTests : IntegrationTest
                 {
                     PurchaseOrderId = Guid.Empty,
                     LineSequence = 1,
-                    ItemId = itemSeed.Id,
-                    Quantity = 6m,
-                    UnitPrice = 700m
-                },
-                new()
-                {
-                    PurchaseOrderId = Guid.Empty,
-                    LineSequence = 2,
                     ItemId = itemSeed.Id,
                     Quantity = 6m,
                     UnitPrice = 700m

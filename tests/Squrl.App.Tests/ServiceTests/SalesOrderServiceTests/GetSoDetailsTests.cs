@@ -28,22 +28,6 @@ public sealed class GetSoDetailsTests : IntegrationTest
         DataContext dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
         
         // Arrange
-        Item itemSeed = new()
-        {
-            Id = Guid.NewGuid(),
-            Name = "Test Item",
-            Uom = new()
-            {
-                Id = Guid.NewGuid(),
-                Name = "Test UOM",
-                Code = "u"
-            },
-            Quantity = 10m,
-            Locations = ["Shelf A", "Shelf B"]
-        };
-        
-        dataContext.Items.Add(itemSeed);
-        
         SalesOrder salesOrderSeed = new()
         {
             Id = Guid.NewGuid(),
@@ -56,7 +40,19 @@ public sealed class GetSoDetailsTests : IntegrationTest
                 Id = Guid.NewGuid(),
                 SalesOrder = salesOrderSeed,
                 LineSequence = i,
-                Item = itemSeed,
+                Item = new()
+                {
+                    Id = Guid.NewGuid(),
+                    Name = $"Test Item {i}",
+                    Uom = new()
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = $"Test UOM {i}",
+                        Code = $"u{i}"
+                    },
+                    Quantity = 10m,
+                    Locations = ["Shelf A", "Shelf B"]
+                },
                 Quantity = 5m,
                 UnitPrice = 600m
             })
@@ -135,22 +131,6 @@ public sealed class GetSoDetailsTests : IntegrationTest
         DataContext dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
         
         // Arrange
-        Item itemSeed = new()
-        {
-            Id = Guid.NewGuid(),
-            Name = "Test Item",
-            Uom = new()
-            {
-                Id = Guid.NewGuid(),
-                Name = "Test UOM",
-                Code = "u"
-            },
-            Quantity = 10m,
-            Locations = ["Shelf A", "Shelf B"]
-        };
-        
-        dataContext.Items.Add(itemSeed);
-        
         SalesOrder salesOrderSeed = new()
         {
             Id = Guid.NewGuid(),
@@ -163,7 +143,19 @@ public sealed class GetSoDetailsTests : IntegrationTest
                 Id = Guid.NewGuid(),
                 SalesOrder = salesOrderSeed,
                 LineSequence = i,
-                Item = itemSeed,
+                Item = new()
+                {
+                    Id = Guid.NewGuid(),
+                    Name = $"Test Item {i}",
+                    Uom = new()
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = $"Test UOM {i}",
+                        Code = $"u{i}"
+                    },
+                    Quantity = 10m,
+                    Locations = ["Shelf A", "Shelf B"]
+                },
                 Quantity = 5m,
                 UnitPrice = 600m
             })
@@ -216,22 +208,6 @@ public sealed class GetSoDetailsTests : IntegrationTest
         DataContext dataContext = scope.ServiceProvider.GetRequiredService<DataContext>();
         
         // Arrange
-        Item itemSeed = new()
-        {
-            Id = Guid.NewGuid(),
-            Name = "Test Item",
-            Uom = new()
-            {
-                Id = Guid.NewGuid(),
-                Name = "Test UOM",
-                Code = "u"
-            },
-            Quantity = 10m,
-            Locations = ["Shelf A", "Shelf B"]
-        };
-        
-        dataContext.Items.Add(itemSeed);
-        
         SalesOrder salesOrderSeed = new()
         {
             Id = Guid.NewGuid(),
@@ -244,7 +220,19 @@ public sealed class GetSoDetailsTests : IntegrationTest
                 Id = Guid.NewGuid(),
                 SalesOrder = salesOrderSeed,
                 LineSequence = i,
-                Item = itemSeed,
+                Item = new()
+                {
+                    Id = Guid.NewGuid(),
+                    Name = $"Test Item {i}",
+                    Uom = new()
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = $"Test UOM {i}",
+                        Code = $"u{i}"
+                    },
+                    Quantity = 10m,
+                    Locations = ["Shelf A", "Shelf B"]
+                },
                 Quantity = 5m,
                 UnitPrice = 600m
             })

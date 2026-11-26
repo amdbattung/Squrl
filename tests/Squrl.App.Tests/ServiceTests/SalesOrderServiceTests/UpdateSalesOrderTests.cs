@@ -40,12 +40,12 @@ public class UpdateSalesOrderTests : IntegrationTest
         Item itemSeed = new()
         {
             Id = Guid.NewGuid(),
-            Name = "Test Item",
+            Name = "Test Item B",
             Uom = new()
             {
                 Id = Guid.NewGuid(),
-                Name = "Test UOM",
-                Code = "u"
+                Name = "Test UOM B",
+                Code = "uB"
             },
             Quantity = 10m,
             Locations = ["Shelf A", "Shelf B"]
@@ -74,27 +74,6 @@ public class UpdateSalesOrderTests : IntegrationTest
                 },
                 Quantity = 5m,
                 UnitPrice = 600m
-            },
-            new()
-            {
-                Id = Guid.NewGuid(),
-                SalesOrder = seed,
-                LineSequence = 2,
-                Item = new()
-                {
-                    Id = Guid.NewGuid(),
-                    Name = "Test Item B",
-                    Uom = new()
-                    {
-                        Id = Guid.NewGuid(),
-                        Name = "Test UOM B",
-                        Code = "uB"
-                    },
-                    Quantity = 10m,
-                    Locations = ["Shelf A", "Shelf B"]
-                },
-                Quantity = 5m,
-                UnitPrice = 600m
             }
         ];
 
@@ -111,14 +90,6 @@ public class UpdateSalesOrderTests : IntegrationTest
                 {
                     SalesOrderId = Guid.Empty,
                     LineSequence = 1,
-                    ItemId = itemSeed.Id,
-                    Quantity = 6m,
-                    UnitPrice = 700m
-                },
-                new()
-                {
-                    SalesOrderId = Guid.Empty,
-                    LineSequence = 2,
                     ItemId = itemSeed.Id,
                     Quantity = 6m,
                     UnitPrice = 700m

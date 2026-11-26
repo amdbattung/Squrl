@@ -67,14 +67,6 @@ public sealed class CreatePurchaseOrderTests : IntegrationTest
                     ItemId = itemSeed.Id,
                     Quantity = 5m,
                     UnitPrice = 600m
-                },
-                new()
-                {
-                    PurchaseOrderId = Guid.Empty,
-                    LineSequence = 2,
-                    ItemId = itemSeed.Id,
-                    Quantity = 5m,
-                    UnitPrice = 600.05m
                 }
             ],
             DateOrdered = Instant.FromUtc(2020, 1, 1, 0, 0),

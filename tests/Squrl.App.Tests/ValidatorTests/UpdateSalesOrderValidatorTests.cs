@@ -206,4 +206,6 @@ public class UpdateSalesOrderValidatorTests
             DateOrdered = Instant.FromUtc(2020, 1, 1, 0, 0)
         };
     }
+    
+    // TODO: Fail unconsecutive line sequence and duplicate items
 }

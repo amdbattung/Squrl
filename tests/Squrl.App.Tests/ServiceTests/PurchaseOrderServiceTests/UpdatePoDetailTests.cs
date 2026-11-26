@@ -237,4 +237,6 @@ public sealed class UpdatePoDetailTests : IntegrationTest
 
         Assert.False(exists);
     }
+    
+    // TODO: Fail unconsecutive line sequence and duplicate items
 }
